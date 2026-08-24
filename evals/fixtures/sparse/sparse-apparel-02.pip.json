@@ -1,0 +1,160 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "sparse-apparel-02",
+    "set": "sparse",
+    "intent": "Realistic partial: material named in prose without proportions (PARTIAL), no size system, no garment measurements. Tests that prose origin is honoured and that PARTIAL is not FAIL.",
+    "provenance": "Synthetic. Authored for this eval corpus. Not derived from any real merchant's catalog or private data.",
+    "notes": null
+  },
+  "products": [
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:harbourline-everyday-tee",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/sparse/sparse-apparel-02.pip.json",
+        "locator": "products[handle:harbourline-everyday-tee]"
+      },
+      "identity": {
+        "title": {
+          "value": "Harbourline Everyday Tee",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Harbourline",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "harbourline-everyday-tee",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": "T-Shirts",
+          "src": "identity.product_type"
+        },
+        "declared_category": {
+          "value": "Apparel & Accessories > Clothing > Shirts & Tops",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": "Our everyday tee, cut from soft cotton jersey. Wears well season after season.",
+          "src": "narrative.description_text"
+        },
+        "description_html": {
+          "value": "<p>Our everyday tee, cut from soft cotton jersey. Wears well season after season.</p>",
+          "src": "narrative.description_html"
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 13
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [
+        {
+          "key": "material_composition",
+          "value_raw": "soft cotton jersey",
+          "origin": "merchant_prose",
+          "src": "narrative.description_text[27:45]",
+          "scope": "product"
+        }
+      ],
+      "options": [
+        {
+          "name": "Size",
+          "values": [
+            "S",
+            "M",
+            "L"
+          ],
+          "src": "options[Size]"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:HL-TEE-S",
+          "option_values": {
+            "Size": "S"
+          },
+          "sku": {
+            "value": "HL-TEE-S",
+            "src": "variants[sku:HL-TEE-S].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "34.00",
+            "currency": null,
+            "src": "variants[sku:HL-TEE-S].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        },
+        {
+          "variant_id": "sku:HL-TEE-M",
+          "option_values": {
+            "Size": "M"
+          },
+          "sku": {
+            "value": "HL-TEE-M",
+            "src": "variants[sku:HL-TEE-M].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "34.00",
+            "currency": null,
+            "src": "variants[sku:HL-TEE-M].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        },
+        {
+          "variant_id": "sku:HL-TEE-L",
+          "option_values": {
+            "Size": "L"
+          },
+          "sku": {
+            "value": "HL-TEE-L",
+            "src": "variants[sku:HL-TEE-L].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "34.00",
+            "currency": null,
+            "src": "variants[sku:HL-TEE-L].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

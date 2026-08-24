@@ -1,0 +1,97 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "adv-03-placeholder-values",
+  "set": "adversarial",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the checks this fixture was built to exercise, plus the invariants that hold for the whole record. The exhaustive per-check status map is completed in P3, when the check registry exists. Fields asserted here are final and must not be relaxed to make an implementation pass.",
+  "notes": "Also the only fixture in this set where a FAIL is expected -- and it is a structural FAIL, not an absence FAIL.",
+  "products": [
+    {
+      "product_id": "handle:placeholder-storage-bin",
+      "expected_category": "home",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "polypropylene",
+        "plastic",
+        "rattan",
+        "canvas",
+        "30 x 30 x 30 cm",
+        "40 litre",
+        "25 L",
+        "stackable",
+        "collapsible",
+        "lidded",
+        "grey",
+        "white"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_total_penalty": 0.0,
+      "every_finding_has_evidence": true,
+      "absence_evidence_requires_checked_paths": true,
+      "expected_score_band": [
+        0,
+        39
+      ],
+      "bait_class": "placeholder_as_value",
+      "bait_note": "Every value field holds a placeholder. PRD 5.4 and 9.4: each is treated as ABSENT with the literal placeholder quoted in evidence. Two failures are possible here and both are prohibited -- reporting 'xxx' as a material, or replacing it with a plausible one.",
+      "placeholder_invariant": {
+        "placeholders_present": [
+          {
+            "locator": "attributes[materials_and_finish].value_raw",
+            "literal": "xxx"
+          },
+          {
+            "locator": "attributes[assembled_dimensions].value_raw",
+            "literal": "TBD"
+          },
+          {
+            "locator": "metafields[custom.capacity].value",
+            "literal": "N/A"
+          },
+          {
+            "locator": "identity.brand",
+            "literal": "TBD"
+          },
+          {
+            "locator": "identity.product_type",
+            "literal": "-"
+          },
+          {
+            "locator": "narrative.description_text",
+            "literal": "N/A"
+          }
+        ],
+        "required_status": "UNKNOWN",
+        "required_evidence_type": "quote",
+        "reason": "The placeholder must be quoted so the report can say what was found rather than merely that nothing was found.",
+        "forbidden_output": [
+          "material is xxx",
+          "dimensions are TBD",
+          "capacity is N/A",
+          "brand is TBD"
+        ]
+      },
+      "expected_findings_include": [
+        {
+          "check_id": "STRUCT.NO_PLACEHOLDER_VALUES",
+          "status": "FAIL",
+          "reason": "The ONE legitimate FAIL in the sparse and adversarial sets: placeholders are present in the data and are defective, which is a structural defect in what is there, not an absence. Scored in D8 as unearned; it carries no D6 or D7 penalty.",
+          "evidence_locators": [
+            "attributes[materials_and_finish].value_raw",
+            "attributes[assembled_dimensions].value_raw",
+            "metafields[custom.capacity].value"
+          ]
+        },
+        {
+          "check_id": "IDENT.BRAND_PRESENT",
+          "status": "UNKNOWN",
+          "reason": "'TBD' is a placeholder, so brand is absent, not present."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "report_version": "0.1",
+  "run": {
+    "run_id": "2026-08-25T09-00-00Z-test",
+    "started_at": "2026-08-25T09:00:00Z",
+    "input": {
+      "file": "evals/fixtures/adversarial/adv-02-category-implies-attributes.pip.json",
+      "format": "pip_json",
+      "products_in": 1,
+      "products_audited": 1
+    },
+    "rubric_version": "0.1",
+    "taxonomy_version": "0.1",
+    "run_errors": []
+  },
+  "catalog_summary": {
+    "score_mean": 0.0,
+    "score_median": 0.0,
+    "grade_distribution": {
+      "agent_ready": 0,
+      "strong": 0,
+      "adequate": 0,
+      "weak": 0,
+      "insufficient": 1
+    },
+    "blocker_count": 0,
+    "top_systemic_gaps": []
+  },
+  "products": [
+    {
+      "product_id": "handle:trailpro-bike-helmet",
+      "title": "TrailPro Bike Helmet",
+      "category": {
+        "assigned": "sports",
+        "method": "declared_category_map",
+        "confidence": "high",
+        "evidence": [
+          {
+            "type": "field_value",
+            "locator": "identity.declared_category",
+            "excerpt": "Sporting Goods > Outdoor Recreation > Cycling > Bicycle Helmets",
+            "checked_paths": null,
+            "note": null
+          }
+        ]
+      },
+      "score": {
+        "total": 0.0,
+        "max_applicable": 100.0,
+        "grade": "insufficient",
+        "grade_capped_by": null,
+        "dimensions": []
+      },
+      "findings": [
+        {
+          "finding_id": "F-0001",
+          "check_id": "SPORTS.SAFETY_CERTIFICATION",
+          "dimension": "D2_category_attributes",
+          "scope": {
+            "level": "product",
+            "ref": null
+          },
+          "status": "UNKNOWN",
+          "severity": "critical",
+          "confidence": "high",
+          "title": "No safety certification is stated",
+          "detail": "Not stated in the supplied data. The product type indicates protective equipment, so this attribute applies, but no certifying body, standard reference or certificate identifier was found in the attributes, the metafields, or the description.",
+          "evidence": [
+            {
+              "type": "absence",
+              "locator": null,
+              "excerpt": null,
+              "checked_paths": [
+                "attributes[safety_certification]",
+                "metafields.*",
+                "narrative.description_text"
+              ],
+              "note": null
+            }
+          ],
+          "points": {
+            "earned": 0.0,
+            "max": 1.65,
+            "penalty": 0.0
+          },
+          "remediation": {
+            "type": "question",
+            "question": "Which safety standard is this helmet certified to, and what is the certificate reference?",
+            "target_field": "attributes[safety_certification]",
+            "note": "Do not generate a value. This must be supplied by the merchant or supplier."
+          }
+        },
+        {
+          "finding_id": "F-0002",
+          "check_id": "SPORTS.USER_FIT_SPECIFICATION",
+          "dimension": "D2_category_attributes",
+          "scope": {
+            "level": "variant",
+            "ref": null
+          },
+          "status": "UNKNOWN",
+          "severity": "critical",
+          "confidence": "high",
+          "title": "No per-variant fit specification is stated",
+          "detail": "Not stated in the supplied data. Two size variants are offered, but neither carries a measured fit range. This attribute is not inheritable from the product.",
+          "evidence": [
+            {
+              "type": "absence",
+              "locator": null,
+              "excerpt": null,
+              "checked_paths": [
+                "variants[*].attributes",
+                "attributes[user_fit_specification]"
+              ],
+              "note": null
+            }
+          ],
+          "points": {
+            "earned": 0.0,
+            "max": 3.3,
+            "penalty": 0.0
+          },
+          "remediation": {
+            "type": "question",
+            "question": "What head measurement range does each size cover?",
+            "target_field": "variants[*].attributes[user_fit_specification]",
+            "note": "Do not generate a value. This must be supplied by the merchant or supplier."
+          }
+        },
+        {
+          "finding_id": "F-0003",
+          "check_id": "VARIANT.DIFFERENTIATED",
+          "dimension": "D3_variant",
+          "scope": {
+            "level": "product",
+            "ref": null
+          },
+          "status": "PASS",
+          "severity": "info",
+          "confidence": "high",
+          "title": "Variants are distinguishable",
+          "detail": "Both variants carry a distinct value for the Size option.",
+          "evidence": [
+            {
+              "type": "field_value",
+              "locator": "variants[sku:TP-HELM-SM].option_values[Size]",
+              "excerpt": "S/M",
+              "checked_paths": null,
+              "note": null
+            },
+            {
+              "type": "field_value",
+              "locator": "variants[sku:TP-HELM-LX].option_values[Size]",
+              "excerpt": "L/XL",
+              "checked_paths": null,
+              "note": null
+            }
+          ],
+          "points": {
+            "earned": 5.0,
+            "max": 5.0,
+            "penalty": 0.0
+          },
+          "remediation": null
+        }
+      ],
+      "unknowns": [
+        {
+          "attribute": "materials_and_construction",
+          "checked_paths": [
+            "attributes[materials_and_construction]",
+            "metafields.*",
+            "narrative.description_text"
+          ],
+          "question": "What is the shell and liner construction?"
+        }
+      ],
+      "questions_for_merchant": [
+        {
+          "priority": 1,
+          "question": "Which safety standard is this helmet certified to, and what is the certificate reference?",
+          "unlocks_points": 1.65,
+          "related_findings": [
+            "F-0001"
+          ]
+        }
+      ]
+    }
+  ]
+}

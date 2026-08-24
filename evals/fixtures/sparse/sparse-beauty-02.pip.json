@@ -1,0 +1,113 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "sparse-beauty-02",
+    "set": "sparse",
+    "intent": "'Key ingredients' marketing without a full INCI list, and no net content. ingredients_full must be PARTIAL (truncated list), net_content UNKNOWN. Tests that named actives do not satisfy the full-list requirement.",
+    "provenance": "Synthetic. Authored for this eval corpus. Not derived from any real merchant's catalog or private data.",
+    "notes": null
+  },
+  "products": [
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:verda-barrier-cream",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/sparse/sparse-beauty-02.pip.json",
+        "locator": "products[handle:verda-barrier-cream]"
+      },
+      "identity": {
+        "title": {
+          "value": "Verda Barrier Cream",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Verda",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "verda-barrier-cream",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": "Moisturizer",
+          "src": "identity.product_type"
+        },
+        "declared_category": {
+          "value": "Health & Beauty > Personal Care > Cosmetics > Skin Care",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": "Formulated with niacinamide and hyaluronic acid to support a smoother-looking complexion. Apply morning and evening.",
+          "src": "narrative.description_text"
+        },
+        "description_html": {
+          "value": "<p>Formulated with niacinamide and hyaluronic acid to support a smoother-looking complexion. Apply morning and evening.</p>",
+          "src": "narrative.description_html"
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 15
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [
+        {
+          "key": "key_actives_and_concentration",
+          "value_raw": "niacinamide and hyaluronic acid",
+          "origin": "merchant_prose",
+          "src": "narrative.description_text[16:47]",
+          "scope": "product"
+        },
+        {
+          "key": "usage_directions",
+          "value_raw": "Apply morning and evening.",
+          "origin": "merchant_prose",
+          "src": "narrative.description_text[90:116]",
+          "scope": "product"
+        }
+      ],
+      "options": [],
+      "variants": [
+        {
+          "variant_id": "sku:VD-BC-50",
+          "option_values": {},
+          "sku": {
+            "value": "VD-BC-50",
+            "src": "variants[sku:VD-BC-50].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "26.00",
+            "currency": null,
+            "src": "variants[sku:VD-BC-50].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

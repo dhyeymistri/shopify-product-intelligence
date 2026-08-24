@@ -1,0 +1,215 @@
+{
+  "report_version": "0.1",
+  "run": {
+    "run_id": "2026-08-25T09-00-00Z-test",
+    "started_at": "2026-08-25T09:00:00Z",
+    "input": {
+      "file": "evals/fixtures/sparse/sparse-apparel-01.pip.json",
+      "format": "pip_json",
+      "products_in": 1,
+      "products_audited": 1
+    },
+    "rubric_version": "0.1",
+    "taxonomy_version": "0.1",
+    "run_errors": []
+  },
+  "catalog_summary": {
+    "score_mean": 0.0,
+    "score_median": 0.0,
+    "grade_distribution": {
+      "agent_ready": 0,
+      "strong": 0,
+      "adequate": 0,
+      "weak": 0,
+      "insufficient": 1
+    },
+    "blocker_count": 0,
+    "top_systemic_gaps": []
+  },
+  "products": [
+    {
+      "product_id": "handle:northgate-crew-neck-tee",
+      "title": "Northgate Crew Neck T-Shirt",
+      "category": {
+        "assigned": "apparel",
+        "method": "title_inference",
+        "confidence": "low",
+        "evidence": [
+          {
+            "type": "quote",
+            "locator": "identity.title[10:27]",
+            "excerpt": "Crew Neck T-Shirt",
+            "checked_paths": null,
+            "note": "Category inferred from the product title (interpreted)."
+          }
+        ]
+      },
+      "score": {
+        "total": 0.0,
+        "max_applicable": 100.0,
+        "grade": "insufficient",
+        "grade_capped_by": null,
+        "dimensions": []
+      },
+      "findings": [
+        {
+          "finding_id": "F-0001",
+          "check_id": "APPAREL.MATERIAL_COMPOSITION",
+          "dimension": "D2_category_attributes",
+          "scope": {
+            "level": "product",
+            "ref": null
+          },
+          "status": "UNKNOWN",
+          "severity": "critical",
+          "confidence": "high",
+          "title": "Fabric composition is not stated",
+          "detail": "Not stated in the supplied data. No composition value was found in the product attributes, the metafields, the description, or any variant attribute.",
+          "evidence": [
+            {
+              "type": "absence",
+              "locator": null,
+              "excerpt": null,
+              "checked_paths": [
+                "attributes[material_composition]",
+                "metafields.*",
+                "narrative.description_text",
+                "variants[*].attributes"
+              ],
+              "note": null
+            }
+          ],
+          "points": {
+            "earned": 0.0,
+            "max": 3.3,
+            "penalty": 0.0
+          },
+          "remediation": {
+            "type": "question",
+            "question": "What is the fabric composition, by percentage?",
+            "target_field": "attributes[material_composition]",
+            "note": "Do not generate a value. This must be supplied by the merchant or supplier."
+          }
+        },
+        {
+          "finding_id": "F-0002",
+          "check_id": "APPAREL.SIZE_SYSTEM",
+          "dimension": "D2_category_attributes",
+          "scope": {
+            "level": "product",
+            "ref": null
+          },
+          "status": "UNKNOWN",
+          "severity": "critical",
+          "confidence": "high",
+          "title": "Size system is not stated",
+          "detail": "Not stated in the supplied data. No sizing standard or measured size value was found on the product or on any variant.",
+          "evidence": [
+            {
+              "type": "absence",
+              "locator": null,
+              "excerpt": null,
+              "checked_paths": [
+                "options[*]",
+                "variants[*].option_values",
+                "attributes[size_system]"
+              ],
+              "note": null
+            }
+          ],
+          "points": {
+            "earned": 0.0,
+            "max": 3.3,
+            "penalty": 0.0
+          },
+          "remediation": {
+            "type": "question",
+            "question": "Which size system do the sizes follow, and what body measurements do they correspond to?",
+            "target_field": "attributes[size_system]",
+            "note": "Do not generate a value. This must be supplied by the merchant or supplier."
+          }
+        },
+        {
+          "finding_id": "F-0003",
+          "check_id": "IDENT.BRAND_PRESENT",
+          "dimension": "D1_identity",
+          "scope": {
+            "level": "product",
+            "ref": null
+          },
+          "status": "PASS",
+          "severity": "info",
+          "confidence": "high",
+          "title": "Brand is stated",
+          "detail": "The vendor field carries a brand name.",
+          "evidence": [
+            {
+              "type": "field_value",
+              "locator": "identity.brand",
+              "excerpt": "Northgate",
+              "checked_paths": null,
+              "note": null
+            }
+          ],
+          "points": {
+            "earned": 2.0,
+            "max": 2.0,
+            "penalty": 0.0
+          },
+          "remediation": null
+        },
+        {
+          "finding_id": "F-0004",
+          "check_id": "IDENT.IDENTIFIER_PRESENT",
+          "dimension": "D1_identity",
+          "scope": {
+            "level": "variant",
+            "ref": "sku:NG-CREW-001"
+          },
+          "status": "PASS",
+          "severity": "info",
+          "confidence": "high",
+          "title": "Every variant carries an identifier",
+          "detail": "1 of 1 variants has a stock keeping unit.",
+          "evidence": [
+            {
+              "type": "field_value",
+              "locator": "variants[sku:NG-CREW-001].sku",
+              "excerpt": "NG-CREW-1",
+              "checked_paths": null,
+              "note": null
+            }
+          ],
+          "points": {
+            "earned": 2.0,
+            "max": 2.0,
+            "penalty": 0.0
+          },
+          "remediation": null
+        }
+      ],
+      "unknowns": [
+        {
+          "attribute": "care_instructions",
+          "checked_paths": [
+            "attributes[care_instructions]",
+            "metafields.*",
+            "narrative.description_text"
+          ],
+          "question": "What are the care instructions for this garment?"
+        }
+      ],
+      "questions_for_merchant": [
+        {
+          "priority": 1,
+          "question": "What is the fabric composition, by percentage?",
+          "unlocks_points": 3.3,
+          "related_findings": [
+            "F-0001"
+          ]
+        }
+      ]
+    }
+  ],
+  "_test_double": "Seeded defect: excerpt 'NG-CREW-1' is a paraphrase of the supplied 'NG-CREW-001'. Expect FAB003_NON_REPRODUCIBLE_QUOTE."
+}

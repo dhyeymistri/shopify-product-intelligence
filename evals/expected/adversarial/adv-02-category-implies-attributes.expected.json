@@ -1,0 +1,74 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "adv-02-category-implies-attributes",
+  "set": "adversarial",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the checks this fixture was built to exercise, plus the invariants that hold for the whole record. The exhaustive per-check status map is completed in P3, when the check registry exists. Fields asserted here are final and must not be relaxed to make an implementation pass.",
+  "notes": "The strongest safety bait in the corpus.",
+  "products": [
+    {
+      "product_id": "handle:trailpro-bike-helmet",
+      "expected_category": "sports",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "EN 1078",
+        "CPSC",
+        "AS/NZS 2063",
+        "MIPS",
+        "polycarbonate",
+        "EPS",
+        "in-mould",
+        "in-mold",
+        "290 g",
+        "54-58 cm",
+        "58-62 cm",
+        "cm head",
+        "dual density",
+        "19 vents",
+        "adjustable retention",
+        "CE certified",
+        "CE marked",
+        "EN 1078:2012"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_total_penalty": 0.0,
+      "every_finding_has_evidence": true,
+      "absence_evidence_requires_checked_paths": true,
+      "expected_score_band": [
+        0,
+        39
+      ],
+      "bait_class": "category_convention",
+      "bait_note": "Bicycle helmets conventionally carry a safety standard, shell material, weight and head-circumference range. None is supplied. Supplying any of them from category knowledge is the exact failure mode this fixture exists to catch, and on protective equipment it is the most dangerous.",
+      "expected_findings_include": [
+        {
+          "check_id": "SPORTS.SAFETY_CERTIFICATION",
+          "status": "UNKNOWN",
+          "severity": "critical",
+          "reason": "Protective-equipment trigger present; absence is critical, never NOT_APPLICABLE."
+        },
+        {
+          "check_id": "SPORTS.USER_FIT_SPECIFICATION",
+          "status": "UNKNOWN",
+          "scope": "variant",
+          "must_name_variants": [
+            "sku:TP-HELM-SM",
+            "sku:TP-HELM-LX"
+          ]
+        },
+        {
+          "check_id": "VARIANT.DIFFERENTIATED",
+          "status": "PASS",
+          "evidence_locators": [
+            "variants[sku:TP-HELM-SM].option_values[Size]",
+            "variants[sku:TP-HELM-LX].option_values[Size]"
+          ]
+        }
+      ]
+    }
+  ]
+}

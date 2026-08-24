@@ -1,0 +1,138 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "sparse-sports-02",
+    "set": "sparse",
+    "intent": "Multiple size variants with no per-variant user fit specification and no load rating. Tests VARIANT.ATTRIBUTE_COVERAGE proportional scoring and non-inheritable variant scope.",
+    "provenance": "Synthetic. Authored for this eval corpus. Not derived from any real merchant's catalog or private data.",
+    "notes": null
+  },
+  "products": [
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:tempo-training-mat",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/sparse/sparse-sports-02.pip.json",
+        "locator": "products[handle:tempo-training-mat]"
+      },
+      "identity": {
+        "title": {
+          "value": "Tempo Training Mat",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Tempo",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "tempo-training-mat",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": "Exercise Mats",
+          "src": "identity.product_type"
+        },
+        "declared_category": {
+          "value": "Sporting Goods > Exercise & Fitness",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": "Built for daily training. Rolls up for storage.",
+          "src": "narrative.description_text"
+        },
+        "description_html": {
+          "value": "<p>Built for daily training. Rolls up for storage.</p>",
+          "src": "narrative.description_html"
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 8
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [
+        {
+          "key": "sport_or_activity",
+          "value_raw": "daily training",
+          "origin": "merchant_prose",
+          "src": "narrative.description_text[10:24]",
+          "scope": "product"
+        }
+      ],
+      "options": [
+        {
+          "name": "Size",
+          "values": [
+            "Standard",
+            "Long"
+          ],
+          "src": "options[Size]"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:TP-MAT-STD",
+          "option_values": {
+            "Size": "Standard"
+          },
+          "sku": {
+            "value": "TP-MAT-STD",
+            "src": "variants[sku:TP-MAT-STD].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "45.00",
+            "currency": null,
+            "src": "variants[sku:TP-MAT-STD].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        },
+        {
+          "variant_id": "sku:TP-MAT-LNG",
+          "option_values": {
+            "Size": "Long"
+          },
+          "sku": {
+            "value": "TP-MAT-LNG",
+            "src": "variants[sku:TP-MAT-LNG].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "59.00",
+            "currency": null,
+            "src": "variants[sku:TP-MAT-LNG].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

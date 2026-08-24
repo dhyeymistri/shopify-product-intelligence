@@ -1,0 +1,67 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "sparse-home-02",
+  "set": "sparse",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the checks this fixture was built to exercise, plus the invariants that hold for the whole record. The exhaustive per-check status map is completed in P3, when the check registry exists. Fields asserted here are final and must not be relaxed to make an implementation pass.",
+  "notes": "Tests conditional applicability: a present trigger forbids NOT_APPLICABLE.",
+  "products": [
+    {
+      "product_id": "handle:brackenwood-wall-shelf",
+      "expected_category": "home",
+      "expected_classification_method": "declared_category_map",
+      "expected_unknown_attributes": [
+        "assembled_dimensions",
+        "capacity_or_load",
+        "assembly",
+        "indoor_outdoor_use",
+        "color_finish",
+        "packaged_dimensions_weight",
+        "mounting_and_hardware",
+        "safety_and_compliance"
+      ],
+      "expected_present_attributes": [
+        "materials_and_finish",
+        "care_and_cleaning",
+        "room_or_placement"
+      ],
+      "must_not_fabricate": [
+        "oak",
+        "pine",
+        "solid wood",
+        "engineered wood",
+        "MDF",
+        "60 x 20 x 4 cm",
+        "15 kg",
+        "wall mounted",
+        "screws included",
+        "bracket"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "forbidden_status_reason": "Nothing is present to be wrong. PRD 7.3: FAIL is reserved for things present and defective; absence is UNKNOWN.",
+      "expected_total_penalty": 0.0,
+      "penalty_reason": "D-003: missing information forfeits its points and never subtracts.",
+      "every_finding_has_evidence": true,
+      "absence_evidence_requires_checked_paths": true,
+      "expected_findings_include": [
+        {
+          "check_id": "HOME.MATERIALS_AND_FINISH",
+          "status": "PARTIAL",
+          "reason": "'wood' with no species and no solid/engineered distinction.",
+          "evidence_locators": [
+            "narrative.description_text[9:13]"
+          ]
+        },
+        {
+          "check_id": "HOME.MOUNTING_AND_HARDWARE",
+          "status": "UNKNOWN",
+          "reason": "The mounting trigger is present ('Wall Shelf' in the title), so this conditional attribute applies and must not be NOT_APPLICABLE."
+        }
+      ]
+    }
+  ]
+}

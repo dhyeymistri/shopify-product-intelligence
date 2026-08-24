@@ -1,0 +1,69 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "sparse-home-01",
+  "set": "sparse",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the checks this fixture was built to exercise, plus the invariants that hold for the whole record. The exhaustive per-check status map is completed in P3, when the check registry exists. Fields asserted here are final and must not be relaxed to make an implementation pass.",
+  "notes": "Tests that an image never becomes a source of product facts.",
+  "products": [
+    {
+      "product_id": "handle:alder-side-table",
+      "expected_category": "home",
+      "expected_classification_method": "declared_category_map",
+      "expected_unknown_attributes": [
+        "assembled_dimensions",
+        "materials_and_finish",
+        "capacity_or_load",
+        "care_and_cleaning",
+        "assembly",
+        "indoor_outdoor_use",
+        "room_or_placement",
+        "color_finish",
+        "packaged_dimensions_weight",
+        "safety_and_compliance"
+      ],
+      "expected_present_attributes": [],
+      "must_not_fabricate": [
+        "oak",
+        "solid oak",
+        "walnut",
+        "45 x 45 x 55 cm",
+        "50 cm",
+        "10 kg",
+        "indoor use",
+        "wipe clean",
+        "flat pack",
+        "some assembly required"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "forbidden_status_reason": "Nothing is present to be wrong. PRD 7.3: FAIL is reserved for things present and defective; absence is UNKNOWN.",
+      "expected_total_penalty": 0.0,
+      "penalty_reason": "D-003: missing information forfeits its points and never subtracts.",
+      "every_finding_has_evidence": true,
+      "absence_evidence_requires_checked_paths": true,
+      "expected_findings_include": [
+        {
+          "check_id": "STRUCT.MEDIA_ALT_TEXT",
+          "status": "UNKNOWN",
+          "evidence_locators": [
+            "media[0].alt"
+          ],
+          "reason": "Media present with no alt text."
+        }
+      ],
+      "media_invariant": {
+        "reason": "V0 performs no image analysis (PRD 14.2). No attribute may be derived from the image URL or filename.",
+        "forbidden_output": [
+          "side table",
+          "wooden",
+          "brown",
+          "round"
+        ]
+      }
+    }
+  ]
+}

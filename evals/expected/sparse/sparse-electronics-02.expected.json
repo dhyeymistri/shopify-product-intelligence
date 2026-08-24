@@ -1,0 +1,61 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "sparse-electronics-02",
+  "set": "sparse",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the checks this fixture was built to exercise, plus the invariants that hold for the whole record. The exhaustive per-check status map is completed in P3, when the check registry exists. Fields asserted here are final and must not be relaxed to make an implementation pass.",
+  "notes": "A marketing name must never be accepted as a model identifier.",
+  "products": [
+    {
+      "product_id": "handle:kestrel-studio-desk-lamp",
+      "expected_category": "electronics",
+      "expected_classification_method": "declared_category_map",
+      "expected_unknown_attributes": [
+        "model_identifier",
+        "core_specifications",
+        "compatibility",
+        "connectivity_and_ports",
+        "power_requirements",
+        "physical_dimensions_weight",
+        "battery",
+        "in_the_box",
+        "warranty_term",
+        "software_requirements",
+        "regulatory_certifications"
+      ],
+      "expected_present_attributes": [
+        "color_finish"
+      ],
+      "must_not_fabricate": [
+        "12 W",
+        "110 V",
+        "230 V",
+        "2700K",
+        "4000K",
+        "E27",
+        "Type A plug",
+        "800 lumens",
+        "CE marked",
+        "UL listed"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "forbidden_status_reason": "Nothing is present to be wrong. PRD 7.3: FAIL is reserved for things present and defective; absence is UNKNOWN.",
+      "expected_total_penalty": 0.0,
+      "penalty_reason": "D-003: missing information forfeits its points and never subtracts.",
+      "every_finding_has_evidence": true,
+      "absence_evidence_requires_checked_paths": true,
+      "expected_findings_include": [
+        {
+          "check_id": "ELEC.MODEL_IDENTIFIER",
+          "status": "UNKNOWN",
+          "scope": "variant",
+          "reason": "'Kestrel Studio Desk Lamp' is a marketing name, not a model number."
+        }
+      ]
+    }
+  ]
+}

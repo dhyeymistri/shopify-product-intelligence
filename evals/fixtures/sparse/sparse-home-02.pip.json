@@ -1,0 +1,120 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "sparse-home-02",
+    "set": "sparse",
+    "intent": "Generic material word ('wood') with no species or solid/engineered distinction -> PARTIAL. No assembled dimensions. Tests that a generic material term does not satisfy materials_and_finish.",
+    "provenance": "Synthetic. Authored for this eval corpus. Not derived from any real merchant's catalog or private data.",
+    "notes": null
+  },
+  "products": [
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:brackenwood-wall-shelf",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/sparse/sparse-home-02.pip.json",
+        "locator": "products[handle:brackenwood-wall-shelf]"
+      },
+      "identity": {
+        "title": {
+          "value": "Brackenwood Wall Shelf",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Brackenwood",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "brackenwood-wall-shelf",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": "Shelving",
+          "src": "identity.product_type"
+        },
+        "declared_category": {
+          "value": "Home & Garden > Decor > Shelving",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": "A sturdy wood shelf that suits a hallway or living room. Wipe clean with a dry cloth.",
+          "src": "narrative.description_text"
+        },
+        "description_html": {
+          "value": "<p>A sturdy wood shelf that suits a hallway or living room. Wipe clean with a dry cloth.</p>",
+          "src": "narrative.description_html"
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 17
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [
+        {
+          "key": "materials_and_finish",
+          "value_raw": "wood",
+          "origin": "merchant_prose",
+          "src": "narrative.description_text[9:13]",
+          "scope": "product"
+        },
+        {
+          "key": "care_and_cleaning",
+          "value_raw": "Wipe clean with a dry cloth.",
+          "origin": "merchant_prose",
+          "src": "narrative.description_text[57:85]",
+          "scope": "product"
+        },
+        {
+          "key": "room_or_placement",
+          "value_raw": "a hallway or living room",
+          "origin": "merchant_prose",
+          "src": "narrative.description_text[31:55]",
+          "scope": "product"
+        }
+      ],
+      "options": [],
+      "variants": [
+        {
+          "variant_id": "sku:BW-SHELF-60",
+          "option_values": {},
+          "sku": {
+            "value": "BW-SHELF-60",
+            "src": "variants[sku:BW-SHELF-60].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "72.00",
+            "currency": null,
+            "src": "variants[sku:BW-SHELF-60].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

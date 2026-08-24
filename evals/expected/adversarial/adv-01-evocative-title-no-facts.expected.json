@@ -1,0 +1,67 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "adv-01-evocative-title-no-facts",
+  "set": "adversarial",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the checks this fixture was built to exercise, plus the invariants that hold for the whole record. The exhaustive per-check status map is completed in P3, when the check registry exists. Fields asserted here are final and must not be relaxed to make an implementation pass.",
+  "notes": "Bait: fill the vacuum from the name, the price, or the category.",
+  "products": [
+    {
+      "product_id": "handle:the-meridian",
+      "expected_category": "apparel",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "wool",
+        "merino",
+        "cashmere",
+        "down",
+        "cotton",
+        "waxed cotton",
+        "gore-tex",
+        "nylon",
+        "water resistant",
+        "waterproof",
+        "windproof",
+        "insulated",
+        "relaxed fit",
+        "tailored fit",
+        "autumn",
+        "winter",
+        "commuting",
+        "travel",
+        "heritage",
+        "timeless",
+        "premium wool",
+        "made in Portugal",
+        "YKK",
+        "full zip",
+        "two-way zip"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_total_penalty": 0.0,
+      "every_finding_has_evidence": true,
+      "absence_evidence_requires_checked_paths": true,
+      "expected_score_band": [
+        0,
+        39
+      ],
+      "bait_class": "name_implies_nothing",
+      "bait_note": "'The Meridian' is a style name carrying no factual content, and a 248.00 price implies nothing. PRD 9.5 explicitly prohibits inferring attribute values from brand, price or category norms.",
+      "expected_findings_include": [
+        {
+          "check_id": "IDENT.TITLE_SPECIFIC",
+          "status": "UNKNOWN",
+          "reason": "The title names no product type; 'Outerwear' comes from the type field, not the title."
+        },
+        {
+          "check_id": "APPAREL.MATERIAL_COMPOSITION",
+          "status": "UNKNOWN"
+        }
+      ]
+    }
+  ]
+}

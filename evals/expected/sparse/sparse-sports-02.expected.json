@@ -1,0 +1,67 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "sparse-sports-02",
+  "set": "sparse",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the checks this fixture was built to exercise, plus the invariants that hold for the whole record. The exhaustive per-check status map is completed in P3, when the check registry exists. Fields asserted here are final and must not be relaxed to make an implementation pass.",
+  "notes": "Contrasts with sparse-sports-01: same attribute, different applicability, and the difference is structural.",
+  "products": [
+    {
+      "product_id": "handle:tempo-training-mat",
+      "expected_category": "sports",
+      "expected_classification_method": "declared_category_map",
+      "expected_unknown_attributes": [
+        "user_fit_specification",
+        "load_or_capacity_rating",
+        "skill_or_intensity_level",
+        "materials_and_construction",
+        "dimensions_and_weight",
+        "use_environment",
+        "included_accessories",
+        "maintenance_requirements",
+        "age_or_user_suitability"
+      ],
+      "expected_present_attributes": [
+        "sport_or_activity"
+      ],
+      "must_not_fabricate": [
+        "6 mm",
+        "183 x 61 cm",
+        "TPE",
+        "NBR",
+        "PVC free",
+        "non-slip",
+        "1.2 kg",
+        "yoga",
+        "pilates"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "forbidden_status_reason": "Nothing is present to be wrong. PRD 7.3: FAIL is reserved for things present and defective; absence is UNKNOWN.",
+      "expected_total_penalty": 0.0,
+      "penalty_reason": "D-003: missing information forfeits its points and never subtracts.",
+      "every_finding_has_evidence": true,
+      "absence_evidence_requires_checked_paths": true,
+      "expected_findings_include": [
+        {
+          "check_id": "VARIANT.ATTRIBUTE_COVERAGE",
+          "status": "UNKNOWN",
+          "scope": "variant",
+          "reason": "dimensions_and_weight is variant-scoped and non-inheritable; neither variant carries it. Evidence must name both uncovered variant IDs, never 'some variants' (PRD 9.7).",
+          "must_name_variants": [
+            "sku:TP-MAT-STD",
+            "sku:TP-MAT-LNG"
+          ]
+        },
+        {
+          "check_id": "SPORTS.SAFETY_CERTIFICATION",
+          "status": "NOT_APPLICABLE",
+          "reason": "No protective-equipment trigger. This is the ONLY legitimate use of NOT_APPLICABLE in the sparse set: it is structural, not an absence."
+        }
+      ]
+    }
+  ]
+}

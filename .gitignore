@@ -1,0 +1,5 @@
+# Run output (AGENTS.md §4)
+reports/*/
+__pycache__/
+*.pyc
+.DS_Store

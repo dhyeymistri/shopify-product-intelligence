@@ -1,0 +1,130 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "sparse-electronics-02",
+    "set": "sparse",
+    "intent": "Marketing name only, no manufacturer model number, no voltage or plug type, no ports. Tests model_identifier UNKNOWN at variant scope and power_requirements UNKNOWN.",
+    "provenance": "Synthetic. Authored for this eval corpus. Not derived from any real merchant's catalog or private data.",
+    "notes": null
+  },
+  "products": [
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:kestrel-studio-desk-lamp",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/sparse/sparse-electronics-02.pip.json",
+        "locator": "products[handle:kestrel-studio-desk-lamp]"
+      },
+      "identity": {
+        "title": {
+          "value": "Kestrel Studio Desk Lamp",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Kestrel",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "kestrel-studio-desk-lamp",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": "Desk Lamps",
+          "src": "identity.product_type"
+        },
+        "declared_category": {
+          "value": "Electronics > Lighting",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": "The Studio Desk Lamp brings warm, even light to your workspace. Dimmable with a single touch.",
+          "src": "narrative.description_text"
+        },
+        "description_html": {
+          "value": "<p>The Studio Desk Lamp brings warm, even light to your workspace. Dimmable with a single touch.</p>",
+          "src": "narrative.description_html"
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 16
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [],
+      "options": [
+        {
+          "name": "Color",
+          "values": [
+            "Black",
+            "White"
+          ],
+          "src": "options[Color]"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:KS-LAMP-BLK",
+          "option_values": {
+            "Color": "Black"
+          },
+          "sku": {
+            "value": "KS-LAMP-BLK",
+            "src": "variants[sku:KS-LAMP-BLK].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "115.00",
+            "currency": null,
+            "src": "variants[sku:KS-LAMP-BLK].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        },
+        {
+          "variant_id": "sku:KS-LAMP-WHT",
+          "option_values": {
+            "Color": "White"
+          },
+          "sku": {
+            "value": "KS-LAMP-WHT",
+            "src": "variants[sku:KS-LAMP-WHT].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "115.00",
+            "currency": null,
+            "src": "variants[sku:KS-LAMP-WHT].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

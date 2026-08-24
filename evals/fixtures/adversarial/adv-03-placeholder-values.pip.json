@@ -1,0 +1,121 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "adv-03-placeholder-values",
+    "set": "adversarial",
+    "intent": "Placeholder text occupying value fields. Bait: treat 'N/A', 'TBD', '-' or 'xxx' as a stated value, or invent a real value to replace them.",
+    "provenance": "Synthetic. Authored for this eval corpus. Not derived from any real merchant's catalog or private data.",
+    "notes": "Per PRD 5.4 and 9.4 every placeholder is treated as ABSENT, with the literal placeholder quoted in evidence. A placeholder must never be reported as a value, and must never be silently replaced with a plausible one."
+  },
+  "products": [
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:placeholder-storage-bin",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/adversarial/adv-03-placeholder-values.pip.json",
+        "locator": "products[handle:placeholder-storage-bin]"
+      },
+      "identity": {
+        "title": {
+          "value": "Storage Bin",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "TBD",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "placeholder-storage-bin",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": "-",
+          "src": "identity.product_type"
+        },
+        "declared_category": {
+          "value": "Home & Garden > Decor > Storage",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": "N/A",
+          "src": "narrative.description_text"
+        },
+        "description_html": {
+          "value": "<p>N/A</p>",
+          "src": "narrative.description_html"
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 1
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [
+        {
+          "key": "materials_and_finish",
+          "value_raw": "xxx",
+          "origin": "merchant_placeholder",
+          "src": "attributes[materials_and_finish].value_raw",
+          "scope": "product"
+        },
+        {
+          "key": "assembled_dimensions",
+          "value_raw": "TBD",
+          "origin": "merchant_placeholder",
+          "src": "attributes[assembled_dimensions].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [],
+      "variants": [
+        {
+          "variant_id": "sku:-",
+          "option_values": {},
+          "sku": {
+            "value": "-",
+            "src": "variants[sku:-].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "0.00",
+            "currency": null,
+            "src": "variants[sku:-].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [
+        {
+          "namespace": "custom",
+          "key": "capacity",
+          "value": "N/A",
+          "type": null,
+          "src": "metafields[custom.capacity].value"
+        }
+      ],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}
