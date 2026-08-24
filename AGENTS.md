@@ -2,7 +2,7 @@
 
 Operating contract for anyone working in this repository, human or agent. Read this before touching anything.
 
-**Current phase: P2 — the normalizer. P0 (specification) and P1 (fixtures + fabrication audit) are complete.** See §6.
+**Current phase: P3 — checks and scoring. P0 (specification), P1 (fixtures + fabrication audit) and P2 (the normalizer) are complete.** See §6.
 
 ---
 
@@ -53,9 +53,12 @@ Conflicts resolve in that order, except that `rubric.md` wins over `PRD.md` on s
 
 ```
 product/          Specification. Authoritative. Change deliberately.
+engine/           The product engine. P2: the normalizer — input → NPR, with
+                  locators that resolve back to the input. Stdlib only.
 skill/            The V0 skill (SKILL.md + supporting instructions). NOT YET WRITTEN.
 evals/fixtures/   Input fixtures, by set (complete, sparse, conflict, claims,
-                  variants, ambiguous, duplicates, adversarial).
+                  variants, ambiguous, duplicates, adversarial), plus csv/ for
+                  Format A inputs.
 evals/expected/   Expected check outcomes per fixture.
 evals/audits/     The fabrication audit. Verifies reports; NOT the product engine.
 evals/testdata/   Hand-written report doubles: honest ones must pass, seeded ones must fail.
@@ -91,8 +94,8 @@ Violating any of these is a defect regardless of how well the code works.
 | --- | --- | --- |
 | P0 — Specification | Complete | Editing `product/*`, `AGENTS.md`, `README.md`. Writing fixtures. |
 | P1 — Fixtures & audits | Complete | `evals/` corpus (10 sparse + 4 adversarial), the fabrication audit, its test suite. See [`evals/README.md`](evals/README.md). |
-| **P2 — Normalizer** | **Current** | Input → NPR, with locators. |
-| P3 — Checks & scoring | Not started | Check set, ledger, arithmetic scoring. |
+| P2 — Normalizer | Complete | Input → NPR, with locators. `engine/`. Formats A (Shopify CSV) and C (PIP JSON); Format B deferred. |
+| **P3 — Checks & scoring** | **Current** | Check set, ledger, arithmetic scoring. |
 | P4 — Reporting | Not started | `report.json` then `report.md` rendered from it. |
 | P5 — Skill packaging | Not started | `skill/shopify-product-intelligence/SKILL.md`. |
 
@@ -145,3 +148,29 @@ For an implementation change (P1+): the eval suite passes, including the fabrica
 4. **Is the answer genuinely underdetermined?** → Add it to the Open Questions table in `decisions.md` and proceed with the parts that do not depend on it, stating your assumption.
 
 Do not resolve product ambiguity by guessing and shipping. That is the same failure as inventing a product fact, one level up.
+
+---
+
+## 10. Repository policy
+
+**This repository is public. No open-source license has been granted.** Public visibility is not a licence grant: all rights are reserved unless the project owner states otherwise in writing.
+
+### Licensing
+
+- **Do not create a `LICENSE` file.**
+- **Do not add MIT, Apache-2.0, GPL, BSD, or any other open-source or source-available licence**, in a file, a header, a package manifest, or a README badge, unless the project owner explicitly instructs it. "It is public so it should have a licence" is not that instruction.
+- **Do not change repository visibility** in either direction.
+- **Do not introduce third-party code or content with incompatible licensing.** Copied code, vendored files, fixture text lifted from another project, and generated content carrying an upstream licence all count. V0 is standard library only ([`decisions.md`](./decisions.md) D-001, D-006), which keeps this simple: the answer to "which dependency should we add?" is almost always none.
+
+If a task appears to require a licence decision, say so and stop. It is the owner's call, and it is not reversible by a later commit — anything published under a permissive licence stays available under it.
+
+### What may be public
+
+- Specification, code, documentation, and the eval corpus. Fixtures are **synthetic or public-derived only** and each carries a provenance note (§7) — that rule is what makes the corpus safe to publish, so it is a licensing constraint as well as a data-quality one.
+- Tests, expectation files, and report doubles, on the same basis.
+
+### What must never be committed
+
+Secrets, API keys, tokens, credentials, connection strings, private customer data, a real merchant's catalog or export, personal data of any kind, or internal material belonging to someone else. This holds regardless of file type, and regardless of whether the file is gitignored at the time — a gitignore entry is a convenience, not a control.
+
+A secret that reaches a public repository is compromised the moment it lands. Deleting it in a later commit does not undo that: it remains in history, in forks, and in anything that mirrored the repository in between. If one is committed, say so immediately and treat the credential as burned — rotate it first, clean history second.

@@ -1,9 +1,14 @@
 # Shopify Product Intelligence — Product Requirements Document
 
-- **Spec version:** 0.1 (draft, authoritative for V0)
-- **Date:** 2026-08-24
-- **Status:** Specification only. No implementation authorized by this document.
+- **Spec version:** 0.1.1 (draft, authoritative for V0)
+- **Date:** 2026-08-24 (amended 2026-08-25)
+- **Status:** Authoritative. This document is the product contract; implementation conforms to it, not the reverse. Phases P1 (eval corpus + fabrication audit) and P2 (the normalizer) are authorized and complete. Later phases remain gated and require explicit approval before any code is written for them — see [`AGENTS.md`](../AGENTS.md) §6.
 - **Scope of this document:** V0 only. Post-V0 direction is described only where it constrains V0 decisions.
+
+Amendments since 0.1, all of them documenting behavior P2 already implements rather than changing it:
+- §6.1 — the NPR carries `tags[]`. It was absent from the 0.1 skeleton by oversight; [`taxonomy.md`](./taxonomy.md) §2 makes tags the fourth-order category signal, so the record has to hold them.
+- §5.1, §6.2 rule 6 — divergent product-level values inside one CSV handle group are preserved with provenance rather than resolved.
+- §5.4, §9.6 — claim extraction from prose is a check-phase concern, not a normalization concern.
 
 Companion documents:
 - [`rubric.md`](./rubric.md) — scoring model, checks, point allocation, severity/confidence tables
@@ -145,6 +150,16 @@ Normalizer obligations for Format A:
 - Carry product-level fields down from the first row of the group; do **not** treat an empty product-level cell on a continuation row as an empty value.
 - Rows that contribute only an image are media rows, not variants.
 - Preserve the source row number and column name for every extracted value (evidence requirement, §8).
+- Split the `Tags` cell into one `tags[]` record per tag, each with its own locator (§6.1).
+- Where continuation rows disagree, keep every occurrence. See "Divergent product-level values" below.
+
+**Divergent product-level values.** Carrying down from the first row is a *reading* rule: it says where the product-level value is written, not that the other rows are wrong. When a continuation row in the same handle group carries a **different non-empty value** for a product-level column, the normalizer:
+
+1. takes the first row's value as the canonical one, exactly as the rule above requires;
+2. preserves **every** occurrence — the first row's included — in `raw_extras` under the column name, each with its own locator;
+3. asserts nothing about which is correct.
+
+The normalizer has no winner-selection mechanism and must not acquire one (§6.2 rule 6, [`decisions.md`](./decisions.md) D-012). Preserved occurrences are ordinary supplied values: a later check may cite two of them as the two sides of a `CONFLICT.*` finding under §9.2, with both locators as separate evidence items. That routing is a check's decision, taken in the check phase, never at normalization time.
 
 ### 5.2 Format B — Shopify Admin GraphQL product JSON
 
@@ -199,6 +214,7 @@ A non-fixture PIP file may omit the envelope entirely; `products[]` is the only 
 | Empty vs whitespace vs `"N/A"` / `"-"` / `"TBD"` | All treated as **absent**, and the literal placeholder text is recorded in evidence so the report can say what was found. |
 | HTML in descriptions | Text extracted for analysis; original HTML retained for evidence offsets. Structure (lists, tables, headings) is recorded as a signal for the machine-readability check. |
 | More than 200 products | Warn and process the first 200; the batch ceiling is a V0 scope control, not a technical limit. |
+| Claim-like language in prose | Not extracted at normalization time. The text is retained in `narrative` with its locator; recognizing a claim in it is a check-phase judgment (§9.6). |
 
 ---
 
@@ -274,13 +290,23 @@ The NPR is the single representation every check operates on. It is deliberately
       "type": null, "src": "row12.product.metafields.custom.material" }
   ],
 
-  "claims": [                                     // extracted, not judged, at normalization time
-    { "text": "Dermatologist tested", "src": "row12.Description[210:230]" }
+  "tags": [                                       // one record per source tag
+    { "value": "everyday", "src": "row12.Tags[5:13]" },
+    { "value": "unisex",   "src": "row12.Tags[15:21]" }
+  ],
+
+  "claims": [                                     // populated by the check phase, not by
+    { "text": "Dermatologist tested",             // normalization -- see below
+      "src": "row12.Description[210:230]" }
   ],
 
   "raw_extras": { }                               // preserved, uninterpreted
 }
 ```
+
+**`tags[]`.** One `{value, src}` record per source tag, carrying provenance exactly as every other canonical value does (§6.2 rule 1). A tag list arrives as a single delimited cell or array, so each tag gets its own locator — a character span into the source cell for Format A, an element locator for Formats B and C — and each is therefore individually quotable and byte-exact reproducible. The member exists because [`taxonomy.md`](./taxonomy.md) §2 makes `tag_map` the fourth-order category signal: a record without tags cannot be classified by rule 4. Splitting is on the delimiter and nothing else — whitespace around a tag is trimmed, the tag's own text is never altered, and an empty segment is dropped rather than recorded as an empty tag.
+
+**`claims[]`.** Populated by the check phase, not by normalization. §9.6's four claim classes are illustrated by example patterns — "best", "clinically proven", "reduces wrinkles in 7 days" — and those examples are illustrative, not a normative extraction lexicon. Deriving one and applying it during normalization would put a check's judgment in the input layer, where it could not be labelled, evidenced, or scored, and where a false positive would be indistinguishable from supplied data. Normalization therefore retains the prose verbatim in `narrative` with its locators, and claim recognition happens where §9.6 says it happens. Format C input carries `claims[]` through unchanged, because in that format it is supplied data.
 
 ### 6.2 NPR design rules
 
@@ -289,6 +315,7 @@ The NPR is the single representation every check operates on. It is deliberately
 3. **The NPR is not a merge.** If two source locations disagree, both are recorded (as two `attributes[]` entries with the same `key`) and the conflict is resolved by a check, not by the normalizer. See §9.2.
 4. **Normalization never enriches.** It maps, groups, extracts, and preserves. It does not infer a material from a title or a category from a description. Inference happens only in classification and in explicitly-labeled inference checks (§9.5).
 5. **Attribute keys come from `taxonomy.md`.** An extracted value whose meaning does not map to a defined attribute key stays in `raw_extras`.
+6. **Divergence is preserved, never resolved.** Where the input states a product-level value more than once and the statements disagree, the normalizer records all of them with their locators (§5.1) and picks no winner. This is rule 3 applied to the one case where a format-level reading rule — "carry down from the first row" — could otherwise be mistaken for a resolution rule. The normalizer has no mechanism for choosing between two supplied values, and adding one would violate the standing rule that the tool never picks a winner in a conflict (§9.2, [`decisions.md`](./decisions.md) D-012).
 
 ---
 
@@ -507,6 +534,7 @@ span     := "[" int ":" int "]"      -- valid only as the final bracket group
 | `narrative.description_text[27:45]` | a character span of the description |
 | `attributes[material_composition].value_raw` | that attribute's raw value |
 | `metafields[custom.material].value` | a metafield, selected by `namespace.key` |
+| `tags[0].value` | a tag, selected positionally |
 | `variants[sku:HL-TEE-M].sku` | a variant, selected by `variant_id` |
 | `variants[sku:HL-TEE-M].option_values[Size]` | a variant's option value |
 | `options[Size].values` | an option's value list |
@@ -594,6 +622,11 @@ A **claim** is a statement that asserts a property whose truth a buyer would rel
 | `comparative` | "40% stronger", "lasts twice as long" | The comparison target and the measurement basis. |
 | `certification_or_test` | "clinically proven", "dermatologist tested", "FDA approved", "CE certified", "organic" | A referenced certification body, standard number, study, or certificate identifier present in the data (`external_reference` counts as referenced, not as verified). |
 | `outcome_or_efficacy` | "reduces wrinkles in 7 days", "eliminates odor" | A referenced study, test, or explicit qualifier ("in a consumer study of N=…"). |
+
+The patterns in that table are **illustrative examples, not a normative extraction lexicon.** They show what each class looks like; they do not enumerate it. Consequently:
+
+- **Claim extraction is a check-phase concern.** The normalizer does not scan prose for claims (§6.1, `claims[]`). It retains the description verbatim with its locators and stops there. Recognizing that a quoted span states a claim is language inference, permitted under §9.5 rule 2 precisely because it happens over a quoted span inside a check, where it is labelled, evidenced, confidence-rated, and visible in the report. The same recognition performed silently during normalization would be none of those things.
+- A recognition lexicon, when one is written, belongs to the check that uses it and is versioned with [`rubric.md`](./rubric.md). Format C input is the exception: a `claims[]` entry supplied in a PIP file is supplied data and is carried through unchanged.
 
 Handling:
 - Present without support → `FAIL`, `check_id` `CLAIM.UNSUPPORTED_*`, penalty in D7, severity `major` (or `blocker` where a regulated-claim pattern is combined with a contradicting supplied attribute — e.g. "fragrance-free" alongside a fragrance ingredient).

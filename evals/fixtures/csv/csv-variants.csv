@@ -1,0 +1,5 @@
+Title,URL handle,Description,Vendor,Product category,Type,Tags,Status,Option1 name,Option1 value,Option2 name,Option2 value,SKU,Barcode,Price,Compare-at price,Weight value (grams),Product image URL,Image alt text,Variant image URL,SEO title,SEO description,Material composition (product.metafields.custom.material_composition),Care (product.metafields.custom.care_note)
+Harbour Line Tee,harbour-line-tee,<h2>Harbour Line Tee</h2><ul><li>Ring-spun cotton</li><li>Reinforced collar</li></ul>,Harbour Line,Apparel & Accessories > Clothing > Shirts & Tops,T-Shirts,"tee, everyday, unisex",active,Size,S,Color,Black,HL-TEE-S-BLK,5012345678900,32.00,40.00,180,https://example.invalid/hl-tee.jpg,"Harbour Line Tee, front",,Harbour Line Tee,A cotton tee.,100% combed ring-spun cotton,Machine wash cold
+,harbour-line-tee,,,,,,,,M,,Black,HL-TEE-M-BLK,,32.00,,,,Black colourway,https://example.invalid/hl-tee-black.jpg,,,,
+,harbour-line-tee,,,,,,,,M,,Ecru,HL-TEE-M-ECR,,34.00,,,,,,,,,
+,harbour-line-tee,,,,,,,,,,,,,,,,https://example.invalid/hl-tee-detail.jpg,Collar detail,,,,,

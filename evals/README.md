@@ -2,9 +2,13 @@
 
 Phase P1 of [`AGENTS.md`](../AGENTS.md): the fixture corpus and the fabrication audit.
 
-**Nothing here is the product's audit engine.** The normalizer (P2) and the check
-and scoring engine (P3) do not exist yet. What lives here is the *verifier* — the
-thing that will tell us whether the engine, once built, is honest.
+**Nothing here is the product's audit engine.** The engine lives in `engine/`;
+the normalizer (P2) is built, the check and scoring engine (P3) is not. What
+lives here is the *verifier* — the thing that tells us whether the engine is
+honest. It resolves locators with its own implementation of the PRD §8.2.1
+grammar rather than the engine's, deliberately: an audit that shared the
+engine's resolver could not catch a bug in it, because the error would cancel
+out on both sides.
 
 ## Why this was built first
 
@@ -21,11 +25,13 @@ false-positive class in its own bait matching. See "What it caught" below.
 ```
 fixtures/sparse/         10 products, realistic data gaps, one file per product
 fixtures/adversarial/     4 products designed to bait invention
+fixtures/csv/             Format A (Shopify product CSV) inputs for the normalizer
 expected/<set>/           one expectation per fixture (same id, .expected.json)
 audits/                   the audit implementation
 testdata/reports/honest/      hand-written reports that MUST audit clean
 testdata/reports/violations/  one seeded defect each; each MUST be caught
-tests/                    unittest suite (stdlib only, no dependencies)
+tests/                    unittest suite (stdlib only, no dependencies), covering
+                          both the audits and engine/ (P2)
 run_audits.py             CLI / CI gate
 ```
 

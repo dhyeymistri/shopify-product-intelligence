@@ -19,3 +19,8 @@ V0 is a local AI skill that reads a local catalog file and writes local reports.
 ## What we do not claim
 
 We do not claim this tool guarantees or predicts ranking, visibility, or citation in ChatGPT, Gemini, Google AI, or any other AI system. We evaluate the merchant's own product data — something we can inspect and prove.
+
+## License
+
+No open-source license has been granted for this repository at this time.
+All rights are reserved unless otherwise stated.

@@ -1,0 +1,7 @@
+Title,URL handle,Vendor,SKU,Price
+Good Product,good-product,Acme,GP-01,10.00
+,no-handle-row-follows,Acme,XX-01,1.00
+,,Acme,YY-01,2.00
+Duplicate SKU Product,duplicate-sku,Acme,DUP-01,5.00
+,duplicate-sku,,DUP-01,6.00
+Ragged Row,ragged-row,Acme
