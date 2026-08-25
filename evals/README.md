@@ -25,6 +25,9 @@ false-positive class in its own bait matching. See "What it caught" below.
 ```
 fixtures/sparse/         10 products, realistic data gaps, one file per product
 fixtures/adversarial/     4 products designed to bait invention
+fixtures/checks/          7 products exercising the deterministic check layer:
+                          presence, absence, conflict, coverage, scope, and the
+                          one shape where a value is present and wrong
 fixtures/csv/             Format A (Shopify product CSV) inputs for the normalizer
 expected/<set>/           one expectation per fixture (same id, .expected.json)
 audits/                   the audit implementation
@@ -32,8 +35,22 @@ testdata/reports/honest/      hand-written reports that MUST audit clean
 testdata/reports/violations/  one seeded defect each; each MUST be caught
 tests/                    unittest suite (stdlib only, no dependencies), covering
                           both the audits and engine/ (P2)
+harness.py                projects engine output into the report.json shape so
+                          the audits can run against it before P4 writes reports
 run_audits.py             CLI / CI gate
 ```
+
+## The audits run against real engine output
+
+`tests/test_engine_audits.py` puts every fixture through the engine and through
+the fabrication, negation-language and claim-scope audits. That is `AGENTS.md`
+§6's rule — *a red audit blocks the change* — as a test rather than as a habit,
+and it is the only gate that checks what the engine actually emits rather than a
+double someone wrote by hand.
+
+The arithmetic audit's whole-score stages are not run there yet, because this
+phase computes no score. Its per-finding stage is: points-per-status is settled
+by `rubric.md` §3.1 and is exactly what the check layer decides.
 
 ## Running
 

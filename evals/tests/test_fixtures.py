@@ -19,7 +19,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 FIXTURES = sorted(glob.glob(os.path.join(REPO, "evals/fixtures/*/*.pip.json")))
 EXPECTED = sorted(glob.glob(os.path.join(REPO, "evals/expected/*/*.expected.json")))
 
-REQUIRED_SETS = {"sparse": 10, "adversarial": 4}
+REQUIRED_SETS = {"sparse": 10, "adversarial": 4, "checks": 7}
 
 
 def load(path):
@@ -181,6 +181,50 @@ class TestExpectations(unittest.TestCase):
                             "%s: span %r is not a source the fixture declares"
                             % (os.path.basename(path), locator),
                         )
+
+    def test_expectations_do_not_contradict_themselves(self):
+        """A status cannot be both forbidden and required by one file.
+
+        `adv-03` shipped exactly this contradiction: it forbade FAIL outright
+        while its own `expected_findings_include` required a FAIL, with the
+        reason spelled out. An expectation file is the definition of correct
+        output, so an internally inconsistent one cannot be satisfied by any
+        implementation -- and nothing would have noticed until the phase that
+        wires expectations to the engine.
+        """
+        for path in EXPECTED:
+            expectation = load(path)
+            for product_exp in expectation["products"]:
+                forbidden = set(product_exp.get("forbidden_statuses") or [])
+                required = set(
+                    finding.get("status")
+                    for finding in product_exp.get("expected_findings_include", [])
+                    if finding.get("status")
+                )
+                overlap = forbidden & required
+                self.assertEqual(
+                    overlap, set(),
+                    "%s: status %s is both forbidden and required"
+                    % (os.path.basename(path), sorted(overlap)),
+                )
+
+    def test_declared_evidence_types_are_defined_by_the_prd(self):
+        """PRD 8.1 is the closed list. An expectation may not invent a sixth."""
+        permitted = {"quote", "field_value", "absence", "derived",
+                     "external_reference"}
+        for path in EXPECTED:
+            for product_exp in load(path)["products"]:
+                invariant = product_exp.get("placeholder_invariant")
+                if not invariant:
+                    continue
+                declared = invariant.get("required_evidence_type")
+                if declared is None:
+                    continue
+                if isinstance(declared, str):
+                    declared = [declared]
+                for name in declared:
+                    self.assertIn(name, permitted,
+                                  "%s: %r" % (os.path.basename(path), name))
 
     def test_placeholder_invariants_match_the_fixture(self):
         for path in EXPECTED:

@@ -1,8 +1,12 @@
 # `engine/` — the product engine
 
-Phase P2 of [`AGENTS.md`](../AGENTS.md): the **normalizer**. Input becomes one
-Normalized Product Record per product (PRD §6.1), with locators that resolve
-back to the file the values came from (PRD §8.2).
+Two layers so far. **P2, the normalizer:** input becomes one Normalized Product
+Record per product (PRD §6.1), with locators that resolve back to the file the
+values came from (PRD §8.2). **P3.1, the deterministic check layer:** a versioned
+check registry, and a runner that turns an NPR into evidence-backed findings.
+
+Scoring is not here. The registry fixes each check's points, and nothing sums
+them: aggregation is a later phase (`AGENTS.md` §6).
 
 Python 3.9+, standard library only. No network, no dependencies, no persistence.
 
@@ -20,10 +24,42 @@ Python 3.9+, standard library only. No network, no dependencies, no persistence.
 | `htmltext.py` | Plain-text extraction and structure signals for description HTML. |
 | `taxonomy_keys.py` | The attribute keys from `taxonomy.md`, for exact matching only. |
 
+### P3.1 — checks
+
+| Module | Responsibility |
+| --- | --- |
+| `taxonomy_data.py` | `taxonomy.md` §3–§6 and §8 as data: tier, scope, inheritance, conditional trigger, satisfying predicate, conflict severity, category mapping. |
+| `rubric_data.py` | `rubric.md` §4 as data: the fixed checks of D1 and D3–D8, dimension allocations, grade bands, status vocabulary. |
+| `registry.py` | `CheckDef`, the applicable check set per category, D2 derived from tier populations, and the import-time invariants. |
+| `findings.py` | The finding and evidence contract (PRD §7.3, §8.1), the evidence gate, deterministic ordering, `unknowns[]`, `questions_for_merchant[]`. |
+| `evidence.py` | Evidence constructors that resolve and byte-verify before returning. |
+| `facts.py` | `checked_paths` → candidates, with placeholders and scope preserved. |
+| `classify.py` | Category assignment (`taxonomy.md` §2), evidenced and labelled. |
+| `checks.py` | Status determination: presence, absence, coverage, conflict. |
+| `runner.py` | Applicable set → findings → sealed ledger. No score. |
+
 Format B (Shopify Admin GraphQL JSON, PRD §5.2) is not implemented. It is
 refused by name rather than guessed at.
 
-## What it refuses to do
+## What the check layer refuses to do
+
+- **`FAIL` needs something present to be wrong.** Every path that can emit one
+  takes a non-empty list of supplied values as a required argument, so a `FAIL`
+  on absence is a type error rather than a matter of discipline.
+- **`UNKNOWN` costs nothing.** Zero earned, zero penalty, always (D-003).
+- **No winner in a conflict.** Two locations become two evidence items and a
+  question that quotes both back. There is no rule preferring a metafield to a
+  description, or the longer value to the shorter.
+- **No guess where recognition is needed.** A check that cannot decide a stated
+  value deterministically emits *no finding* and records the deferral. Absence
+  and conflict are still decided, because both are exact. Under-recognition
+  deflates a score and carries honest evidence; a guess can state something
+  false about a product.
+- **No question that answers itself.** Every question is a fixed registry string
+  or a fixed frame filled with byte-verified excerpts, so a remediation cannot
+  introduce a value the data does not hold (PRD §7.6).
+
+## What normalization refuses to do
 
 Normalization maps, groups, extracts and preserves. It does not enrich (PRD §6.2
 rule 4), and the refusals are the substance of the layer:

@@ -26,9 +26,7 @@
         "grey",
         "white"
       ],
-      "forbidden_statuses": [
-        "FAIL"
-      ],
+      "forbidden_statuses": [],
       "expected_total_penalty": 0.0,
       "every_finding_has_evidence": true,
       "absence_evidence_requires_checked_paths": true,
@@ -66,8 +64,11 @@
           }
         ],
         "required_status": "UNKNOWN",
-        "required_evidence_type": "quote",
-        "reason": "The placeholder must be quoted so the report can say what was found rather than merely that nothing was found.",
+        "required_evidence_type": [
+          "field_value",
+          "quote"
+        ],
+        "reason": "The placeholder must appear as the excerpt so the report can say what was found rather than merely that nothing was found. Corrected: this field previously required 'quote' for every entry, but PRD 8.1 assigns the type from the field being cited -- 'field_value' for the whole value of a structured field (identity, attributes, metafields), 'quote' for a span of free text (the description). Both carry the excerpt, which is what the invariant actually depends on.",
         "forbidden_output": [
           "material is xxx",
           "dimensions are TBD",
@@ -91,7 +92,8 @@
           "status": "UNKNOWN",
           "reason": "'TBD' is a placeholder, so brand is absent, not present."
         }
-      ]
+      ],
+      "forbidden_status_reason": "Corrected: this fixture previously forbade FAIL outright while its own expected_findings_include required STRUCT.NO_PLACEHOLDER_VALUES to be FAIL, with the reason stated. The two assertions contradicted each other and the specific, reasoned one is the correct reading. The invariant this field was written to protect is that no check may FAIL on ABSENCE (PRD 7.3, rubric.md 3.1); every placeholder here is treated as absent and reaches UNKNOWN, and the single FAIL is a defect in what is PRESENT. That invariant is now asserted per finding rather than by a blanket status ban."
     }
   ]
 }

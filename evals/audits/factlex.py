@@ -221,6 +221,26 @@ def _allowed(fragment):
     return normalize(raw) in ALLOWLIST
 
 
+_IDENT_CHARS = re.compile(r"[a-z0-9_]")
+
+
+def _enclosing_identifier(text, start, end):
+    # type: (str, int, int) -> str
+    """The maximal `[a-z0-9_]` token a match sits inside.
+
+    Underscore-joined identifiers are structural vocabulary -- an attribute
+    key, a locator segment, a status -- and never product prose. `fragrance`
+    inside `fragrance_status` is the name of a check's subject, not a claim
+    that the product contains one.
+    """
+    left, right = start, end
+    while left > 0 and _IDENT_CHARS.match(text[left - 1]):
+        left -= 1
+    while right < len(text) and _IDENT_CHARS.match(text[right]):
+        right += 1
+    return text[left:right]
+
+
 def _lexicon_hits(text, lexicon, kind, tokens):
     # type: (str, frozenset, str, List[FactToken]) -> None
     lowered = normalize(text)
@@ -234,6 +254,14 @@ def _lexicon_hits(text, lexicon, kind, tokens):
             after_i = idx + len(term)
             after = lowered[after_i] if after_i < len(lowered) else " "
             if not before.isalnum() and not after.isalnum():
+                # A term reached only by splitting an allowlisted identifier is
+                # that identifier, not a product value. The allowlist is still
+                # structural-only (`assert_allowlist_has_no_values`), so this
+                # exempts a taxonomy key and nothing else.
+                enclosing = _enclosing_identifier(lowered, idx, after_i)
+                if enclosing != term and _allowed(enclosing):
+                    start = idx + len(term)
+                    continue
                 tokens.append(FactToken(kind, term, idx, after_i))
             start = idx + len(term)
 

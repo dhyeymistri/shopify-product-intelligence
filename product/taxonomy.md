@@ -46,7 +46,7 @@ Assignment is per product, resolved by the first rule that matches. The winning 
 Rules:
 1. **Ties and disagreements do not get broken by guessing.** If two same-tier signals map to different categories, the result is `uncategorized` with an `info` finding naming both signals.
 2. Classification is inference (PRD §9.5) and is always labeled. It never writes a value into `attributes[]`.
-3. `uncategorized` products are audited against the **Common Core** (§3) only. D2 is scored against Common Core with `max_applicable` reduced accordingly, and the report states plainly that category-specific auditing did not run and why. We do not fake category coverage for unclassified products.
+3. `uncategorized` products are audited against the **Common Core** (§3) only — which is measured in D1, D5 and D8, never in D2. **D2 is removed in full**: its maximum is 0 and it leaves both the numerator and the denominator, with `max_applicable` reduced accordingly (§6; [`rubric.md`](./rubric.md) §4/D2). The report states plainly that category-specific auditing did not run and why. We do not fake category coverage for unclassified products.
 4. A `low`-confidence assignment adds a `minor` finding recommending the merchant set a product category in Shopify — a real, actionable gap, since the category drives Shopify's own attribute suggestions.²
 
 ---

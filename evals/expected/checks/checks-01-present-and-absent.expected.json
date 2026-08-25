@@ -1,0 +1,24 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "checks-01-present-and-absent",
+  "set": "checks",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the check-layer behaviour this fixture was authored for. Recognition-dependent checks are deliberately not asserted here; they belong to the phase that implements them.",
+  "notes": "A home product stating two product-scope attributes in structured fields and nothing else, with no description at all. Every stated attribute must reach PASS with a reproducible locator; every other attribute must reach UNKNOWN with checked_paths, zero earned and zero penalty.",
+  "products": [
+    {
+      "product_id": "handle:checks-shelf-basic",
+      "must_not_fabricate": [
+        "oak",
+        "solid oak",
+        "12 kg",
+        "80 x 24 x 9 cm",
+        "wall mounted",
+        "easy to clean",
+        "for indoor use only"
+      ]
+    }
+  ]
+}

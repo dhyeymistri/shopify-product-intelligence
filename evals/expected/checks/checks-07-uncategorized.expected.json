@@ -1,0 +1,21 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "checks-07-uncategorized",
+  "set": "checks",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the check-layer behaviour this fixture was authored for. Recognition-dependent checks are deliberately not asserted here; they belong to the phase that implements them.",
+  "notes": "No signal carries a mapping term, so no category is assigned and no category-specific attribute check runs. The record still receives the checks that apply to every category.",
+  "products": [
+    {
+      "product_id": "handle:checks-uncategorized",
+      "must_not_fabricate": [
+        "ceramic",
+        "500 ml",
+        "handmade",
+        "gift boxed"
+      ]
+    }
+  ]
+}

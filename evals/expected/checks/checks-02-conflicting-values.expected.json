@@ -1,0 +1,22 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "checks-02-conflicting-values",
+  "set": "checks",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the check-layer behaviour this fixture was authored for. Recognition-dependent checks are deliberately not asserted here; they belong to the phase that implements them.",
+  "notes": "The same canonical attribute is stated twice, in an attribute and in a metafield, with values that contradict each other. One D6 conflict finding citing both locations, the D2 attribute zeroed, and no winner chosen.",
+  "products": [
+    {
+      "product_id": "handle:checks-conflict-stool",
+      "must_not_fabricate": [
+        "kitchen or garage",
+        "either room",
+        "the correct room is kitchen",
+        "beech",
+        "150 kg"
+      ]
+    }
+  ]
+}

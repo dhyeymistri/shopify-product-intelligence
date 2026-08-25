@@ -1,0 +1,21 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "checks-04-non-inheritable",
+  "set": "checks",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the check-layer behaviour this fixture was authored for. Recognition-dependent checks are deliberately not asserted here; they belong to the phase that implements them.",
+  "notes": "A non-inheritable variant-scope attribute supplied only at product scope, alongside an inheritable product-scope attribute. The product-scope value must not satisfy the per-variant requirement, and the product-scope check must still reach PASS.",
+  "products": [
+    {
+      "product_id": "handle:checks-non-inheritable",
+      "must_not_fabricate": [
+        "natural seagrass",
+        "30 cm",
+        "two colours",
+        "grey and cream"
+      ]
+    }
+  ]
+}

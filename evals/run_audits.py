@@ -32,6 +32,16 @@ from audits import (
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+#: audit name -> (report auditor, markdown auditor). The report auditors have
+#: two shapes: the fabrication audit needs the fixture a report was produced
+#: from, the other three do not, so each entry records whether it takes one.
+AUDIT_FUNCTIONS = {
+    "fabrication": (audit_fabrication, audit_fabrication_markdown, True),
+    "arithmetic": (audit_arithmetic, audit_arithmetic_markdown, False),
+    "negation": (audit_negation, audit_negation_markdown, False),
+    "claim_scope": (audit_claim_scope, audit_claim_scope_markdown, False),
+}
+
 
 def load(path):
     with open(path if os.path.isabs(path) else os.path.join(REPO, path)) as handle:
@@ -231,14 +241,23 @@ def main(argv=None):
     report_obj = load(args.report)
 
     for audit_name in audit_names:
-        audit_fn, markdown_fn = AUDIT_FUNCTIONS[audit_name]
-        results.append(audit_fn(report_obj, fixture, expectation,
-                                artifact=os.path.basename(args.report)))
+        audit_fn, markdown_fn, takes_fixture = AUDIT_FUNCTIONS[audit_name]
+        if takes_fixture:
+            results.append(audit_fn(report_obj, fixture, expectation,
+                                    artifact=os.path.basename(args.report)))
+        else:
+            results.append(audit_fn(report_obj,
+                                    artifact=os.path.basename(args.report)))
         if args.markdown and markdown_fn:
             path = args.markdown if os.path.isabs(args.markdown) else os.path.join(REPO, args.markdown)
             with open(path) as handle:
-                results.append(markdown_fn(handle.read(), fixture, expectation,
-                                           artifact=os.path.basename(args.markdown)))
+                markdown = handle.read()
+            name = os.path.basename(args.markdown)
+            if takes_fixture:
+                results.append(markdown_fn(markdown, fixture, expectation,
+                                           artifact=name))
+            else:
+                results.append(markdown_fn(markdown, artifact=name))
 
     if args.json:
         print(json.dumps([r.as_dict() for r in results], indent=2, sort_keys=True))

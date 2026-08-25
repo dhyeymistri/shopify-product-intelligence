@@ -1,0 +1,21 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "checks-06-duplicate-identifier",
+  "set": "checks",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the check-layer behaviour this fixture was authored for. Recognition-dependent checks are deliberately not asserted here; they belong to the phase that implements them.",
+  "notes": "Two variants carry the same stock keeping unit. The defect is in what is present, so this is the FAIL path: both locations are quoted, and nothing about an absent value is asserted.",
+  "products": [
+    {
+      "product_id": "handle:checks-duplicate-sku",
+      "must_not_fabricate": [
+        "coir",
+        "45 x 75 cm",
+        "non-slip",
+        "outdoor use"
+      ]
+    }
+  ]
+}

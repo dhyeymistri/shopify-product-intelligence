@@ -54,11 +54,13 @@ Conflicts resolve in that order, except that `rubric.md` wins over `PRD.md` on s
 ```
 product/          Specification. Authoritative. Change deliberately.
 engine/           The product engine. P2: the normalizer — input → NPR, with
-                  locators that resolve back to the input. Stdlib only.
+                  locators that resolve back to the input. P3.1: the check
+                  registry, the finding contract, and the deterministic check
+                  runner. Stdlib only. No scoring yet.
 skill/            The V0 skill (SKILL.md + supporting instructions). NOT YET WRITTEN.
 evals/fixtures/   Input fixtures, by set (complete, sparse, conflict, claims,
-                  variants, ambiguous, duplicates, adversarial), plus csv/ for
-                  Format A inputs.
+                  variants, ambiguous, duplicates, adversarial, checks), plus
+                  csv/ for Format A inputs.
 evals/expected/   Expected check outcomes per fixture.
 evals/audits/     The fabrication audit. Verifies reports; NOT the product engine.
 evals/testdata/   Hand-written report doubles: honest ones must pass, seeded ones must fail.
@@ -95,7 +97,7 @@ Violating any of these is a defect regardless of how well the code works.
 | P0 — Specification | Complete | Editing `product/*`, `AGENTS.md`, `README.md`. Writing fixtures. |
 | P1 — Fixtures & audits | Complete | `evals/` corpus (10 sparse + 4 adversarial), the fabrication audit, its test suite. See [`evals/README.md`](evals/README.md). |
 | P2 — Normalizer | Complete | Input → NPR, with locators. `engine/`. Formats A (Shopify CSV) and C (PIP JSON); Format B deferred. |
-| **P3 — Checks & scoring** | **Current** | Check set, ledger, arithmetic scoring. |
+| **P3 — Checks & scoring** | **Current** | Check set, ledger, arithmetic scoring. P3.1 (registry, finding contract, deterministic checks) is done; recognition, the penalty families and scoring are not. |
 | P4 — Reporting | Not started | `report.json` then `report.md` rendered from it. |
 | P5 — Skill packaging | Not started | `skill/shopify-product-intelligence/SKILL.md`. |
 

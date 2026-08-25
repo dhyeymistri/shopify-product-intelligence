@@ -315,6 +315,66 @@ A model would still decide *which* template applies and *which* span to quote �
 
 ---
 
+## D-018 — A product-level value earns nothing for a variant-scoped requirement
+
+**Status:** Accepted. Implemented in P3.1 (`engine/checks.unresolved_scope`).
+
+**Question:** `taxonomy.md` §4.3 marks some attributes non-inheritable — `garment_measurements`, `net_content`, `color_finish`, `user_fit_specification`, `assembled_dimensions` — meaning a product-scope value does not satisfy the requirement for any variant. What does a check earn when the merchant states one of these once, for the product, on a multi-variant product?
+
+**Decision: zero earned points, status `PARTIAL`, with the supplied value quoted.**
+
+The points follow `rubric.md` §3.1's own coverage arithmetic. A coverage check earns `max × (covered / total)`; a product-scope value covers no variant of a non-inheritable attribute, so `covered` is 0 and the product earns 0. Nothing new is invented to reach that figure — it is the existing formula evaluated at the boundary.
+
+**Rejected: half credit** (`max × partial_credit`), which is what P3.1 originally implemented. Half credit reads the case as PRD §9.3 ambiguity — a value present but not fully resolved — and there is a real argument for it, since `taxonomy.md` §5.1 does call an unmapped size chart `PARTIAL`. It was rejected because it pays for per-variant data the record does not hold. These attributes are non-inheritable *precisely* to stop a merchant appearing to have per-variant data they do not have (§4.3), and awarding points for the appearance re-creates the thing the rule exists to prevent. Where a reading is genuinely open, the one that awards fewer points for less information is the one consistent with D-003.
+
+**Rejected: `UNKNOWN`.** This is the conservative-looking answer and it is wrong, for a mechanical reason worth recording. The value *was* found, at a path the check declares it searched. Reporting it as absent is a false gap — PRD §8.3 rule 5 calls that a false negative of `blocker` severity, and the fabrication audit catches it as `FAB012_FALSE_GAP` on exactly this shape. `rubric.md` §3.1 also defines `UNKNOWN` as *"not found in any `checked_paths`"*, which is not what happened. `PARTIAL` at zero is the only status that reports the truth — something is there, and it does not answer the question — while still earning nothing.
+
+**Consequence:** the merchant sees the value they supplied, quoted at its locator, alongside the named variants it does not cover, and a question asking for the per-variant values. They are not told their data is missing, and they are not paid for data that is not there.
+
+---
+
+## D-019 — A check that cannot read prose says nothing, and never says "absent"
+
+**Status:** Accepted. Implemented in P3.1 (`engine/checks`, `FindingLedger.defer`).
+
+**Question:** Most attributes can be stated in a product description. Recognizing them there is language recognition, permitted by PRD §9.5 rule 2 over a quoted span, and it is not implemented yet. What does a check do when it has searched its declared paths, found no structured value, and found free text it cannot read?
+
+**Decision:** it emits **no finding at all**, and records the check as deferred internally.
+
+Three things follow, and all three are the point:
+
+1. **It does not infer the fact.** No value is supplied, guessed, or carried over from category norms. That is AGENTS.md §2, and no phase of this project may weaken it.
+2. **It does not report the attribute as absent.** A description that has not been read may well state the attribute. Claiming a gap there is a false gap — PRD §8.3 rule 5, `blocker` severity — and it is the failure most likely to make a merchant distrust the whole report, because they can see the sentence the tool says is not there.
+3. **It does not penalize the product.** A deferred check produces no `UNKNOWN`, no `unknowns[]` row, no question, and no penalty. Nothing about it reaches merchant-facing output.
+
+**Where absence is still decided:** everywhere the search is complete. If the description is empty and no structured value exists, nothing was found anywhere the check looked, and `UNKNOWN` is correct and is emitted with its `checked_paths`. Deferral is not a blanket suppression of absence; it is confined to the case where something unread is present.
+
+**The cost, stated plainly.** Under-recognition deflates a score. A product whose material is stated only in prose earns nothing for it until recognizers exist. This is the acceptable direction of failure and the only one available: an under-credited product carries honest evidence and a recoverable score, while a guess in either direction states something false about a product. The bound is recall, and recall is a lexicon problem that later phases fix by construction — it is not a correctness problem.
+
+**Not a licence to add a model.** V0 adds no LLM and no network call (D-001, D-006). The interface that would close the gap is a span recognizer owned by the check and versioned with `rubric.md`, exactly as PRD §9.6 already authorizes.
+
+**Revisit when:** the recognition phase lands. Deferral should then shrink to the residue no lexicon covers, and that residue should be measured rather than assumed.
+
+---
+
+## D-020 — Confidence is fixed per check, with two declared determination arms
+
+**Status:** Accepted. Supersedes open question Q-9. Implemented in P3.1 (`engine/registry.ConfidenceRule`).
+
+**Question:** `rubric.md` §3's example record fixes `confidence` as a single scalar per check. PRD §7.5 assigns `high` to a structural presence/absence determination and `medium` to bounded recognition over a quoted span — and the honest report double `honest-adv-02-helmet.report.json` carries `high` on a D2 absence, which a single `medium` scalar cannot produce. Which governs?
+
+**Decision:** a check declares **two arms**, both fixed by its definition: `recognized`, which is the confidence `rubric.md` §4 states for the check, and `structural`, which applies when the finding was reached by presence, absence, exact comparison, uniqueness or arithmetic. Which arm applies is a fact about how the finding was determined, not a runtime judgment, so PRD §7.5 rule 3 holds.
+
+**The structural arm never exceeds the check's stated confidence, and a `low` check stays `low` everywhere.** This is the part that matters. `medium` describes the *method* — reading a span — so a check that reached its conclusion without reading anything may legitimately report `high`. `low` describes the *subject matter*: it marks a judgment a reasonable reviewer could dispute, such as whether a use case is specific enough or whether two attributes mean the same thing. Structural certainty about where the tool looked does not make that judgment less disputable. Promoting `USECASE.DIFFERENTIATION` to `high` on its absence path would detach PRD §7.5 rule 2's guardrail — *low confidence never penalizes and never exceeds `minor`* — from the check on the path it most often takes. The guardrail is not amendable that way, so the arm is capped instead. Asserted at registry import.
+
+**Rejected: a single scalar per check.** It cannot express both the honest double's `high` D2 absence and `rubric.md` §4's `medium` D2 column without one of the two being wrong.
+
+**Rejected: `high` on every structural path.** This is what P3.1 shipped first, and it made `USECASE.DIFFERENTIATION` report `high`. It reads as the tool being more certain about an interpretive question than it is, in the one place the specification asks it to be least certain.
+
+**Follow-up owed to the specification:** `rubric.md` §3's example record still shows one scalar. It should show both arms. That is a documentation correction, not a scoring change, and it does not bump `rubric_version`.
+
+---
+
 ## Open questions
 
 Deliberately unresolved. Each is recorded so V0 does not foreclose it, and none blocks V0.
@@ -329,6 +389,7 @@ Deliberately unresolved. Each is recorded so V0 does not foreclose it, and none 
 | Q-6 | Should `uncategorized` products get an expanded Common Core so their scores are less deflated? | Risks encouraging bad category hygiene, which is itself a real finding. | Eval data on how often `uncategorized` occurs in real exports. |
 | Q-7 | How should the tool treat merchant data that is stale rather than absent (a spec that no longer matches the shipped product)? | Undetectable without external state; possibly permanently out of scope. | Whether merchants report this as a felt problem. |
 | Q-8 | Post-V0: do attribute keys map onto Shopify category metafields, and does that change tiering? | Requires taxonomy dependency V0 avoids (D-008). | Shopify taxonomy review at integration time. |
+| Q-11 | `taxonomy.md` §2 rule 1 requires an `info` finding naming both signals when two same-tier signals disagree, but `rubric.md` §4 defines no `check_id` that could carry it. P3.1 records the disagreement on the category block's own evidence rather than inventing a check id. | A check that is not in the rubric cannot have fixed points, severity or confidence, and adding one is a rubric change requiring a version bump. Nothing is lost meanwhile: the disagreement is reported, just not as a finding. | Either a `CATEGORY.*` check in `rubric.md` §4, or an explicit statement that the category block carries it. |
 
 ---
 
