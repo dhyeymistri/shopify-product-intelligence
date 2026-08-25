@@ -1,0 +1,43 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-10-variant-scope-partly-covered",
+  "set": "recognition",
+  "rubric_version": "0.4",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the slice-D structural coverage this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "Both D3 structural coverage checks at 2 of 3, on the same third variant. The uncovered variant is named individually in both findings, with the key it is missing (PRD 9.7, D-021 rule 4). `Colour` is in the visual vocabulary as an orthographic variant (D-031).",
+  "products": [
+    {
+      "product_id": "handle:rec-10-variant-scope-partly-covered",
+      "must_not_fabricate": [
+        "Umber oak",
+        "beech",
+        "seat height 66",
+        "stackable"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "VARIANT.ATTRIBUTE_COVERAGE",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "variants[sku:R10-ASH].attributes[color_finish].value_raw",
+            "variants[sku:R10-SLA].attributes[color_finish].value_raw",
+            "variants[sku:R10-UMB].attributes[assembled_dimensions].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.MEDIA_LINKED",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "media[0]",
+            "media[1]"
+          ]
+        }
+      ]
+    }
+  ]
+}

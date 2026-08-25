@@ -38,6 +38,56 @@ Python 3.9+, standard library only. No network, no dependencies, no persistence.
 | `checks.py` | Status determination: presence, absence, coverage, conflict. |
 | `runner.py` | Applicable set → findings → sealed ledger. No score. |
 
+### P3.2 — recognition
+
+| Module | Responsibility |
+| --- | --- |
+| `lexicon.py` | Every scoring vocabulary: vague-phrase sets, unit spellings, size standards, performance tiers, and the two option-name sets — the reserved platform defaults and the visual axes `VARIANT.MEDIA_LINKED` triggers on. One module, versioned with `rubric.md`, with an import-time assertion that no entry is a product value (D-022, D-031). |
+| `recognize.py` | The predicates themselves. Each reads one supplied value and returns a boolean. No prose, no world knowledge, no other product. |
+
+`registry.IMPLEMENTED_PREDICATES`, `IMPLEMENTED_RELATIONS` and
+`IMPLEMENTED_STRUCTURAL` are what make "implemented" a registry fact: the
+import-time invariants refuse to load a predicate no check declares, or one
+owned by a penalty check. The three registries hold the three shapes a
+predicate can take — a property of one supplied value, a relation between two
+supplied fields, and structural arithmetic over the whole record. Only the
+first is reachable through `CheckDef.recognize`; the other two are invoked by
+their own dispatched handler.
+
+**25 of the 116 declared predicates are implemented**, across 19 checks:
+9.00 points of category-independent `raw_max` (D1 6.00, D5 3.00) plus, per
+category, apparel 9.90, sports 8.25, electronics 7.59, beauty 6.60 and home
+5.72 — all of it previously unreachable by deferral. The remaining 91 stay
+deferred, and the deferral ledger now distinguishes *no evaluator exists* from
+*the predicate ran and abstained*, so the residue is measured rather than
+assumed (D-019).
+
+### P3.2 slice D — structural coverage over taxonomy data
+
+Two D3 checks that need no lexicon of values and read no prose, implemented as
+dispatched handlers rather than value predicates:
+
+- **`VARIANT.ATTRIBUTE_COVERAGE`** (3.00) counts a variant covered when every
+  non-inheritable variant-scope attribute *for the category* is **present** on
+  it — `rubric.md` §4/D3's own word. The attribute's own recognition predicate
+  is never run, so this check does not inherit its uncertainty (D-030). Where
+  the category requires nothing per variant — an empty set, or `uncategorized`
+  — the runner removes the check as `NOT_APPLICABLE` before it runs, on the
+  precedent `rubric.md` §4/D2 sets for the same missing field (D-029).
+- **`VARIANT.MEDIA_LINKED`** (1.50) runs only once an option name matches the
+  closed visual vocabulary `color`, `colour`, `finish`, `shade`. No match is a
+  **deferral, never `NOT_APPLICABLE`**: the axis may be named outside the list,
+  and removing points from a denominator on that assumption is what PRD §10.3
+  forbids (D-031).
+
+Both determine everything structurally — set membership, presence, arithmetic —
+so both report the structural confidence arm (D-020), and neither is on the
+recognition path PRD §9.5 caps.
+
+`unnamed_eco_claim` is written and deliberately **not registered**: its
+`taxonomy.md` §5.1 cell routes an unnamed eco claim to D7 as unsupported, and
+the awarding half may not ship without the subtracting half (D-027).
+
 Format B (Shopify Admin GraphQL JSON, PRD §5.2) is not implemented. It is
 refused by name rather than guessed at.
 
@@ -55,6 +105,21 @@ refused by name rather than guessed at.
   and conflict are still decided, because both are exact. Under-recognition
   deflates a score and carries honest evidence; a guess can state something
   false about a product.
+- **No predicate has a negative arm.** A predicate that does not fire says
+  *undecided*, never *absent* and never *wrong*. There is no path from a
+  recognition verdict to a `FAIL`, an `UNKNOWN` or a penalty.
+- **A variant is covered only when its own value satisfies the check** (D-021).
+  An ambiguous variant value is quoted at its own locator and named as
+  uncovered; it is never reported as an empty field, and it is never weighted
+  as half of a covered variant. One unreadable variant silences the whole
+  check rather than being counted against the product. Where *every* variant
+  carries a value, `rubric.md` §3.1's ambiguity clause acts as a floor under
+  the coverage clause (D-025).
+- **Recognition never reports `high` confidence** (D-026, PRD §9.5). The
+  finding carries `determination`, so a report can say which arm reached it.
+- **A check may not claim more than the rubric defines.**
+  `IDENT.TITLE_DISTINGUISHING` reads only attributes that are one of the five
+  kinds `rubric.md` §4/D1 names, and reads no option values at all (D-024).
 - **No question that answers itself.** Every question is a fixed registry string
   or a fixed frame filled with byte-verified excerpts, so a remediation cannot
   introduce a value the data does not hold (PRD §7.6).

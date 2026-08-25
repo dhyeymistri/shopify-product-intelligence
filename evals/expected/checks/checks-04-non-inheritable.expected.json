@@ -2,7 +2,7 @@
   "expected_version": "0.1",
   "fixture_id": "checks-04-non-inheritable",
   "set": "checks",
-  "rubric_version": "0.1",
+  "rubric_version": "0.4",
   "taxonomy_version": "0.1",
   "status_coverage": "partial",
   "coverage_note": "Asserts the check-layer behaviour this fixture was authored for. Recognition-dependent checks are deliberately not asserted here; they belong to the phase that implements them.",

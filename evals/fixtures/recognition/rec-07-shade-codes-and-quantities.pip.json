@@ -1,0 +1,169 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "rec-07-shade-codes-and-quantities",
+    "set": "recognition",
+    "intent": "A shade code with no name, and a net content with and without a unit, across variants. Both keys are variant-scope and non-inheritable, so both verdicts feed D-021's coverage arithmetic.",
+    "provenance": "Synthetic. Authored for this eval corpus to exercise the deterministic recognition predicates. Not derived from any real merchant's catalog or private data.",
+    "notes": "BEAUTY.COLOR_SHADE's satisfying arm stays deferred permanently: deciding that a string is a shade name would need a lexicon of shade names, which is a lexicon of product values."
+  },
+  "products": [
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:rec-07-shade-codes-and-quantities",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-07-shade-codes-and-quantities.pip.json",
+        "locator": "products[handle:rec-07-shade-codes-and-quantities]"
+      },
+      "identity": {
+        "title": {
+          "value": "Lumen Tinted Serum",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Lumen",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "rec-07-shade-codes-and-quantities",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": null,
+          "src": null
+        },
+        "declared_category": {
+          "value": "Health & Beauty > Personal Care > Skin Care",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": null,
+          "src": null
+        },
+        "description_html": {
+          "value": null,
+          "src": null
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 0
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [
+        {
+          "key": "usage_directions",
+          "value_raw": "Use as directed",
+          "origin": "merchant_structured",
+          "src": "attributes[usage_directions].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [
+        {
+          "name": "Shade",
+          "values": [
+            "N-24",
+            "N-32"
+          ],
+          "src": "options[Shade]"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:RC7-N24",
+          "option_values": {
+            "Shade": "N-24"
+          },
+          "sku": {
+            "value": "RC7-N24",
+            "src": "variants[sku:RC7-N24].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "32.00",
+            "currency": null,
+            "src": "variants[sku:RC7-N24].price"
+          },
+          "media_refs": [],
+          "attributes": [
+            {
+              "key": "color_shade",
+              "value_raw": "N-24",
+              "origin": "merchant_structured",
+              "src": "variants[sku:RC7-N24].attributes[color_shade].value_raw",
+              "scope": "variant"
+            },
+            {
+              "key": "net_content",
+              "value_raw": "50 ml",
+              "origin": "merchant_structured",
+              "src": "variants[sku:RC7-N24].attributes[net_content].value_raw",
+              "scope": "variant"
+            }
+          ]
+        },
+        {
+          "variant_id": "sku:RC7-N32",
+          "option_values": {
+            "Shade": "N-32"
+          },
+          "sku": {
+            "value": "RC7-N32",
+            "src": "variants[sku:RC7-N32].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "32.00",
+            "currency": null,
+            "src": "variants[sku:RC7-N32].price"
+          },
+          "media_refs": [],
+          "attributes": [
+            {
+              "key": "color_shade",
+              "value_raw": "N-32",
+              "origin": "merchant_structured",
+              "src": "variants[sku:RC7-N32].attributes[color_shade].value_raw",
+              "scope": "variant"
+            },
+            {
+              "key": "net_content",
+              "value_raw": "50",
+              "origin": "merchant_structured",
+              "src": "variants[sku:RC7-N32].attributes[net_content].value_raw",
+              "scope": "variant"
+            }
+          ]
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

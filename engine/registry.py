@@ -32,6 +32,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Dict, Optional, Tuple
 
+from . import recognize as _recognize
 from . import rubric_data as R
 from . import taxonomy_data as T
 
@@ -42,6 +43,35 @@ FAMILIES = frozenset([
     "IDENT", "APPAREL", "BEAUTY", "ELEC", "HOME", "SPORTS",
     "VARIANT", "USECASE", "TRUST", "CONFLICT", "CLAIM", "STRUCT",
 ])
+
+class _Token(object):
+    """A named singleton. Compared with `is`, never with `==`."""
+
+    __slots__ = ("name",)
+
+    def __init__(self, name):
+        # type: (str) -> None
+        self.name = name
+
+    def __repr__(self):  # pragma: no cover - debugging aid
+        return self.name
+
+
+#: The three states of `CheckDef.satisfaction` (PRE-4).
+NO_PREDICATE = _Token("NO_PREDICATE")
+UNIMPLEMENTED = _Token("UNIMPLEMENTED")
+
+#: The three verdicts a recognition predicate may return. They are deliberately
+#: not `rubric.md` statuses: a predicate reports what it could read from one
+#: supplied value, and the check owns the arithmetic that turns that into a
+#: status and a point figure. `UNDECIDED` is not a failure -- it is the
+#: measured residue D-019 asks for, and it earns nothing and penalizes nothing.
+SATISFIED = _Token("SATISFIED")
+AMBIGUOUS = _Token("AMBIGUOUS")
+UNDECIDED = _Token("UNDECIDED")
+
+VERDICTS = (SATISFIED, AMBIGUOUS, UNDECIDED)
+
 
 #: Severity for statuses a check does not override (rubric.md 5.1).
 DEFAULT_SEVERITY = {
@@ -86,6 +116,31 @@ class ConfidenceRule(object):
             structural = "low" if recognized == "low" else "high"
         self.structural = structural
 
+    #: PRD 9.5: an inference-derived finding reports `medium` or `low`, never
+    #: `high`. Ranked low-to-high so the cap is a comparison rather than a
+    #: special case.
+    RANK = {"low": 0, "medium": 1, "high": 2}
+    RECOGNITION_CEILING = "medium"
+
+    @property
+    def recognition_arm(self):
+        # type: () -> str
+        """The confidence a finding reached *by recognition* may report.
+
+        `recognized` stays exactly what `rubric.md` 4 states for the check --
+        that figure is the check's ceiling and D-020's structural-arm rule is
+        still checked against it. This property is the *recognition path's*
+        ceiling, from PRD 9.5, and the finding takes the lower of the two.
+
+        The two disagree in exactly one place today: `rubric.md` 4/D5 fixes
+        `TRUST.WARRANTY_OR_GUARANTEE` at `high`, and under P3.1 that check
+        could only ever conclude structurally, so the conflict was unreachable.
+        Giving it a predicate made it reachable (D-026).
+        """
+        if self.RANK[self.recognized] > self.RANK[self.RECOGNITION_CEILING]:
+            return self.RECOGNITION_CEILING
+        return self.recognized
+
     def __repr__(self):  # pragma: no cover - debugging aid
         return "ConfidenceRule(%s, %s)" % (self.structural, self.recognized)
 
@@ -129,7 +184,17 @@ class CheckDef(object):
         self.satisfies = satisfies
         self.partial_if = partial_if
         self.conditional_trigger = conditional_trigger
-        self.na_trigger = na_trigger
+        # Normalized to a tuple because a check can have more than one
+        # structural ground for removal: `VARIANT.ATTRIBUTE_COVERAGE` is
+        # `NOT_APPLICABLE` on a single-variant product *and* where the
+        # category requires nothing per variant (D-029), and the two are
+        # different facts about the record with different reasons to state.
+        if na_trigger is None:
+            self.na_trigger = ()
+        elif isinstance(na_trigger, str):
+            self.na_trigger = (na_trigger,)
+        else:
+            self.na_trigger = tuple(na_trigger)
         self.conflict_severity = conflict_severity
         # PRD 9.8: two supplied values for the *same canonical attribute* are a
         # conflict, never a duplicate. Only a check that owns one canonical key
@@ -149,6 +214,43 @@ class CheckDef(object):
         # type: () -> bool
         return self.dimension in R.PENALTY_DIMENSIONS
 
+    def _arm(self, predicate_id):
+        # type: (Optional[str]) -> Any
+        if not predicate_id or predicate_id == T.VALUE_PRESENT:
+            return NO_PREDICATE
+        return IMPLEMENTED_PREDICATES.get(predicate_id, UNIMPLEMENTED)
+
+    @property
+    def satisfaction(self):
+        # type: () -> Any
+        """Three-valued (PRE-4). One of:
+
+        * `NO_PREDICATE` -- `satisfies` is `VALUE_PRESENT`, so a present,
+          non-placeholder value settles the check and no recognition is needed.
+        * `UNIMPLEMENTED` -- the check declares a recognition predicate and no
+          evaluator is registered for it. Every such predicate is `UNDECIDED`
+          for every value, always.
+        * an evaluator callable -- the declared predicate, implemented.
+
+        A boolean cannot hold the middle state, and the middle state is the
+        whole point: "needs no recognition" and "needs recognition we now
+        have" both decide a value, and they decide it by different means and
+        under different confidence arms (D-020).
+        """
+        return self._arm(self.satisfies)
+
+    @property
+    def ambiguity(self):
+        # type: () -> Any
+        """The same three states for the check's `partial_if` arm.
+
+        A taxonomy row states two conditions, and they are implemented
+        independently on purpose: several rows have a decidable ambiguity arm
+        and a satisfying arm that needs prose. Splitting them is what lets the
+        arm that can be decided be decided while the other stays silent.
+        """
+        return self._arm(self.partial_if)
+
     @property
     def structural_satisfaction(self):
         # type: () -> bool
@@ -156,9 +258,38 @@ class CheckDef(object):
 
         False does not mean the check cannot run: absence and conflict are
         structural for every check. It means only that deciding a *present*
-        value satisfies this check needs recognition, which is a later phase.
+        value satisfies this check needs recognition.
         """
-        return self.satisfies == T.VALUE_PRESENT
+        return self.satisfaction is NO_PREDICATE
+
+    @property
+    def has_recognition(self):
+        # type: () -> bool
+        """True when at least one declared arm has an evaluator."""
+        return (self.satisfaction not in (NO_PREDICATE, UNIMPLEMENTED)
+                or self.ambiguity not in (NO_PREDICATE, UNIMPLEMENTED))
+
+    def recognize(self, value):
+        # type: (str) -> Any
+        """Run this check's declared arms over one supplied value.
+
+        Returns a verdict, never a boolean and never a status: the caller owns
+        the arithmetic that turns verdicts into points, because that
+        arithmetic is `rubric.md`'s and not a predicate's.
+
+        **The satisfying arm is tested first, and that ordering is load-bearing
+        rather than incidental.** A value that satisfies must never be scored
+        as merely ambiguous: less information may not earn more than more
+        (D-021). Where neither arm fires the answer is `UNDECIDED` -- which is
+        the measured residue D-019 asks for, not a verdict against the value.
+        """
+        satisfies = self.satisfaction
+        if satisfies not in (NO_PREDICATE, UNIMPLEMENTED) and satisfies(value):
+            return SATISFIED
+        ambiguity = self.ambiguity
+        if ambiguity not in (NO_PREDICATE, UNIMPLEMENTED) and ambiguity(value):
+            return AMBIGUOUS
+        return UNDECIDED
 
     def severity_for(self, status):
         # type: (str) -> str
@@ -402,6 +533,47 @@ RECOGNITION_PREDICATES = frozenset(
     + [c.conditional_trigger for c in ALL_CHECKS if c.conditional_trigger]
 )
 
+#: Predicate ids with an implemented evaluator, keyed by predicate id
+#: (PRE-5). Empty means the engine recognizes nothing and every check that
+#: needs recognition defers -- which is a correct engine, only a
+#: less complete one (D-019).
+#:
+#: An evaluator takes `(check, candidate)` and returns one of the three
+#: verdicts above. It reads the candidate's supplied value and nothing else:
+#: no category norms, no world knowledge, no other product. Registering one
+#: here is what makes "implemented" a registry fact rather than a `checks.py`
+#: accident, and it is what the import-time invariants below can see.
+IMPLEMENTED_PREDICATES = dict(_recognize.VALUE_PREDICATES)  # type: Dict[str, Any]
+
+#: Predicate ids implemented as a *relation* between two supplied fields
+#: rather than as a property of one value, so they cannot be reached through
+#: `CheckDef.recognize` and are invoked by their own check handler. They are
+#: registered here anyway, and held to the same two invariants: the registry
+#: stays the single place that knows what is implemented.
+IMPLEMENTED_RELATIONS = dict(_recognize.RELATION_PREDICATES)  # type: Dict[str, Any]
+
+#: Predicate ids implemented as **structural arithmetic over the whole record**
+#: rather than as a property of one value or a relation between two fields.
+#: They have no evaluator to register -- the implementation *is* the check's
+#: dispatched handler -- so they are named here instead, and held to the same
+#: invariant as the other two registries: nothing is implemented that no check
+#: declares.
+#:
+#: Registering them is what keeps PRE-5's rule true in both directions. Without
+#: this set the registry would report `variant_scope_attributes_covered` as
+#: unimplemented while `checks.check_variant_attribute_coverage` was deciding
+#: 3.0 points with it, and "implemented" would be a `checks.py` accident again.
+#: `evals/tests/test_checks.py` asserts that every id here is owned by a check
+#: with a `DISPATCH` entry; the registry cannot see `checks.py` itself.
+#:
+#: `CheckDef.satisfaction` deliberately does **not** consult this set. These
+#: checks never reach `attribute_check`, and reporting a value-predicate arm
+#: for a predicate that reads no value would be the wrong kind of true.
+IMPLEMENTED_STRUCTURAL = frozenset([
+    "variant_scope_attributes_covered",   # VARIANT.ATTRIBUTE_COVERAGE, D-030
+    "visual_variants_have_media",         # VARIANT.MEDIA_LINKED, D-031
+])
+
 
 def checks_for_category(category):
     # type: (str) -> Tuple[CheckDef, ...]
@@ -456,6 +628,11 @@ def _invariants():
         for arm in (check.confidence.structural, check.confidence.recognized):
             assert arm in R.CONFIDENCES, "%s: unknown confidence %r" % (cid, arm)
 
+        # PRD 9.5 / D-026: no recognition path may report `high`.
+        assert check.confidence.recognition_arm in ("medium", "low"), (
+            "%s: recognition would report %s"
+            % (cid, check.confidence.recognition_arm))
+
         # PRD 7.5 rule 2 / rubric.md 5.2 -- the guardrail on low confidence.
         if check.confidence.recognized == "low":
             # ...and it holds on every path the check can take, not only the
@@ -482,6 +659,49 @@ def _invariants():
             expected = "%s.%s" % (T.FAMILY[check.categories[0]],
                                   check.attribute_key.upper())
             assert cid == expected, "D2 check_id %s must be %s" % (cid, expected)
+
+    # PRE-5. "Implemented" is a registry fact, not a checks.py accident.
+    #
+    # 1. Every implemented predicate is owned by a check that declares it.
+    #    An evaluator with no owning check is dead code that can still be
+    #    called, and dead scoring code is the shape of a rule nobody reviews.
+    # 2. No implemented predicate belongs to a penalty check. D6 and D7 are
+    #    penalty exposure (`rubric.md` 1.2), and recognition raising a penalty
+    #    would make a lexicon entry subtract points from a merchant. The
+    #    exclusion is structural here rather than a habit in review.
+    implemented = dict(IMPLEMENTED_PREDICATES)
+    implemented.update(IMPLEMENTED_RELATIONS)
+    assert len(implemented) == (len(IMPLEMENTED_PREDICATES)
+                                + len(IMPLEMENTED_RELATIONS)), (
+        "a predicate id is implemented as both a value predicate and a "
+        "relation")
+    for predicate_id, evaluator in implemented.items():
+        assert predicate_id in RECOGNITION_PREDICATES, (
+            "predicate %s is implemented but no check declares it"
+            % predicate_id)
+        assert callable(evaluator), (
+            "predicate %s is not callable" % predicate_id)
+        for check in ALL_CHECKS:
+            if not check.is_penalty:
+                continue
+            declared = (check.satisfies, check.partial_if,
+                        check.conditional_trigger)
+            assert predicate_id not in declared, (
+                "predicate %s is implemented for penalty check %s"
+                % (predicate_id, check.check_id))
+
+    # ...and the same rule for the structural registry, which carries names
+    # rather than callables (D-030, D-031).
+    for predicate_id in IMPLEMENTED_STRUCTURAL:
+        assert predicate_id in RECOGNITION_PREDICATES, (
+            "structural predicate %s is implemented but no check declares it"
+            % predicate_id)
+        assert predicate_id not in IMPLEMENTED_PREDICATES, (
+            "%s is implemented as both a value predicate and structural"
+            % predicate_id)
+        assert predicate_id not in IMPLEMENTED_RELATIONS, (
+            "%s is implemented as both a relation and structural"
+            % predicate_id)
 
     # rubric.md 4: the earned dimensions sum to exactly their stated maxima,
     # and to 82 in total (rubric.md 1.2).

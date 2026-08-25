@@ -1,0 +1,54 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-06-durations-and-contents",
+  "set": "recognition",
+  "rubric_version": "0.4",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the recognition arms this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "ELEC.WARRANTY_TERM's satisfying arm stays deferred on purpose: recognizing what a warranty covers is reading language, not shape. ELEC.COMPATIBILITY takes its ambiguity arm on a closed phrase.",
+  "products": [
+    {
+      "product_id": "handle:rec-06-durations-and-contents",
+      "must_not_fabricate": [
+        "parts and labour",
+        "usb-c",
+        "bluetooth 5.3",
+        "40 hours"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "ELEC.WARRANTY_TERM",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "attributes[warranty_term].value_raw"
+          ]
+        },
+        {
+          "check_id": "TRUST.WARRANTY_OR_GUARANTEE",
+          "status": "PASS",
+          "evidence_locators": [
+            "attributes[warranty_or_guarantee].value_raw"
+          ]
+        },
+        {
+          "check_id": "ELEC.IN_THE_BOX",
+          "status": "PASS",
+          "evidence_locators": [
+            "attributes[in_the_box].value_raw"
+          ]
+        },
+        {
+          "check_id": "ELEC.COMPATIBILITY",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "attributes[compatibility].value_raw"
+          ]
+        }
+      ]
+    }
+  ]
+}

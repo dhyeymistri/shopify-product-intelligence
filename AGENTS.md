@@ -4,6 +4,8 @@ Operating contract for anyone working in this repository, human or agent. Read t
 
 **Current phase: P3 — checks and scoring. P0 (specification), P1 (fixtures + fabrication audit) and P2 (the normalizer) are complete.** See §6.
 
+`rubric_version` is **0.2**: it versions the *scoring function*, not the document, so any change that can move a fixture score bumps it ([`product/decisions.md`](product/decisions.md) D-023).
+
 ---
 
 ## 1. What this product is
@@ -97,7 +99,7 @@ Violating any of these is a defect regardless of how well the code works.
 | P0 — Specification | Complete | Editing `product/*`, `AGENTS.md`, `README.md`. Writing fixtures. |
 | P1 — Fixtures & audits | Complete | `evals/` corpus (10 sparse + 4 adversarial), the fabrication audit, its test suite. See [`evals/README.md`](evals/README.md). |
 | P2 — Normalizer | Complete | Input → NPR, with locators. `engine/`. Formats A (Shopify CSV) and C (PIP JSON); Format B deferred. |
-| **P3 — Checks & scoring** | **Current** | Check set, ledger, arithmetic scoring. P3.1 (registry, finding contract, deterministic checks) is done; recognition, the penalty families and scoring are not. |
+| **P3 — Checks & scoring** | **Current** | Check set, ledger, arithmetic scoring. P3.1 (registry, finding contract, deterministic checks) is done. P3.2 has landed 26 of the 116 declared recognition predicates (`engine/lexicon.py`, `engine/recognize.py`); the penalty families, prose recognition and scoring are not. |
 | P4 — Reporting | Not started | `report.json` then `report.md` rendered from it. |
 | P5 — Skill packaging | Not started | `skill/shopify-product-intelligence/SKILL.md`. |
 
@@ -116,7 +118,7 @@ Nothing in `app/future-shopify-app/` is in scope. Do not add OAuth, API clients,
 - Shopify's platform changes. If a stated platform fact matters to a decision, re-verify it rather than trusting this repo's copy.
 
 ### Specification changes
-- A scoring change bumps `rubric_version` and updates every affected expectation file **in the same commit**.
+- A scoring change bumps `rubric_version` and updates every affected expectation file **in the same commit**. Implementing a recognition predicate, or adding an entry to `engine/lexicon.py`, is a scoring change: it moves statuses and therefore scores (D-023, D-022).
 - A semantic change to scoring requires a new record in `decisions.md`.
 - Attribute keys and `check_id`s are permanent identifiers. Renaming is a breaking change requiring expectation migration. Retired IDs stay reserved.
 - Point totals must sum to 100. A change that breaks this is rejected at review.

@@ -1,0 +1,184 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "rec-09-variant-scope-fully-covered",
+    "set": "recognition",
+    "intent": "Both slice-D checks at full coverage. Every attribute `home` requires per variant is present on both variants, so VARIANT.ATTRIBUTE_COVERAGE is PASS at 3.00 (D-030); the `Color` option is in the closed visual vocabulary and both variants link their own media, so VARIANT.MEDIA_LINKED is PASS at 1.50 (D-031).",
+    "provenance": "Synthetic. Authored for this eval corpus to exercise the deterministic structural coverage checks. Not derived from any real merchant's catalog or private data.",
+    "notes": "`home` requires assembled_dimensions and color_finish per variant. Coverage counts presence, never the attribute's own predicate: the two variants share a dimension value, which is a fact about the product and not a conflict, and the check says nothing about whether either value is any good."
+  },
+  "products": [
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:rec-09-variant-scope-fully-covered",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-09-variant-scope-fully-covered.pip.json",
+        "locator": "products[handle:rec-09-variant-scope-fully-covered]"
+      },
+      "identity": {
+        "title": {
+          "value": "Harrowgate Wall Shelf",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Harrowgate",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "rec-09-variant-scope-fully-covered",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": null,
+          "src": null
+        },
+        "declared_category": {
+          "value": "Home & Garden > Furniture > Shelving",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": null,
+          "src": null
+        },
+        "description_html": {
+          "value": null,
+          "src": null
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 0
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [],
+      "options": [
+        {
+          "name": "Color",
+          "values": [
+            "Oak",
+            "Walnut"
+          ],
+          "src": "options[Color]"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:R9-OAK",
+          "option_values": {
+            "Color": "Oak"
+          },
+          "sku": {
+            "value": "R9-OAK",
+            "src": "variants[sku:R9-OAK].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "72.00",
+            "currency": null,
+            "src": "variants[sku:R9-OAK].price"
+          },
+          "media_refs": [
+            "https://example.invalid/media/harrowgate-shelf-oak.jpg"
+          ],
+          "attributes": [
+            {
+              "key": "assembled_dimensions",
+              "value_raw": "80 x 24 x 9 cm",
+              "origin": "merchant_structured",
+              "src": "variants[sku:R9-OAK].attributes[assembled_dimensions].value_raw",
+              "scope": "variant"
+            },
+            {
+              "key": "color_finish",
+              "value_raw": "Oak",
+              "origin": "merchant_structured",
+              "src": "variants[sku:R9-OAK].attributes[color_finish].value_raw",
+              "scope": "variant"
+            }
+          ]
+        },
+        {
+          "variant_id": "sku:R9-WAL",
+          "option_values": {
+            "Color": "Walnut"
+          },
+          "sku": {
+            "value": "R9-WAL",
+            "src": "variants[sku:R9-WAL].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "72.00",
+            "currency": null,
+            "src": "variants[sku:R9-WAL].price"
+          },
+          "media_refs": [
+            "https://example.invalid/media/harrowgate-shelf-walnut.jpg"
+          ],
+          "attributes": [
+            {
+              "key": "assembled_dimensions",
+              "value_raw": "80 x 24 x 9 cm",
+              "origin": "merchant_structured",
+              "src": "variants[sku:R9-WAL].attributes[assembled_dimensions].value_raw",
+              "scope": "variant"
+            },
+            {
+              "key": "color_finish",
+              "value_raw": "Walnut",
+              "origin": "merchant_structured",
+              "src": "variants[sku:R9-WAL].attributes[color_finish].value_raw",
+              "scope": "variant"
+            }
+          ]
+        }
+      ],
+      "media": [
+        {
+          "url": "https://example.invalid/media/harrowgate-shelf-oak.jpg",
+          "alt": {
+            "value": null,
+            "src": null
+          },
+          "scope": "variant:sku:R9-OAK",
+          "src": "media[0]"
+        },
+        {
+          "url": "https://example.invalid/media/harrowgate-shelf-walnut.jpg",
+          "alt": {
+            "value": null,
+            "src": null
+          },
+          "scope": "variant:sku:R9-WAL",
+          "src": "media[1]"
+        }
+      ],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

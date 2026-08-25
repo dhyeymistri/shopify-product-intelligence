@@ -1,0 +1,25 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-03-vague-in-a-sentence",
+  "set": "recognition",
+  "rubric_version": "0.4",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the recognition arms this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "This is the negative half of rec-02 and the reason substring matching is prohibited: 'everyday' inside a sentence is not the same fact as a value that is 'everyday'.",
+  "products": [
+    {
+      "product_id": "handle:rec-03-vague-in-a-sentence",
+      "must_not_fabricate": [
+        "machine wash cold",
+        "gots certified",
+        "60% cotton",
+        "office wear"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": []
+    }
+  ]
+}

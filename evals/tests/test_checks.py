@@ -25,7 +25,11 @@ if REPO not in sys.path:
 
 from audits import factlex                                   # noqa: E402
 from audits.pip_locator import resolve                       # noqa: E402
+from engine import checks                                    # noqa: E402
+from engine import lexicon, recognize, taxonomy_keys         # noqa: E402
 from engine import registry                                  # noqa: E402
+from engine import rubric_data as R                          # noqa: E402
+from engine import taxonomy_data as T                        # noqa: E402
 from engine.runner import run_product                        # noqa: E402
 from engine.sources import PipSource                         # noqa: E402
 
@@ -393,6 +397,68 @@ class TestProseDeferral(unittest.TestCase):
         self.assertEqual(finding_for(result, "APPAREL.CARE_INSTRUCTIONS").status,
                          "UNKNOWN")
 
+    def test_the_reason_names_the_predicate_that_could_not_decide(self):
+        """PRE-6. D-019 asks for the residue to be *measured*, and a reason
+        that does not name the predicate cannot be counted against one."""
+        rows = [r for r in self.result.ledger.deferred
+                if "recognition predicate" in r["reason"]]
+        self.assertTrue(rows, "no predicate deferral on this fixture")
+        for row in rows:
+            check = registry.get(row["check_id"])
+            self.assertIn(check.satisfies, row["reason"], row["check_id"])
+
+    def test_unread_prose_is_not_recorded_as_an_abstaining_predicate(self):
+        """A check with no structured value read nothing, so no predicate ran.
+        Naming one there would misreport where the recall gap actually is."""
+        rows = [r for r in self.result.ledger.deferred
+                if r["check_id"] == "APPAREL.CARE_INSTRUCTIONS"]
+        self.assertEqual(len(rows), 1)
+        self.assertIn("Free text was found", rows[0]["reason"])
+        self.assertNotIn("no evaluator", rows[0]["reason"])
+
+    def test_no_evaluator_and_abstained_are_recorded_differently(self):
+        """The two are different measurements: one is a coverage gap that
+        writing an evaluator would close, the other is the residue proper."""
+        check = registry.get("APPAREL.CARE_INSTRUCTIONS")
+        ledger = _ReasonLedger()
+        ctx = _ReasonContext(ledger)
+
+        self.assertEqual(checks._defer_for_recognition(check, ctx), [])
+        self.assertEqual(
+            checks._defer_for_recognition(check, ctx, registry.UNDECIDED), [])
+
+        missing, abstained = ledger.reasons
+        self.assertNotEqual(missing, abstained)
+        self.assertIn("no evaluator", missing)
+        self.assertIn("could not decide", abstained)
+        for reason in (missing, abstained):
+            self.assertIn(check.satisfies, reason)
+
+    def test_neither_reason_reaches_merchant_facing_output(self):
+        """Which reason applies changes the ledger, never the report."""
+        product = self.result.as_dict()
+        self.assertNotIn("deferred", product)
+        text = json.dumps(product)
+        self.assertNotIn("no evaluator", text)
+        self.assertNotIn("could not decide", text)
+
+
+class _ReasonLedger(object):
+    """Records deferral reasons and nothing else."""
+
+    def __init__(self):
+        self.reasons = []
+
+    def defer(self, check_id, reason):
+        self.reasons.append(reason)
+
+
+class _ReasonContext(object):
+    __slots__ = ("ledger",)
+
+    def __init__(self, ledger):
+        self.ledger = ledger
+
 
 class TestConfidence(unittest.TestCase):
     def test_a_low_confidence_check_emits_low_not_high(self):
@@ -508,25 +574,312 @@ class TestScopeIsDecidedBeforeRecognition(unittest.TestCase):
         self.assertNotEqual(finding.status, "PASS")
         self.assertNotIn("size standard", (finding.detail or "").lower())
 
-    def test_a_covered_variant_attribute_still_defers_pending_recognition(self):
-        """The other branch of the same function. When a value does resolve to
-        a variant, whether it satisfies the check is still a recognition
-        question, and D-019's silence is unchanged there."""
-        npr, result = run(self.FIXTURE)
-        npr = json.loads(json.dumps(npr))
-        for variant in npr["variants"]:
-            variant["attributes"] = [{
-                "key": "size_system", "value_raw": "US 10",
-                "origin": "merchant_structured",
-                "src": "variants[%s].attributes" % variant["variant_id"],
-                "scope": "variant"}]
-        path = os.path.join(FIXTURES, "checks", "%s.pip.json" % self.FIXTURE)
-        with open(path) as handle:
-            document = json.load(handle)
-        document["products"][0] = npr
-        result = run_product(npr, PipSource(document, file=path))
+
+class TestStrictVariantCoverage(unittest.TestCase):
+    """D-021, against real fixtures rather than a synthesized record.
+
+    `coverage = satisfied_variants / total_variants`. A variant whose value is
+    merely ambiguous does not count toward coverage, is not weighted as half of
+    one, and is never reported as an empty field -- the value is there, and
+    reporting it as a gap would be the false negative the fabrication audit
+    catches as FAB012.
+    """
+
+    def test_every_variant_satisfying_covers_the_check(self):
+        npr, result = run("rec-01-title-and-proportions", folder="recognition")
+        check = registry.get("APPAREL.SIZE_SYSTEM")
+        finding = finding_for(result, check.check_id)
+        self.assertEqual(finding.status, "PASS")
+        self.assertEqual(finding.earned, check.max_points)
+        for item in finding.evidence:
+            self.assertIn("variants[", item.locator or "")
+
+    def test_an_ambiguous_variant_is_not_counted_as_covered(self):
+        npr, result = run("rec-04-mixed-variant-coverage", folder="recognition")
+        check = registry.get("HOME.ASSEMBLED_DIMENSIONS")
+        finding = finding_for(result, check.check_id)
+        self.assertEqual(finding.status, "PARTIAL")
+        self.assertEqual(finding.earned,
+                         check.max_points * Decimal(1) / Decimal(2))
+
+    def test_an_ambiguous_variant_is_quoted_and_never_reported_as_empty(self):
+        npr, result = run("rec-04-mixed-variant-coverage", folder="recognition")
+        finding = finding_for(result, "HOME.ASSEMBLED_DIMENSIONS")
+        quoted = [e for e in finding.evidence if e.type == "field_value"]
+        self.assertEqual(len(quoted), 2)
+        for item in quoted:
+            self.assertIn("variants[", item.locator or "")
+            self.assertTrue(item.excerpt)
+        self.assertEqual([e for e in finding.evidence if e.type == "absence"],
+                         [])
+
+    def test_less_information_never_earns_more_than_fuller_coverage(self):
+        """The governing property D-021 was decided against."""
+        full = finding_for(run("rec-01-title-and-proportions",
+                               folder="recognition")[1], "APPAREL.SIZE_SYSTEM")
+        mixed = finding_for(run("rec-04-mixed-variant-coverage",
+                                folder="recognition")[1],
+                            "HOME.ASSEMBLED_DIMENSIONS")
+        self.assertEqual(full.earned, full.max_points)
+        self.assertLess(mixed.earned, mixed.max_points)
+        self.assertEqual(mixed.earned,
+                         mixed.max_points * Decimal(1) / Decimal(2))
+
+    def test_an_ambiguous_variant_is_not_weighted_as_partial_coverage(self):
+        """The rejected alternative, asserted as an inequality: weighting would
+        have paid `max x (1 + 0.5)/2` here."""
+        finding = finding_for(run("rec-04-mixed-variant-coverage",
+                                  folder="recognition")[1],
+                              "HOME.ASSEMBLED_DIMENSIONS")
+        weighted = finding.max_points * Decimal("1.5") / Decimal(2)
+        self.assertLess(finding.earned, weighted)
+
+    def test_one_unreadable_variant_silences_the_whole_check(self):
+        """A verdict the predicate could not reach is not a verdict against the
+        variant, so the check says nothing rather than counting it uncovered."""
+        npr, result = run("rec-05-unreadable-variant-silences-the-check",
+                          folder="recognition")
+        self.assertIsNone(finding_for(result, "HOME.ASSEMBLED_DIMENSIONS"))
+        rows = [d for d in result.ledger.deferred
+                if d["check_id"] == "HOME.ASSEMBLED_DIMENSIONS"]
+        self.assertEqual(len(rows), 1)
+        self.assertIn("could not decide", rows[0]["reason"])
+
+    def test_a_product_scope_value_still_earns_nothing(self):
+        """D-018 is unchanged by D-021: a satisfying value at product scope
+        covers no variant of a non-inheritable attribute."""
+        npr, result = run("checks-08-non-inheritable-recognition")
+        finding = finding_for(result, "APPAREL.SIZE_SYSTEM")
+        self.assertEqual(finding.status, "PARTIAL")
+        self.assertEqual(float(finding.earned), 0.0)
+
+
+
+class _StubBuilder(object):
+    """Evidence constructors without a source. `coverage` only files what it is
+    handed; byte-verification is `EvidenceBuilder`'s job and is tested there."""
+
+    class _Item(object):
+        def __init__(self, type, locator=None, note=None):
+            self.type, self.locator, self.note = type, locator, note
+            self.excerpt = None
+
+    def field_value(self, candidate, note=None):
+        return self._Item("field_value", getattr(candidate, "src", None), note)
+
+    def absence(self, checked_paths, note=None):
+        return self._Item("absence", None, note)
+
+
+class _StubCandidate(object):
+    def __init__(self, ref):
+        self.src = "variants[%s].attributes[k].value_raw" % ref
+        self.scope, self.ref, self.value = "variant", ref, "v"
+
+
+def _coverage(check, satisfied, ambiguous, empty):
+    """Run the coverage arithmetic on a shaped set of verdicts."""
+    return checks.coverage(
+        check, _StubBuilder(),
+        [_StubCandidate("s%d" % i) for i in range(satisfied)],
+        ["e%d" % i for i in range(empty)],
+        unresolved=[_StubCandidate("a%d" % i) for i in range(ambiguous)],
+        recognized=True)
+
+
+class TestCoverageArithmetic(unittest.TestCase):
+    """D-021 and D-025, tested as arithmetic rather than through a fixture.
+
+    The fixtures prove the wiring; this proves the rule holds at every shape,
+    including the ones no fixture happens to carry.
+    """
+
+    CHECK = "HOME.ASSEMBLED_DIMENSIONS"
+
+    def setUp(self):
+        self.check = registry.get(self.CHECK)
+        self.max = self.check.max_points
+        self.floor = self.max * self.check.partial_credit
+
+    def test_all_satisfying_earns_the_maximum(self):
+        finding = _coverage(self.check, 3, 0, 0)
+        self.assertEqual(finding.status, "PASS")
+        self.assertEqual(finding.earned, self.max)
+
+    def test_ambiguous_variants_do_not_enter_the_numerator(self):
+        """D-021: strict coverage. The weighted reading was rejected."""
+        finding = _coverage(self.check, 2, 1, 0)
+        self.assertEqual(finding.earned, self.max * Decimal(2) / Decimal(3))
+        weighted = self.max * Decimal("2.5") / Decimal(3)
+        self.assertLess(finding.earned, weighted)
+
+    def test_uniformly_ambiguous_earns_the_ambiguity_credit(self):
+        """D-025: `rubric.md` 3.1's first PARTIAL clause applies when every
+        variant carries a value, and it is a floor under the coverage clause."""
+        finding = _coverage(self.check, 0, 3, 0)
+        self.assertEqual(finding.status, "PARTIAL")
+        self.assertEqual(finding.earned, self.floor)
+
+    def test_the_floor_never_lowers_a_better_coverage(self):
+        finding = _coverage(self.check, 2, 1, 0)
+        self.assertGreater(finding.earned, self.floor)
+
+    def test_the_floor_does_not_apply_when_a_variant_is_empty(self):
+        """Something was found nowhere for that variant, so `rubric.md` 3.1's
+        ambiguity clause does not describe the record. Strict coverage stands."""
+        finding = _coverage(self.check, 0, 2, 1)
+        self.assertEqual(finding.earned, Decimal(0))
+        self.assertLess(finding.earned, self.floor)
+
+    def test_less_information_never_earns_more_at_any_shape(self):
+        """D-021's governing property, swept rather than sampled.
+
+        Adding a satisfying value in place of an ambiguous one may never lower
+        the earned figure, at any variant count.
+        """
+        for total in range(1, 6):
+            earned = [_coverage(self.check, sat, total - sat, 0).earned
+                      for sat in range(total + 1)]
+            for lower, higher in zip(earned, earned[1:]):
+                self.assertLessEqual(lower, higher,
+                                     "total=%d: %s" % (total, earned))
+
+    def test_the_naive_reading_would_have_inverted(self):
+        """Why D-025 is a floor and not `max x partial_credit` for the uniform
+        case alone: with three variants that reading pays 0.5 for nothing
+        satisfying and 0.333 for one, which is the inversion D-021 forbids."""
+        strict_one_of_three = self.max * Decimal(1) / Decimal(3)
+        self.assertLess(strict_one_of_three, self.floor)
+        self.assertEqual(_coverage(self.check, 1, 2, 0).earned, self.floor)
+
+
+class TestTitleDistinguishingIsClosed(unittest.TestCase):
+    """D-024. `rubric.md` 4/D1's parenthesis is a closed list."""
+
+    CHECK = "IDENT.TITLE_DISTINGUISHING"
+
+    def test_it_passes_on_one_of_the_five_kinds(self):
+        npr, result = run("rec-01-title-and-proportions", folder="recognition")
+        finding = finding_for(result, self.CHECK)
+        self.assertEqual(finding.status, "PASS")
+        locators = [e.locator for e in finding.evidence]
+        self.assertIn("attributes[material_composition].value_raw", locators)
+
+    def test_it_does_not_pass_on_an_attribute_outside_the_five_kinds(self):
+        """`rec-02`'s title repeats `intended_use_context`. A value cannot be
+        both too vague to answer its own check and distinguishing enough for
+        the title."""
+        npr, result = run("rec-02-vague-phrases", folder="recognition")
         self.assertIsNone(finding_for(result, self.CHECK))
-        self.assertIn(self.CHECK, [d["check_id"] for d in result.ledger.deferred])
+        self.assertIn(self.CHECK,
+                      [d["check_id"] for d in result.ledger.deferred])
+        vague = finding_for(result, "APPAREL.INTENDED_USE_CONTEXT")
+        self.assertEqual(vague.status, "PARTIAL")
+
+    def test_it_does_not_pass_on_package_contents(self):
+        npr, result = run("rec-06-durations-and-contents", folder="recognition")
+        self.assertIsNone(finding_for(result, self.CHECK))
+
+    def test_the_key_set_holds_only_the_five_kinds(self):
+        for key in lexicon.IDENT_TITLE_DISTINGUISHING_KEYS:
+            self.assertTrue(taxonomy_keys.is_attribute_key(key), key)
+        for excluded in ("intended_use_context", "in_the_box", "color_finish",
+                         "care_instructions", "sustainability_credentials",
+                         "garment_measurements", "user_fit_specification"):
+            self.assertNotIn(excluded, lexicon.IDENT_TITLE_DISTINGUISHING_KEYS)
+
+
+class TestRecognitionConfidenceIsCapped(unittest.TestCase):
+    """D-026. PRD 9.5: an inference-derived finding never reports `high`."""
+
+    def test_a_recognised_pass_on_a_high_check_reports_medium(self):
+        npr, result = run("rec-06-durations-and-contents", folder="recognition")
+        finding = finding_for(result, "TRUST.WARRANTY_OR_GUARANTEE")
+        self.assertEqual(finding.status, "PASS")
+        self.assertEqual(finding.confidence_arm, "recognized")
+        self.assertEqual(finding.confidence, "medium")
+        self.assertEqual(registry.get("TRUST.WARRANTY_OR_GUARANTEE")
+                         .confidence.recognized, "high")
+
+    def test_the_structural_path_of_the_same_check_still_reports_high(self):
+        """`rubric.md` 4/D5's figure is not overridden -- only the recognition
+        path is capped."""
+        npr, result = run("sparse-apparel-01", folder="sparse")
+        finding = finding_for(result, "TRUST.WARRANTY_OR_GUARANTEE")
+        self.assertEqual(finding.status, "UNKNOWN")
+        self.assertEqual(finding.confidence, "high")
+
+    def test_no_recognised_finding_anywhere_reports_high(self):
+        for name, folder in (("rec-01-title-and-proportions", "recognition"),
+                             ("rec-06-durations-and-contents", "recognition"),
+                             ("rec-07-shade-codes-and-quantities", "recognition")):
+            npr, result = run(name, folder=folder)
+            for finding in result.findings:
+                if finding.confidence_arm == "recognized":
+                    self.assertIn(finding.confidence, ("medium", "low"),
+                                  "%s / %s" % (name, finding.check_id))
+
+    def test_the_determination_is_serialized(self):
+        npr, result = run("rec-06-durations-and-contents", folder="recognition")
+        product = result.as_dict()
+        arms = set(f["determination"] for f in product["findings"])
+        self.assertEqual(arms, {"structural", "recognized"})
+
+
+class TestUnnamedEcoClaimIsDeferred(unittest.TestCase):
+    """D-027. The awarding half may not ship without the subtracting half."""
+
+    CHECK = "APPAREL.SUSTAINABILITY_CREDENTIALS"
+
+    def test_the_vague_value_earns_nothing_and_emits_nothing(self):
+        npr, result = run("rec-02-vague-phrases", folder="recognition")
+        self.assertIsNone(finding_for(result, self.CHECK))
+        self.assertIn(self.CHECK,
+                      [d["check_id"] for d in result.ledger.deferred])
+
+    def test_the_predicate_exists_but_is_not_registered(self):
+        """It stays in the codebase so the pair can ship together."""
+        self.assertTrue(recognize.unnamed_eco_claim("Eco-friendly"))
+        self.assertFalse(recognize.unnamed_eco_claim("GOTS certified organic"))
+        self.assertNotIn("unnamed_eco_claim", registry.IMPLEMENTED_PREDICATES)
+        self.assertNotIn("unnamed_eco_claim", registry.IMPLEMENTED_RELATIONS)
+
+    def test_the_check_is_still_declared_and_still_reaches_absence(self):
+        npr, result = run("sparse-apparel-01", folder="sparse")
+        self.assertEqual(finding_for(result, self.CHECK).status, "UNKNOWN")
+
+
+class TestRecordedPredicateSemantics(unittest.TestCase):
+    """D-028. Two rules that decide what a check earns, pinned so they cannot
+    drift back into being implementation details."""
+
+    def test_in_the_box_has_no_deferral_path(self):
+        check = registry.get("ELEC.IN_THE_BOX")
+        for value in ("charger, cable, manual", "accessories included",
+                      "a; b", "one item"):
+            self.assertIsNot(check.recognize(value), registry.UNDECIDED, value)
+
+    def test_a_single_item_box_can_only_reach_partial(self):
+        """The consequence, stated: the tool cannot tell a complete one-item
+        box from an unenumerated summary, and resolves it against the merchant."""
+        check = registry.get("ELEC.IN_THE_BOX")
+        self.assertIs(check.recognize("Wall bracket"), registry.AMBIGUOUS)
+        self.assertIs(check.recognize("accessories included"),
+                      registry.AMBIGUOUS)
+
+    def test_the_strongest_verdict_across_candidates_decides(self):
+        check = registry.get("APPAREL.MATERIAL_COMPOSITION")
+        vague, exact = _StubCandidate("a"), _StubCandidate("b")
+        vague.value, exact.value = "cotton blend", "60% cotton, 40% polyester"
+        verdict, chosen = checks._best_verdict(check, [vague, exact])
+        self.assertIs(verdict, registry.SATISFIED)
+        self.assertIs(chosen, exact)
+
+    def test_a_check_with_no_evaluator_reports_no_verdict_at_all(self):
+        check = registry.get("APPAREL.SUSTAINABILITY_CREDENTIALS")
+        candidate = _StubCandidate("a")
+        candidate.value = "Eco-friendly"
+        self.assertEqual(checks._best_verdict(check, [candidate]), (None, None))
 
 
 class TestPlaceholderInDescription(unittest.TestCase):
@@ -589,3 +942,258 @@ class TestPlaceholderInDescription(unittest.TestCase):
         gathered = facts.gather(npr, registry.get("IDENT.DESCRIPTION_SUBSTANCE"))
         self.assertTrue(gathered.unrecognized_prose)
         self.assertFalse(gathered.placeholders)
+
+
+# ---------------------------------------------------------------------------
+# Slice D -- structural coverage over taxonomy data (D-029, D-030, D-031).
+# ---------------------------------------------------------------------------
+class TestVariantCoverageCountsPresenceNotSatisfaction(unittest.TestCase):
+    """D-030. `rubric.md` 4/D3 says *present*, and that word governs."""
+
+    def setUp(self):
+        self.check = registry.get("VARIANT.ATTRIBUTE_COVERAGE")
+
+    def test_the_required_key_set_is_the_categorys_own_taxonomy_set(self):
+        """Not the Common Core, which is audited in D1, D5 and D8 (D-030)."""
+        self.assertEqual(T.variant_scope_keys("home"),
+                         ("assembled_dimensions", "color_finish"))
+        for category in T.CATEGORIES:
+            keys = T.variant_scope_keys(category)
+            self.assertTrue(keys, category)
+            self.assertNotIn("product_identifier", keys)
+            self.assertNotIn("price", keys)
+
+    def test_every_key_present_on_every_variant_earns_the_maximum(self):
+        _npr, result = run("rec-09-variant-scope-fully-covered", "recognition")
+        finding = finding_for(result, "VARIANT.ATTRIBUTE_COVERAGE")
+        self.assertEqual(finding.status, "PASS")
+        self.assertEqual(finding.earned, self.check.max_points)
+
+    def test_the_predicate_of_each_attribute_is_never_consulted(self):
+        """The load-bearing half of D-030.
+
+        `rec-09` states the *same* `assembled_dimensions` on both variants and
+        a bare colour name on each. Whether either satisfies its own D2 check
+        is a different question, asked by a different check; this one reaches
+        `PASS` on presence regardless of what those checks conclude.
+        """
+        _npr, result = run("rec-09-variant-scope-fully-covered", "recognition")
+        coverage = finding_for(result, "VARIANT.ATTRIBUTE_COVERAGE")
+        self.assertEqual(coverage.status, "PASS")
+        self.assertEqual(coverage.confidence_arm, "structural",
+                         "presence is not recognition; no value was read for "
+                         "what it means")
+        self.assertIs(self.check.satisfaction, registry.UNIMPLEMENTED,
+                      "this check has no *value* predicate, and reporting one "
+                      "would be the wrong kind of true")
+
+    def test_a_variant_missing_one_key_is_not_covered(self):
+        _npr, result = run("rec-10-variant-scope-partly-covered", "recognition")
+        finding = finding_for(result, "VARIANT.ATTRIBUTE_COVERAGE")
+        self.assertEqual(finding.status, "PARTIAL")
+        self.assertEqual(finding.earned,
+                         self.check.max_points * Decimal(2) / Decimal(3))
+
+    def test_the_uncovered_variant_and_its_missing_key_are_named(self):
+        """PRD 9.7 / D-021 rule 4, and both names are structural."""
+        _npr, result = run("rec-10-variant-scope-partly-covered", "recognition")
+        finding = finding_for(result, "VARIANT.ATTRIBUTE_COVERAGE")
+        notes = " ".join(e.note or "" for e in finding.evidence)
+        self.assertIn("sku:R10-UMB", notes)
+        self.assertIn("color_finish", notes)
+        self.assertNotIn("some variants", notes.lower())
+
+    def test_a_partly_covering_variant_is_quoted_never_reported_as_empty(self):
+        """The variant that misses one key still states the other one."""
+        _npr, result = run("rec-10-variant-scope-partly-covered", "recognition")
+        finding = finding_for(result, "VARIANT.ATTRIBUTE_COVERAGE")
+        quoted = set(e.locator for e in finding.evidence if e.locator)
+        self.assertIn(
+            "variants[sku:R10-UMB].attributes[assembled_dimensions].value_raw",
+            quoted)
+
+    def test_zero_coverage_over_partial_data_is_partial_not_unknown(self):
+        """`rubric.md` 3.1 reserves UNKNOWN for "not found in any checked_paths".
+
+        `checks-03` states `assembled_dimensions` on every variant and no
+        `color_finish` on any, so no variant is covered and the check earns
+        exactly 0.00 -- but something *is* there, and reporting a gap over it
+        would be the false negative PRD 8.3 rule 5 calls blocker-severity.
+        """
+        _npr, result = run("checks-03-variant-scope-covered")
+        finding = finding_for(result, "VARIANT.ATTRIBUTE_COVERAGE")
+        self.assertEqual(finding.status, "PARTIAL")
+        self.assertEqual(float(finding.earned), 0.0)
+        self.assertTrue([e for e in finding.evidence if e.type == "field_value"])
+
+    def test_absence_is_reported_only_when_no_required_key_is_stated(self):
+        """And the note says what was looked for, so the claim is checkable."""
+        _npr, result = run("checks-04-non-inheritable")
+        finding = finding_for(result, "VARIANT.ATTRIBUTE_COVERAGE")
+        self.assertEqual(finding.status, "UNKNOWN")
+        note = " ".join(e.note or "" for e in finding.evidence)
+        for key in T.variant_scope_keys("home"):
+            self.assertIn(key, note)
+
+    def test_a_product_scope_value_is_outside_what_this_check_searched(self):
+        """D-030's `checked_paths` paragraph, as a property of the registry."""
+        self.assertEqual(self.check.checked_paths, ("variants[*].attributes",))
+
+
+class TestEmptyRequirementRemovesTheCheck(unittest.TestCase):
+    """D-029. `NOT_APPLICABLE`, and never because a value is missing."""
+
+    def test_an_uncategorized_multi_variant_product_removes_the_check(self):
+        _npr, result = run("rec-11-uncategorized-visual-option", "recognition")
+        finding = finding_for(result, "VARIANT.ATTRIBUTE_COVERAGE")
+        self.assertEqual(finding.status, "NOT_APPLICABLE")
+        self.assertEqual(float(finding.max_points), 0.0,
+                         "an N/A check leaves the denominator (rubric.md 3.1)")
+        self.assertEqual(float(finding.earned), 0.0)
+
+    def test_the_reason_names_the_absent_category_not_an_absent_value(self):
+        _npr, result = run("rec-11-uncategorized-visual-option", "recognition")
+        finding = finding_for(result, "VARIANT.ATTRIBUTE_COVERAGE")
+        self.assertIn("No category is assigned", finding.detail)
+
+    def test_the_single_variant_trigger_still_fires_and_is_stated_differently(self):
+        """Both grounds are structural; the merchant is told which applies."""
+        _npr, result = run("checks-07-uncategorized")
+        finding = finding_for(result, "VARIANT.ATTRIBUTE_COVERAGE")
+        self.assertEqual(finding.status, "NOT_APPLICABLE")
+        self.assertIn("single variant", finding.detail)
+
+    def test_the_check_declares_both_triggers(self):
+        check = registry.get("VARIANT.ATTRIBUTE_COVERAGE")
+        self.assertEqual(check.na_trigger,
+                         (R.NA_SINGLE_VARIANT, R.NA_EMPTY_VARIANT_SCOPE_SET))
+
+    def test_no_category_today_has_an_empty_requirement(self):
+        """The other D-029 branch is unreachable, and is stated anyway so that
+        a taxonomy edit cannot reach an unwritten rule."""
+        for category in T.CATEGORIES:
+            self.assertTrue(T.variant_scope_keys(category), category)
+
+
+class TestVisualOptionTriggerIsClosed(unittest.TestCase):
+    """D-031. The vocabulary is the whole risk surface, so it is pinned."""
+
+    def test_the_vocabulary_is_exactly_the_rubrics_parenthesis_plus_colour(self):
+        self.assertEqual(
+            sorted(lexicon.VARIANT_MEDIA_LINKED_VISUAL_OPTION_NAMES),
+            ["color", "colour", "finish", "shade"])
+
+    def test_tone_and_pattern_are_not_in_it(self):
+        """The P3.2 plan proposed both; neither is in `rubric.md` (D-031)."""
+        for name in ("tone", "pattern"):
+            self.assertNotIn(name,
+                             lexicon.VARIANT_MEDIA_LINKED_VISUAL_OPTION_NAMES)
+
+    def test_a_colour_option_with_media_on_every_variant_passes(self):
+        _npr, result = run("rec-09-variant-scope-fully-covered", "recognition")
+        finding = finding_for(result, "VARIANT.MEDIA_LINKED")
+        self.assertEqual(finding.status, "PASS")
+        self.assertEqual(finding.earned,
+                         registry.get("VARIANT.MEDIA_LINKED").max_points)
+
+    def test_an_orthographic_variant_of_a_listed_word_triggers_it(self):
+        _npr, result = run("rec-10-variant-scope-partly-covered", "recognition")
+        finding = finding_for(result, "VARIANT.MEDIA_LINKED")
+        self.assertIsNotNone(finding, "`Colour` did not trigger the check")
+        self.assertEqual(finding.status, "PARTIAL")
+        self.assertEqual(finding.earned,
+                         registry.get("VARIANT.MEDIA_LINKED").max_points
+                         * Decimal(2) / Decimal(3))
+
+    def test_the_unlinked_variant_is_named(self):
+        _npr, result = run("rec-10-variant-scope-partly-covered", "recognition")
+        finding = finding_for(result, "VARIANT.MEDIA_LINKED")
+        notes = " ".join(e.note or "" for e in finding.evidence)
+        self.assertIn("sku:R10-UMB", notes)
+
+    def test_no_visual_option_defers_and_never_removes_the_check(self):
+        """`taxonomy.md` 4.4: a trigger is structural, never assumed. A `Size`
+        axis does not establish that the variants do *not* differ visually."""
+        _npr, result = run("checks-04-non-inheritable")
+        self.assertIsNone(finding_for(result, "VARIANT.MEDIA_LINKED"))
+        deferred = dict((r["check_id"], r["reason"]) for r in result.ledger.deferred)
+        self.assertIn("VARIANT.MEDIA_LINKED", deferred)
+        self.assertIn("visual axis", deferred["VARIANT.MEDIA_LINKED"])
+
+    def test_product_scope_media_earns_nothing_and_is_not_reported_as_absent(self):
+        """D-031's last paragraph: D-018's shape, applied to media."""
+        _npr, result = run("rec-11-uncategorized-visual-option", "recognition")
+        finding = finding_for(result, "VARIANT.MEDIA_LINKED")
+        self.assertEqual(finding.status, "PARTIAL")
+        self.assertEqual(float(finding.earned), 0.0)
+        quoted = [e for e in finding.evidence if e.type == "field_value"]
+        self.assertTrue(quoted, "the supplied media item was not quoted")
+        self.assertEqual(quoted[0].locator, "media[0]")
+
+    def test_a_visual_option_with_no_media_anywhere_is_unknown(self):
+        _npr, result = run("checks-03-variant-scope-covered")
+        finding = finding_for(result, "VARIANT.MEDIA_LINKED")
+        self.assertEqual(finding.status, "UNKNOWN")
+
+
+class TestOptionNameVocabulariesAreGoverned(unittest.TestCase):
+    """D-031 / D-022. One module holds every scoring vocabulary, or the
+    invariant that no entry is a product value cannot be checked at all."""
+
+    def test_the_reserved_names_moved_into_the_lexicon(self):
+        self.assertFalse(hasattr(checks, "RESERVED_OPTION_NAMES"),
+                         "a second, ungoverned option-name vocabulary is back "
+                         "in checks.py")
+        self.assertEqual(
+            sorted(lexicon.VARIANT_OPTION_NAMES_RESERVED),
+            ["default", "default title", "option 1", "option 2", "option 3",
+             "title"])
+
+    def test_the_move_was_behaviour_neutral(self):
+        _npr, result = run("checks-01-present-and-absent")
+        self.assertIsNotNone(finding_for(result, "VARIANT.OPTION_NAMES_MEANINGFUL"))
+
+    def test_neither_option_vocabulary_is_value_shaped(self):
+        """They are names the merchant supplied and findings must quote them,
+        so they are not the leak surface `VALUE_SHAPED` exists to guard."""
+        for name in (lexicon.VARIANT_OPTION_NAMES_RESERVED
+                     | lexicon.VARIANT_MEDIA_LINKED_VISUAL_OPTION_NAMES):
+            self.assertNotIn(name, lexicon.VALUE_SHAPED)
+
+    def test_both_are_still_held_to_the_normalization_invariant(self):
+        for name in (lexicon.VARIANT_OPTION_NAMES_RESERVED
+                     | lexicon.VARIANT_MEDIA_LINKED_VISUAL_OPTION_NAMES):
+            self.assertIn(name, lexicon.ALL_ENTRIES)
+            self.assertEqual(name, lexicon.normalize(name))
+
+    def test_the_lexicon_is_versioned_with_the_bumped_rubric(self):
+        self.assertEqual(lexicon.LEXICON_VERSION, R.RUBRIC_VERSION)
+
+
+class TestStructuralPredicatesAreRegistered(unittest.TestCase):
+    """PRE-5 in the direction the registry alone cannot see.
+
+    `registry.py` cannot import `checks.py`, so the assertion that a structural
+    predicate is actually implemented by a dispatched handler lives here.
+    """
+
+    def test_every_structural_predicate_is_declared_by_a_check(self):
+        self.assertTrue(registry.IMPLEMENTED_STRUCTURAL)
+        for predicate_id in registry.IMPLEMENTED_STRUCTURAL:
+            self.assertIn(predicate_id, registry.RECOGNITION_PREDICATES)
+
+    def test_every_structural_predicate_has_a_dispatched_handler(self):
+        for predicate_id in registry.IMPLEMENTED_STRUCTURAL:
+            owners = [c for c in registry.ALL_CHECKS
+                      if c.satisfies == predicate_id]
+            self.assertTrue(owners, predicate_id)
+            for check in owners:
+                self.assertIn(check.check_id, checks.DISPATCH,
+                              "%s claims %s is implemented, but the check falls "
+                              "through to attribute_check"
+                              % (check.check_id, predicate_id))
+
+    def test_it_is_disjoint_from_the_other_two_registries(self):
+        for predicate_id in registry.IMPLEMENTED_STRUCTURAL:
+            self.assertNotIn(predicate_id, registry.IMPLEMENTED_PREDICATES)
+            self.assertNotIn(predicate_id, registry.IMPLEMENTED_RELATIONS)

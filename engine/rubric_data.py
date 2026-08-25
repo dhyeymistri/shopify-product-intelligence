@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from .taxonomy_data import VALUE_PRESENT
 
-RUBRIC_VERSION = "0.1"
+RUBRIC_VERSION = "0.4"
 
 # -- rubric.md 2 -------------------------------------------------------------
 D1, D2 = "D1_identity", "D2_category_attributes"
@@ -72,6 +72,13 @@ PARTIAL_CREDIT = {}
 #: assumed: a check is never NOT_APPLICABLE because information is missing.
 NA_SINGLE_VARIANT = "single_variant"
 NA_NO_CATEGORY = "no_category_assigned"
+#: D-029. The category requires nothing per variant, so there is no
+#: per-variant requirement for a variant to have failed. Covers both ways
+#: the set can be empty: an assigned category whose `taxonomy.md` 5 set holds
+#: no non-inheritable variant-scope row, and `uncategorized`, which holds no
+#: rows at all. The reason string names which, because they are different
+#: facts about the record.
+NA_EMPTY_VARIANT_SCOPE_SET = "no_variant_scope_attribute"
 
 # ---------------------------------------------------------------------------
 # Fixed checks, verbatim from rubric.md 4
@@ -148,7 +155,7 @@ FIXED_CHECKS = (
      {UNKNOWN: "major", PARTIAL: "major"},
      ("variants[*].attributes",),
      "Which variant-scope attribute values apply to each variant?",
-     NA_SINGLE_VARIANT),
+     (NA_SINGLE_VARIANT, NA_EMPTY_VARIANT_SCOPE_SET)),
     ("VARIANT.IDENTIFIER_UNIQUE", D3, "variant", "1.5", "0.0",
      VALUE_PRESENT, "high",
      {FAIL: "critical", UNKNOWN: "major"},

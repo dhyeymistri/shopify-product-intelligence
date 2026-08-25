@@ -81,9 +81,17 @@ class TestEngineOutputIsAuditClean(unittest.TestCase):
 
 class TestReportShape(unittest.TestCase):
     def test_every_finding_carries_the_prd_fields(self):
+        """PRD 7.3's finding object, plus `determination` (D-026).
+
+        `determination` is the one field P3.2 added, and it was added for a
+        stated reason: PRD 9.5 requires an *(interpreted)* tag in the Markdown
+        report, and the confidence value alone cannot carry it because a `low`
+        check reports `low` on both arms (D-020). PRD 7.3 owes the schema this
+        field.
+        """
         expected = sorted(["finding_id", "check_id", "dimension", "scope", "status",
-                           "severity", "confidence", "title", "detail", "evidence",
-                           "points", "remediation"])
+                           "severity", "confidence", "determination", "title",
+                           "detail", "evidence", "points", "remediation"])
         for path in FIXTURES:
             report, _, _, name = artifacts(path)
             for product in report["products"]:

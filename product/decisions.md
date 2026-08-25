@@ -375,6 +375,286 @@ Three things follow, and all three are the point:
 
 ---
 
+## D-021 — Variant coverage counts a variant only when its value satisfies the check
+
+**Status:** Accepted, by the project owner, on the strict reading. Implemented in P3.2 (`engine/checks._variant_coverage`).
+
+**Question:** [`rubric.md`](./rubric.md) §3.1 scores a coverage check at `max × (covered/total)`, and an ambiguity at `max × partial_credit`. Once recognition predicates exist, a non-inheritable variant-scope attribute can produce a **mixed** set: some variants carry a value the predicate finds satisfying, others carry a value it finds merely ambiguous. Neither formula covers that case, and the rubric defines no composition of the two.
+
+**Decision — the strict reading:**
+
+```
+coverage = satisfied_variants / total_variants
+```
+
+Four rules follow from it, and all four are binding:
+
+1. **A variant counts as covered only when its own value satisfies the check.** A value the predicate finds ambiguous does not count toward `covered`.
+2. **A product-scope value is never variant coverage.** `taxonomy.md` §4.3 and D-018 already say so; this decision does not create an exception for a value that happens to satisfy the predicate. D-018's `PARTIAL` at zero earned is unchanged and takes precedence.
+3. **An ambiguous value is not weighted as partial coverage.** `rubric.md` §3.1's two clauses are alternatives, not terms to be summed, and no authoritative rule composes them. Weighting would need a rule the rubric does not contain.
+4. **Uncovered variants are preserved explicitly** — named individually, never "some variants" (PRD §9.7). A variant uncovered *because its value is ambiguous* is named with its value quoted at its own locator, not reported as empty: the value is there, and reporting it as a gap would be the false negative PRD §8.3 rule 5 calls blocker-severity.
+
+**The governing property: less information may never earn more than more complete variant coverage.** Every candidate rule was tested against it. Strict coverage satisfies it by construction — adding a satisfying value can only raise `satisfied`, and no other input can raise the score at all.
+
+**Rejected: weighted coverage** — `max × (satisfied + partial_credit × ambiguous) / total`. It composes both §3.1 clauses and is the most arithmetically natural reading, which is why it needed deciding rather than deriving. It was rejected because the composition is not in the rubric: choosing it would mean writing a new scoring rule inside a predicate, where it could not be read off `rubric.md` by a reviewer with a calculator (§1.1, *"Reproducible by hand"*). Where a reading is genuinely open, D-018 has already recorded the tie-break — the one that awards fewer points for less information is the one consistent with D-003.
+
+**Rejected: presence coverage** — counting every variant that carries any non-placeholder value. This is what P3.1 does for `VALUE_PRESENT` attributes, where no predicate exists to say more. It is wrong here for a specific reason: it would pay full coverage credit for a value the tool has *just determined* to be ambiguous, contradicting §3.1's own `PARTIAL` row and violating the governing property above.
+
+**A verdict the predicate could not reach is not a verdict against the variant.** Where any covered variant's value is `UNDECIDED`, the check defers entirely and emits nothing (D-019). Counting that variant as uncovered would assert its value fails to satisfy the check, which is exactly what the predicate declined to say; naming it as empty would be a false gap. The whole check staying silent forfeits points the record may deserve, and that is the permitted direction of failure.
+
+**Consequence:** the merchant sees which variants carry a satisfying value, which carry an ambiguous one — quoted — and which carry none, with the check's question. They are never told a variant is empty when it is not, and never paid for per-variant data the record does not hold.
+
+---
+
+## D-022 — Recognition lexicons live in one versioned module, owned by their checks
+
+**Status:** Accepted. Derived from PRD §9.6 and AGENTS.md §7; no new product judgment. No code yet — no lexicon exists until the first predicate lands.
+
+**Question:** PRD §9.6 says *"a recognition lexicon, when one is written, belongs to the check that uses it and is versioned with `rubric.md`."* Where do the phrase sets, unit vocabulary, size-standard prefixes and performance tiers actually live, and what does adding an entry require?
+
+**Decision, in three parts.**
+
+1. **One module, `engine/lexicon.py`**, carrying one named immutable set per check that uses one, each named for its owning `check_id`. *"Belongs to the check"* is a statement about authority, not about file layout: no layer may read a set it does not own, and the normalizer reads none of them (PRD §6.1 — recognition performed in the input layer would be unlabelled, unevidenced and unscored). One module is also what makes the no-leak assertion below possible at all: an audit cannot enumerate a vocabulary scattered across nine call sites.
+2. **`LEXICON_VERSION` is asserted equal to `rubric_data.RUBRIC_VERSION` at import.** *"Versioned with `rubric.md`"* is not decoration: an entry decides a status, a status decides earned points, so a lexicon is a scoring artifact. The assertion turns drift into a load failure instead of a silent scoring change.
+3. **Adding, removing or editing an entry is a scoring-semantics change.** It bumps `rubric_version` (D-023), updates every affected expectation file in the same commit, and names the entry in the commit message. It needs no new decision record unless it changes the *shape* of what the set recognizes.
+
+**No lexicon entry may be a product value.** Entries are the vocabulary of ambiguity, of units and of standards — never a fact about a product, and never a string the tool could emit as though the merchant had stated it. Asserted twice: at import, the way `evals/audits/factlex.assert_allowlist_has_no_values()` already asserts it for the audit's own allowlist; and over the corpus, where no lexicon string may appear in any `title`, `detail`, `question` or evidence `note` in any report. That is the one way this module could fail open.
+
+**Rejected: a lexicon per check module.** Ownership reads more directly, but the version assertion and the no-leak invariant would each have to be repeated per module, and an invariant that is repeated by hand is the failure mode this decision exists to prevent.
+
+**Rejected: no lexicon at all — literals at the call site.** This is how a phrase set grows by accretion until nobody reviews it, and it puts scoring-relevant vocabulary outside the version that `rubric.md` §1.1 promises determines the score.
+
+---
+
+## D-023 — Implementing a recognition predicate bumps `rubric_version`
+
+**Status:** Accepted. Derived from `rubric.md` §1.1 and PRD §12.5. No bump accompanies this record: the preconditions it was written for move no score.
+
+**Question:** the recognition phase implements predicates the rubric already names. No point allocation changes and no table in `rubric.md` is edited — but statuses move from deferred to `PASS`/`PARTIAL`, so scores move. Does that bump `rubric_version`?
+
+**Decision: yes. Every commit that can move a fixture score bumps it.**
+
+`rubric.md` §1.1 states determinism as *"Same input + same rubric version → identical score."* Unconditionally. Two engine builds that both report `rubric_version: 0.1` and score the same fixture differently falsify that sentence — and it is the sentence the report's reproducibility rests on, because a reviewer with the report and a calculator (§1.1, *"Reproducible by hand"*) has no other handle on which rules produced the number. PRD §12.5 agrees from the other direction: a change that *"alters scoring semantics"* requires a decision record and a `rubric_version` bump, and deciding that a supplied value satisfies a check is scoring semantics whether that decision is written in `rubric.md` or in a predicate.
+
+The bump therefore carries its usual companions (AGENTS.md §7): every affected expectation file updated in the same commit, and the moved fixtures named in the commit message. A behaviour-neutral refactor bumps nothing.
+
+**Rejected: no bump, because point allocations are untouched.** This reads `rubric_version` as versioning the *document*. §1.1 defines it as versioning the *scoring function*. The document reading is cheaper by exactly one line per slice and it breaks the only invariant that makes a reported score checkable after the fact.
+
+**Consequence:** each independently shippable recognition slice is a score-moving commit and carries a bump; `rubric.md`'s version header moves with it, while the checks, points, severities and confidences it states do not.
+
+---
+
+## D-024 — `IDENT.TITLE_DISTINGUISHING` counts only the five kinds the rubric names
+
+**Status:** Accepted. Implemented in P3.2 (`engine/lexicon.IDENT_TITLE_DISTINGUISHING_KEYS`, `engine/checks.check_title_distinguishing`). Score-moving; `rubric_version` bumped with it (D-023).
+
+**Question:** [`rubric.md`](./rubric.md) §4/D1 fixes this check's `PASS` as *"Title carries at least one distinguishing attribute (material, size, model, capacity, count)."* The first implementation matched the title against **any** supplied value at any attribute, metafield or option. Which governs?
+
+**Decision: the rubric. The parenthesis is a closed list, not an illustration.**
+
+The check now considers only values held at a taxonomy attribute key that *is* one of those five kinds, transcribed once:
+
+| Kind | Attribute keys |
+| --- | --- |
+| material | `material_composition`, `materials_and_finish`, `materials_and_construction` |
+| size | `size_system`, `assembled_dimensions`, `physical_dimensions_weight`, `dimensions_and_weight`, `packaged_dimensions_weight` |
+| model | `model_identifier`, `product_identifier` |
+| capacity | `capacity_or_load`, `load_or_capacity_rating`, `net_content` |
+| count | *(no taxonomy key is a count; the kind is reachable only once one exists)* |
+
+**Rejected: amend `rubric.md` to match the implementation.** This was the cheaper repair and it is the wrong direction. `rubric.md` is authoritative for scoring (AGENTS.md §3), the enumeration is specific enough to be deliberate, and widening it would have been a scoring change made to accommodate code rather than the other way round.
+
+**What the old behaviour actually did, stated because it is the argument.** On the recognition fixture `rec-02` the engine reported the same supplied value twice and incompatibly: `intended_use_context = "Everyday"` earned a `PARTIAL` for being too vague to answer its own check, and simultaneously earned this check its full 2.00 for being *distinguishing*. A value cannot be both. On `rec-06` the check passed on `in_the_box`. Neither key is material, size, model, capacity or count.
+
+**Option values are excluded, and that is a second narrowing.** An option named `Size` carrying `Large` is a size, but deciding that an option *name* denotes one of the five kinds needs a vocabulary of option names, and that vocabulary would be a new scoring artifact (D-022). Under-detection is the permitted direction, so the check reads attributes only until such a vocabulary is decided on its own merits.
+
+**Borderline keys held out, named so the choice is reviewable:** `garment_measurements` and `user_fit_specification` are fit measurements rather than a size, and `color_finish` is a colour, which the rubric does not list. Each was excluded because it is arguable, not because it is clearly wrong.
+
+---
+
+## D-025 — Where every variant carries a value, coverage never falls below the ambiguity credit
+
+**Status:** Accepted. Extends D-021. Implemented in P3.2 (`engine/checks.coverage`). Score-moving.
+
+**Question:** D-021 decided coverage over a **mixed** set — some variants satisfying, some ambiguous. It did not decide the **uniform** case: every variant carries a value and every one of those values is merely ambiguous. Read literally, D-021 rule 1 gives `satisfied / total = 0`. But `rubric.md` §3.1 states two clauses for `PARTIAL`, and the uniform case is plainly the *first* one — a value is present and ambiguous — which earns `max × partial_credit`.
+
+**The asymmetry that forced the question.** `APPAREL.MATERIAL_COMPOSITION` stating `"Cotton blend"` at product scope earns 1.65 of 3.30. `BEAUTY.COLOR_SHADE` stating a shade code on *every* variant earned 0.00 of 1.32. Same taxonomy shape — a "PARTIAL if" cell matched exactly — and a different answer purely because one key is variant-scope. Nothing in `rubric.md` justifies that difference.
+
+**Decision: when every variant carries a value, the check earns `max × max(satisfied/total, partial_credit)`.**
+
+`rubric.md` §3.1's ambiguity clause acts as a **floor** under the coverage clause; the check takes whichever of the two clauses the data supports, and never less than the ambiguity credit once something is present for every variant. Where any variant carries no value at all, the floor does not apply and strict coverage stands unchanged.
+
+**Rejected: `max × partial_credit` for the uniform case alone.** This is the literal reading of the question and it breaks D-021's own governing property. With three variants, one satisfying and two ambiguous earns `max × 1/3 = 0.333`, while *nothing* satisfying and three ambiguous would earn `max × 0.5`. Less information would earn strictly more. The floor formulation is the smallest change that answers the question without creating that inversion.
+
+**This is not the weighted reading D-021 rejected.** No ambiguous variant is ever added to the numerator: `satisfied / total` is computed exactly as before, and the floor is a separate clause of `rubric.md` §3.1 rather than a re-weighting of coverage. The two readings agree everywhere the floor does not bind.
+
+**The governing property still holds, restated:** less information never earns *more* than more complete variant coverage. It can now earn the *same* — one satisfying and two ambiguous ties with three ambiguous, at the floor. A tie is not an inversion, and the alternative was either the inversion above or the unexplained asymmetry the decision opened with.
+
+---
+
+## D-026 — A recognition-derived finding never reports `high` confidence
+
+**Status:** Accepted. Amends D-020. Implemented in P3.2 (`engine/registry.ConfidenceRule.recognition_arm`, asserted at import).
+
+**Question — a conflict between two authoritative documents, recorded here rather than resolved by whichever one the code happened to read.**
+
+- [`PRD.md`](./PRD.md) §9.5, last line: *"Every inference-derived finding carries `confidence` of `medium` or `low` and is marked in the Markdown report with an explicit *(interpreted)* tag."*
+- [`rubric.md`](./rubric.md) §4/D5 fixes `TRUST.WARRANTY_OR_GUARANTEE` at **`high`**.
+
+Under P3.1 the two never met: that check could only ever conclude structurally. P3.2 gave it a recognition predicate, so it now reaches `PASS` by reading a supplied value — at `high`.
+
+**Decision: PRD §9.5 governs the recognition path. The `recognized` arm is capped at `medium`.**
+
+AGENTS.md §3 makes `rubric.md` win over `PRD.md` *"on scoring specifics"*. Confidence is not a scoring specific: it enters no arithmetic, subtracts nothing, and PRD §7.5 — not `rubric.md` — is where confidence semantics are defined. §9.5's rule is a statement about what the tool may claim to know when it has performed inference, and it is unconditional. `rubric.md` §4's column states the check's confidence ceiling; §9.5 states the recognition path's ceiling; the finding takes the lower.
+
+**`rubric.md` §4/D5's `high` is not overridden, and that distinction matters.** It remains the confidence of the check's *structural* arm — presence, absence, conflict — which is how that check reaches almost every conclusion it reaches. Only the recognition path is capped. D-020's rule that the structural arm never exceeds the check's stated confidence is unchanged and still checked against the rubric's figure.
+
+**`confidence_arm` is serialized, as `determination`.** PRD §9.5 requires an *(interpreted)* tag in the Markdown report, and P4 cannot render one from a field that does not exist. Deriving it from the confidence value alone is not sound: a `low`-confidence check reports `low` on both arms (D-020), so `low` cannot distinguish them. The finding object therefore carries `determination: "structural" | "recognized"`, classified as a structural enum by the report-field audit. **This adds one field to PRD §7.3's finding object**, which is a specification change owed to `PRD.md` and recorded here rather than made silently.
+
+**Rejected: leave `high` and treat §9.5 as being about model inference only.** A deterministic shape test is still the tool deciding what a supplied value means, and P3.2 has consistently called that recognition — it selects the `recognized` arm and it is why `USECASE.DIFFERENTIATION` stays `low`. Exempting the one check where the cap costs something would make the category a convenience rather than a rule.
+
+---
+
+## D-027 — `unnamed_eco_claim` is deferred until its D7 route exists
+
+**Status:** Accepted. The predicate is written and **not registered** (`engine/recognize.py`). Score-moving: it removes credit P3.2 briefly awarded.
+
+**Question:** [`taxonomy.md`](./taxonomy.md) §5.1's `sustainability_credentials` row states its `PARTIAL` condition as *'Unnamed "eco-friendly" → **routes to D7 as unsupported**'*. P3.2 implemented the recognition half and awarded `max × partial_credit`; claim recognition, and therefore the D7 route, remains deferred. Is half of that cell a legitimate partial implementation?
+
+**Decision: no. The predicate stays deferred until the D7 route it names exists.**
+
+The cell describes one behaviour with two effects, and the two do not point the same way: the `PARTIAL` **awards** 0.37 while the D7 route **subtracts**. Shipping only the awarding half does not under-detect — it moves the score in the direction the taxonomy says is wrong, on precisely the value the taxonomy singles out as an unsupported claim. Every other deferral in this phase costs the merchant points they might deserve; this one would have paid them for a claim the specification says needs support it does not have.
+
+**Rejected: award the `PARTIAL` and record the D7 half as owed.** This was the P3.2 plan's position and it is defensible for a predicate whose two halves are independent. These halves are not: the same phrase triggers both.
+
+**Revisit when:** claim recognition lands and `CLAIM.UNSUPPORTED_CERTIFICATION` can fire. The predicate and its phrase set stay in the codebase, unregistered, so the pair can ship together.
+
+---
+
+## D-028 — Two predicate semantics that are scoring rules, not implementation details
+
+**Status:** Accepted. Recording existing P3.2 behaviour; no code changed by this record.
+
+Both were written only in docstrings. Anything that decides what a check earns belongs here, whatever file it happens to live in.
+
+**1. `ELEC.IN_THE_BOX` has no deferral path.** `enumerated_contents` and `contents_unenumerated` partition every non-empty value: two or more delimiter-separated segments earn the full 1.65, exactly one earns 0.825. There is no `UNDECIDED` arm, so the check never stays silent once a value is stated.
+
+This is defensible — enumeration is a structural property of the string, not a judgment about what the items are — but it has a consequence worth stating: **a single-item box that is completely and correctly stated can only reach `PARTIAL`.** The tool cannot tell that case from an unenumerated summary such as `"accessories included"` (`taxonomy.md`'s own example), and it resolves the ambiguity against the merchant. That is the permitted direction of failure, and it is the only predicate in the phase that cannot abstain.
+
+**2. The strongest verdict across candidates decides the check.** Where a check gathers several supplied values, each is evaluated and the strongest verdict wins, with the finding citing the value that produced it. More information may not earn less than less.
+
+This is narrower than it sounds. Every D2 attribute check carries `conflict_routing`, so two *differing* values about the same subject become a D6 conflict before any predicate runs. The rule therefore only reaches values about *different* subjects — most often an inheritable attribute stated once for the product and once on a variant. In that case a satisfying variant value decides a product-scope check, and the finding's `scope_level` follows the value that decided it rather than the check's declared scope.
+
+---
+
+## D-029 — `VARIANT.ATTRIBUTE_COVERAGE` is `NOT_APPLICABLE` where the category requires nothing per variant
+
+**Status:** Accepted, by the project owner. Resolves Q-17. Implemented in P3.2 slice D (`engine/rubric_data.NA_EMPTY_VARIANT_SCOPE_SET`, `engine/runner._na_reason`). Score-moving; `rubric_version` bumped to `0.4` with it (D-023).
+
+**Question:** [`rubric.md`](./rubric.md) §4/D3 fixes this check's `PASS` as *"Every non-inheritable variant-scope attribute **for the category** is present on every variant."* What does it do when that attribute set — call it `K` — is empty? §4/D3 gives no rule. Q-17 asked for the two ways `K` can be empty to be decided separately, and they are.
+
+**One status is eliminated by authority before the question is reached.** `rubric.md` §3.1 defines `UNKNOWN` as *"Not found in any `checked_paths`."* With `K` empty, `variants[*].attributes` may be fully populated and nothing was "not found". `UNKNOWN` would misdescribe the record whichever way the rest is decided, so the live alternatives are `NOT_APPLICABLE` and deferral only.
+
+**Decision: `NOT_APPLICABLE` in both cases, with a distinct reason string for each.** The check leaves the numerator and the denominator, and §6.3 renormalization follows.
+
+**Case 1 — an assigned category whose `K` is empty.** Purely structural. `K` is empty as a fact about [`taxonomy.md`](./taxonomy.md) §5, fully determined from the taxonomy alone, with nothing missing from the merchant's record. PRD §10.3's prohibition — *"A check is never N/A because the information is missing"* — has no purchase on it: no information is missing. This is `taxonomy.md` §4.4's structural trigger in its plainest form.
+
+*Currently unreachable, and stated anyway.* Every one of the five categories holds at least two non-inheritable variant-scope attributes (`apparel` 3, `beauty` 3, `electronics` 3, `home` 2, `sports` 2), so this branch moves no score today. It is written because the alternative is an unwritten branch that decides a score the first time a taxonomy edit reaches it.
+
+**Case 2 — `uncategorized`.** `K` is empty because the record carries no category, and that *is* traceable to missing merchant data. This is the harder half and it is decided on an existing precedent rather than on a fresh judgment: `rubric.md` §4/D2 and `taxonomy.md` §2 rule 3 already settle the identical question one dimension over — for `uncategorized`, *"D2 is removed in full: its maximum is 0 and it leaves both the numerator and the denominator."* Twenty-two points of category-derived scoring are removed for exactly this reason. Retaining 3.0 points of D3 for the same missing field, in the same report, would be an inconsistency with no rule behind it.
+
+**Engaging PRD §10.3 directly, because this case is what it warns about.** What is removed here is not a gap in the merchant's variant data — it is a requirement that was never posed. `rubric.md` §4/D3 conditions the requirement on the category (*"for the category"*), and with no category there is no set of attributes the variants could have failed to carry. Scoring 0 of 3.0 would charge the merchant for failing a test the rubric never wrote. The missing category itself is charged, once, where the rubric puts it: `IDENT.PRODUCT_TYPE_OR_CATEGORY` at 2.5 with `UNKNOWN` → `major`, plus `taxonomy.md` §2 rule 4's `minor` finding recommending the category be set. The merchant is told, and told once.
+
+**Renormalization consequences, stated rather than left to be discovered.**
+
+- The check's `max_points` leaves `max_applicable` (`checks.not_applicable` emits `max_points = 0`), so D3's applicable maximum falls from 15.0 to 12.0 for an affected multi-variant product, and the reported total is renormalized to 100 by `rubric.md` §6.3 with the factor printed.
+- The effect is **not** a uniform gain. Renormalization redistributes weight across the checks that remain; whether an `uncategorized` product scores higher or lower than it would have depends on how it performs on those. For a product that would have earned 0 of 3.0 here, removal is favourable; for one that would have earned the full 3.0, it is not.
+- On a **single-variant** product nothing changes: `NA_SINGLE_VARIANT` already removes this check, and the two triggers agree.
+- The aggregate question — whether `uncategorized` products end up deflated or flattered once D2's 22 points and this 3.0 are both removed — is **Q-6**, and this record does not answer it. What this record fixes is that the two removals are decided the same way for the same reason.
+
+**Rejected: deferral (the check emits nothing, keeps 3.0 in the denominator, earns 0).** Defensible, and it is the reading PRD §10.3 argues for if "missing" is followed one indirection back to the absent category. It was rejected because it makes the two removals inconsistent for the same missing field, and because a silent 0 of 3.0 tells the merchant nothing — the `NOT_APPLICABLE` finding states the reason where they can read it. Note that both options earn exactly 0.00; the disagreement is about the denominator and about what the report says, not about earned points.
+
+**Rejected: `UNKNOWN`.** Eliminated above by `rubric.md` §3.1's own definition, not by preference.
+
+---
+
+## D-030 — `VARIANT.ATTRIBUTE_COVERAGE` counts presence, not satisfaction
+
+**Status:** Accepted, by the project owner. Scopes D-021. Implemented in P3.2 slice D (`engine/checks.check_variant_attribute_coverage`). Score-moving; `rubric_version` bumped to `0.4` with it (D-023).
+
+**Question:** D-021 fixed variant coverage for a **D2 attribute check** as `satisfied / total`, counting a variant only when its value satisfies that attribute's own recognition predicate. `VARIANT.ATTRIBUTE_COVERAGE` is a **D3** check that also scores coverage over the same attributes. Does it count a variant when the key is present, or only when the value satisfies the key's predicate?
+
+**Decision: presence.** A variant is covered when **every** attribute key in `K` — the category's non-inheritable variant-scope set — carries a stated, non-placeholder, variant-scoped value on that variant. The attribute's recognition predicate is **not run**.
+
+**`rubric.md` §4/D3 fixes it in one word.** *"Every non-inheritable variant-scope attribute for the category is **present** on every variant."* AGENTS.md §3 makes `rubric.md` authoritative on scoring specifics, and D-024 has already settled the shape of this disagreement once — implementation broader than the rubric's own words, resolved *toward the rubric*, with *"amend `rubric.md` to match the implementation"* rejected as the cheaper repair in the wrong direction. The check's registry question agrees: *"Which variant-scope attribute values apply to each variant?"* asks whether the record resolves per variant, not whether the values are good.
+
+**D-021 is scoped to predicate-bearing attribute checks, and stays there.** Its question is stated over *"a value **the predicate** finds satisfying"*; its rule 2 cites `taxonomy.md` §4.3 and D-018, both attribute-scoping rules; it is implemented in `engine/checks._variant_coverage`, reached only from the D2 attribute path. `VARIANT.ATTRIBUTE_COVERAGE` declares no value predicate — `variant_scope_attributes_covered` is the check's coverage arithmetic, not a property of any supplied value.
+
+**What is preserved unchanged.**
+
+- **D-018 / D-021 rule 2** — a product-scope value is never variant coverage. Only candidates at `scope == "variant"` with a variant `ref` are counted, whatever the value says.
+- **D-021 rule 4** — uncovered variants are named individually, never *"some variants"* (PRD §9.7). The absence evidence names each uncovered variant **and the keys missing on it**, which are taxonomy keys and never product values.
+- **D-021's governing property** — less information may never earn more. It holds trivially here: adding a value can only raise `covered`.
+
+**D-025's floor does not apply, for two independent reasons.** This check's `partial_credit` is `0.0` (`rubric_data.PARTIAL_CREDIT`), so `max × partial_credit` is 0 and the floor could never bind. More fundamentally, the floor exists for the *uniform-ambiguity* case, and under presence semantics no ambiguity arm runs, so there is no group of ambiguous-but-present variants for a floor to be taken over. The floor is therefore not written into this check rather than written and left inert. **If `partial_credit` is ever raised for this check, that is a decision that must re-open this paragraph**, not a number that quietly starts binding.
+
+**The predicate-cascade argument, recorded because it is the strongest one.** Under the satisfaction reading this check would have to run every constituent attribute's predicate — two or three per category — and D-019 requires a check to stay silent where any covered variant's value is `UNDECIDED`. D3's highest-value single item (3.0) would therefore go silent almost everywhere, and would go silent *precisely where recognition is weakest*. A structural check that inherits the full uncertainty of every value predicate measures nothing that its own question asks about.
+
+**This is not the double-credit D-024 rejected.** On `rec-02` a single value earned a `PARTIAL` for being too vague to answer its own check *and* full credit for being distinguishing — two incompatible claims about the same property. Here the two checks assert different properties: the D2 attribute check says whether the value answers its question, and this check says whether the record resolves per variant. A value may be present-per-variant and simultaneously too vague to satisfy its own key, and reporting both is reporting two true things.
+
+**Zero coverage over partial data is `PARTIAL` at `0/N`, never `UNKNOWN`.** Approved explicitly by the project owner, and stated here because it decides a status rather than a point figure — the earned figure is `0.00` either way.
+
+The rule, in the two halves that matter:
+
+- **At least one required key is stated somewhere across the variants, and no variant carries the complete set** → `PARTIAL` at `max × 0/N` = **0.00**. The values that *are* there are quoted at their own locators, and every variant is named with the keys it is missing.
+- **None of the required keys is found at the checked path, for any variant** → `UNKNOWN`, and only here. Its absence evidence names the keys that were looked for, so the claim is exactly as wide as the search that produced it.
+
+`rubric.md` §3.1 defines `UNKNOWN` as *"Not found in any `checked_paths`"*, and in the first case something **was** found at `variants[*].attributes` — the record is incomplete, not empty. Reporting a gap over values that are present is the false negative PRD §8.3 rule 5 calls blocker-severity and `FAB012` catches after the fact. It is also the exact shape D-018 already resolved the same way one dimension over: `PARTIAL`, zero earned, the supplied value quoted rather than treated as though nothing were there.
+
+**Nothing is paid for the partial data.** `satisfied / total` is computed unchanged and `0 / N` is `0.00`, so the honest status costs the merchant precisely what the dishonest one would have. What changes is that they are shown what they did supply, instead of being told a field is empty that is not.
+
+**The generic `unknown` constructor is not used for this check**, and that is part of the same rule. Its detail reads *"No value was found at the checked paths"*, which would be false whenever a variant carries an attribute outside `K`: something was found at `variants[*].attributes`, just nothing this check requires. `checks._nothing_required_per_variant` states the narrower claim instead.
+
+**`checked_paths` is unchanged at `("variants[*].attributes",)`, and that decides the zero-coverage branch.** Where no variant carries the full key set and nothing is stated at that path, the check is `UNKNOWN`, and its absence evidence claims only that variant attributes were searched — which is true. A product-scope value at one of those keys is **outside what this check searched**, so no D-018 branch fires here; that value is reported by its own D2 attribute check under D-018, where the merchant sees it quoted. Reaching the D-018 branch on this check would mean adding `attributes[*]` to `checked_paths`, which changes what its absence evidence asserts to have been searched — an evidence-integrity change of the kind Q-15 records as needing its own decision. The P3.2 plan's slice-D entry asked for both at once (structured-only paths *and* a D-018 branch) and could not have had both.
+
+**Rejected: satisfaction, following D-021 literally.** It reads D-021's rule 1 as a general rule about the word "coverage" rather than a rule about the check D-021 was deciding. It would also write, inside a predicate, a stricter rule than the rubric's own sentence — the failure D-024 exists to prevent.
+
+**Consequence:** `K` is read from `taxonomy_data.attributes_for(category)`, which is the category's §5 attribute set. The Common Core (`taxonomy.md` §3) is excluded: it is audited in D1, D5 and D8 and never in D2, and its two variant-scope non-inheritable rows — `product_identifier` and `price` — are already scored per variant by `IDENT.IDENTIFIER_PRESENT` and `VARIANT.IDENTIFIER_UNIQUE`. Counting them again here would charge one gap twice.
+
+---
+
+## D-031 — `VARIANT.MEDIA_LINKED`'s visual trigger is a closed option-name vocabulary
+
+**Status:** Accepted, by the project owner. Implemented in P3.2 slice D (`engine/lexicon.VARIANT_MEDIA_LINKED_VISUAL_OPTION_NAMES`, `engine/checks.check_media_linked`). Score-moving; `rubric_version` bumped to `0.4` with it (D-023).
+
+**Question:** [`rubric.md`](./rubric.md) §4/D3 states this check as *"Where variants differ visually (color/finish/shade), each has linked media. Conditional on **a visual option existing**."* It does not say how the condition is decided.
+
+**Decision, in four parts.**
+
+1. **The trigger is an option name.** `rubric.md` says *"option"*, which is a Shopify structural term addressing `options[*].name`. A name is matched as a **whole normalized value** — the same mechanism `VARIANT.OPTION_NAMES_MEANINGFUL` already uses against the reserved defaults — never as a substring.
+
+2. **The vocabulary is closed at exactly `color`, `colour`, `finish`, `shade`.** Three of the four are `rubric.md`'s own parenthesis, transcribed. D-024 has already read a `rubric.md` parenthesis as a closed list rather than an illustration, and the same reading applies here. `colour` is admitted as an orthographic variant of a listed word, not as a new kind; that admission is stated here rather than assumed. **`tone` and `pattern` are excluded.** The P3.2 plan proposed both; neither is in `rubric.md`, and adding them would be the widening D-024 rejected — a scoring change made to accommodate an implementation. Under-detection is the permitted direction (D-024) and this is it.
+
+3. **Option presence is sufficient; the values need not differ.** `rubric.md` gives two phrasings — *"variants differ visually"* and *"a visual option existing"* — and states the *condition* in the second. The first is read as the motivation, not as a second test. A multi-variant product whose colour option repeats one value is a narrow case, and value-uniqueness within an option is already `VARIANT.OPTION_VALUES_CONSISTENT`'s question, not this one.
+
+4. **No trigger match is a deferral — neither `NOT_APPLICABLE` nor `UNKNOWN`.** Both alternatives were considered and both are wrong, for opposite reasons, and the record states each because the deferral is the only one of the three that asserts nothing.
+
+   **Not `NOT_APPLICABLE`.** `taxonomy.md` §4.4: a trigger is structural, never assumed. That a colour option was not *found* does not establish that the variants do not differ visually — the axis may be named something outside the vocabulary, which deliberate under-detection guarantees will happen. Declaring `NOT_APPLICABLE` would remove 1.5 points from the denominator on an assumption, which is the one thing PRD §10.3 forbids.
+
+   **Not `UNKNOWN`, and this is the half the P3.1 engine got wrong.** `UNKNOWN` is not silence — it is a positive claim that the check's subject matter was searched for and is absent, and it ships a `minor` finding telling the merchant to go and link media per variant. That claim presupposes the check applies. With no trigger established it does not: a product that varies only on `Size` legitimately needs no per-variant media, and telling its owner they have a media gap is asserting a defect that is not there. `rubric.md` §3.1's own definition — *"Not found in any `checked_paths`"* — presupposes a check whose question has been posed, and here it has not been. The distinction is not academic: this is precisely the movement P3.2 slice D produced, with `VARIANT.MEDIA_LINKED` leaving the `UNKNOWN` set on **eleven** corpus products that have no visual option at all.
+
+   **What deferral costs, stated plainly.** Nothing is earned and nothing is removed from the denominator, so a product whose colour axis is named outside the vocabulary forfeits 1.5 points it may deserve. That is D-019's permitted direction of failure, and it is the price of not asserting either of the two false things above.
+
+**Where the vocabulary lives, and `RESERVED_OPTION_NAMES` with it.** D-022 requires one module: both option-name sets now live in `engine/lexicon.py` as `VARIANT_MEDIA_LINKED_VISUAL_OPTION_NAMES` and `VARIANT_OPTION_NAMES_RESERVED`, each named for its owning `check_id`. `RESERVED_OPTION_NAMES` had sat in `engine/checks.py` since P3.1, predating the lexicon; leaving it there while adding a second option-name vocabulary beside it would have made the split arbitrary and the D-022 invariant unenforceable by inspection. Moving it is behaviour-neutral — the same frozenset, the same whole-value match — and it is done in this commit so that no uncontrolled second vocabulary exists.
+
+**Both sets are excluded from `VALUE_SHAPED`, and therefore from the corpus leak scan.** This follows the precedent already set by `APPAREL_SIZE_SYSTEM_STANDARDS` and `IDENT_TITLE_DISTINGUISHING_KEYS`. The reason is specific: these entries are **option names the merchant supplies**, and PRD §9.7 requires a finding to name the structure it is talking about, so `"Color"` must be quotable in evidence at its own locator. A scan forbidding every lexicon string from appearing in generated text would forbid the check from doing its job. `VALUE_SHAPED` remains what it was — the vocabulary of *ambiguity*, entries that could stand in for a merchant's answer — and that is the set the leak scan exists for. The reserved set would in any case fail `VALUE_SHAPED`'s no-digit assertion on `option 1`, which is the assertion doing its work: a reserved default is a structural name, not a vague value.
+
+**Confidence is the structural arm, which reports `high` on a check `rubric.md` fixes at `medium`.** D-020 permits exactly this and states why: PRD §7.5 assigns `high` to a structural determination, and every step here is structural — whole-value membership in a closed list, then presence or absence of a media reference per variant. The precedent is `VARIANT.OPTION_NAMES_MEANINGFUL`, which matches option names against a closed literal list on the structural arm today. **This is not the recognition path and does not reach PRD §9.5's cap (D-026):** no supplied *value* is read to judge what it means. The vocabulary decides whether the check applies; it never decides whether a value satisfies anything.
+
+**Product-scope media does not cover a variant.** Where the trigger is present and no variant links any media, but `media[*]` is non-empty, the check is `PARTIAL` at **zero earned** with the product-scope media quoted — not `UNKNOWN`. Something was found at a path this check declares it searched, and reporting that as a gap is the false negative PRD §8.3 rule 5 calls blocker-severity. This is D-018's shape applied to media, and it follows the branch `IDENT.IDENTIFIER_PRESENT` already takes for a product-level MPN. `UNKNOWN` is reached only where the trigger is present and neither `variants[*].media_refs` nor `media[*]` holds anything.
+
+---
+
 ## Open questions
 
 Deliberately unresolved. Each is recorded so V0 does not foreclose it, and none blocks V0.
@@ -389,7 +669,12 @@ Deliberately unresolved. Each is recorded so V0 does not foreclose it, and none 
 | Q-6 | Should `uncategorized` products get an expanded Common Core so their scores are less deflated? | Risks encouraging bad category hygiene, which is itself a real finding. | Eval data on how often `uncategorized` occurs in real exports. |
 | Q-7 | How should the tool treat merchant data that is stale rather than absent (a spec that no longer matches the shipped product)? | Undetectable without external state; possibly permanently out of scope. | Whether merchants report this as a felt problem. |
 | Q-8 | Post-V0: do attribute keys map onto Shopify category metafields, and does that change tiering? | Requires taxonomy dependency V0 avoids (D-008). | Shopify taxonomy review at integration time. |
-| Q-11 | `taxonomy.md` §2 rule 1 requires an `info` finding naming both signals when two same-tier signals disagree, but `rubric.md` §4 defines no `check_id` that could carry it. P3.1 records the disagreement on the category block's own evidence rather than inventing a check id. | A check that is not in the rubric cannot have fixed points, severity or confidence, and adding one is a rubric change requiring a version bump. Nothing is lost meanwhile: the disagreement is reported, just not as a finding. | Either a `CATEGORY.*` check in `rubric.md` §4, or an explicit statement that the category block carries it. |
+| Q-11 | `taxonomy.md` §2 rule 1 requires an `info` finding naming both signals when two same-tier signals disagree, but `rubric.md` §4 defines no `check_id` that could carry it. The engine records the disagreement as a `note` on the category block, serialized by `classify.Classification.as_dict`, rather than inventing a check id; the two disagreeing signals are quoted as that block's evidence, but the note is not additionally attached to those evidence items. | A check that is not in the rubric cannot have fixed points, severity or confidence, and adding one is a rubric change requiring a version bump. Nothing is lost meanwhile: the disagreement is reported, just not as a finding. | Either a `CATEGORY.*` check in `rubric.md` §4, or an explicit statement that the category block carries it. |
+| Q-12 | Does a stated, non-placeholder structured value at a conditional attribute's own key establish that attribute's trigger? `taxonomy.md` §4.4 says a trigger is structural and never assumed; the engine currently defers every conditionally-triggered check, so three of them never run. | Deciding that absence of such a value establishes the trigger is *absent* would remove points from a denominator on an assumption. The presence half looks safe and the absence half is not, so the two need separating deliberately. | A decision record stating the presence half, with the absence half remaining deferred rather than `NOT_APPLICABLE`. |
+| Q-13 | A predicate named as a disjunction has one decidable half and one that is language. Is firing on the decidable half alone faithful to the predicate as written? This covers **both arms**: the ambiguity arm ("no unit **or** no basis") and the **satisfying** arm — `warranty_with_duration_or_scope` is shipped and reaches `PASS` at the full 3.00 on a stated duration, with the scope disjunct never read. | A value with no unit satisfies the predicate whatever the basis half says, so the arm is provable — but the ambiguity keys carry `blocker` conflict severity, and the satisfying arm awards full credit, so both warrant sign-off rather than inference. The satisfying arm is the higher-stakes half and is already live, which is why it is named here rather than left implicit. | An explicit statement, per predicate and per arm, that a decidable half may decide alone — or a decision to defer `warranty_with_duration_or_scope` until the scope disjunct is readable. |
+| Q-14 | Three D5 checks declare recognition predicates over attribute keys that `taxonomy.md` §3/§5 treats as presence. `TRUST.RETURNS_REFERENCE` in particular: §3 says *"a reference counts; the policy text need not be in the product record"*, which is presence, not recognition. | It reads as a specification inconsistency rather than a scoring judgment, but correcting it moves scores, so it cannot be done as an editorial fix. | A decision reclassifying the affected predicates as presence, with expectation files moving in the same commit under D-023. |
+| Q-15 | `TRUST.SUPPORT_OR_CONTACT` and `TRUST.SHIPPING_OR_LEADTIME` declare prose-only `checked_paths`, so no structured value can ever reach a predicate for them. Should structured paths be added, or do they stay deferred until prose recognition exists? | Adding paths to a check's `checked_paths` changes what its absence evidence claims to have searched, which is an evidence-integrity change, not a convenience. | Either a registry change with expectation impact, or an explicit statement that they remain deferred. |
+| Q-16 | `CONFLICT.UNIT_INCONSISTENCY` requires proving two values are the *same* quantity in different units, which needs a conversion table the engine deliberately does not hold. | A conversion table is the shortest path from "no world knowledge" to "some world knowledge" (D-006, non-negotiable 11), so the omission should be a recorded decision rather than a gap. | A decision to leave it unimplemented, or a bounded conversion table with its own record. |
 
 ---
 

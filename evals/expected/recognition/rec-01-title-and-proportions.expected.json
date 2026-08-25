@@ -1,0 +1,57 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-01-title-and-proportions",
+  "set": "recognition",
+  "rubric_version": "0.4",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the recognition arms this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "IDENT.TITLE_SPECIFIC matches the stated product type on a word boundary; IDENT.TITLE_DISTINGUISHING matches the token 'cotton' from the material value. APPAREL.MATERIAL_COMPOSITION reaches PASS on a stated percentage. APPAREL.SIZE_SYSTEM reaches PASS at full coverage: every variant states a named size standard with a value at its own locator.",
+  "products": [
+    {
+      "product_id": "handle:rec-01-title-and-proportions",
+      "must_not_fabricate": [
+        "organic cotton",
+        "machine wash cold",
+        "180 gsm",
+        "made in portugal",
+        "eu 42"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "IDENT.TITLE_SPECIFIC",
+          "status": "PASS",
+          "evidence_locators": [
+            "identity.title",
+            "identity.product_type"
+          ]
+        },
+        {
+          "check_id": "IDENT.TITLE_DISTINGUISHING",
+          "status": "PASS",
+          "evidence_locators": [
+            "identity.title"
+          ]
+        },
+        {
+          "check_id": "APPAREL.MATERIAL_COMPOSITION",
+          "status": "PASS",
+          "evidence_locators": [
+            "attributes[material_composition].value_raw"
+          ]
+        },
+        {
+          "check_id": "APPAREL.SIZE_SYSTEM",
+          "status": "PASS",
+          "evidence_locators": [
+            "variants[sku:RC1-S].attributes[size_system].value_raw",
+            "variants[sku:RC1-L].attributes[size_system].value_raw"
+          ]
+        }
+      ]
+    }
+  ]
+}

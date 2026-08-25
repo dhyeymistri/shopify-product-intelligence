@@ -1,0 +1,47 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-07-shade-codes-and-quantities",
+  "set": "recognition",
+  "rubric_version": "0.4",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the recognition arms this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "BEAUTY.COLOR_SHADE's satisfying arm stays deferred permanently: deciding that a string is a shade name would need a lexicon of shade names, which is a lexicon of product values.",
+  "products": [
+    {
+      "product_id": "handle:rec-07-shade-codes-and-quantities",
+      "must_not_fabricate": [
+        "warm sand",
+        "niacinamide",
+        "5%",
+        "fragrance-free"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "BEAUTY.COLOR_SHADE",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "variants[sku:RC7-N24].attributes[color_shade].value_raw"
+          ]
+        },
+        {
+          "check_id": "BEAUTY.NET_CONTENT",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "variants[sku:RC7-N24].attributes[net_content].value_raw"
+          ]
+        },
+        {
+          "check_id": "BEAUTY.USAGE_DIRECTIONS",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "attributes[usage_directions].value_raw"
+          ]
+        }
+      ]
+    }
+  ]
+}

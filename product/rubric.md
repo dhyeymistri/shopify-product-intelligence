@@ -1,8 +1,10 @@
 # Scoring Rubric — V0
 
-- **Rubric version:** 0.1
-- **Date:** 2026-08-24
+- **Rubric version:** 0.4
+- **Date:** 2026-08-25
 - **Authority:** This document is normative for scoring. Where it conflicts with a check implementation, this document wins.
+
+**Version history.** `0.4` implements the two D3 structural checks §4/D3 states and this file has always carried: `VARIANT.ATTRIBUTE_COVERAGE` counts a variant covered when every non-inheritable variant-scope attribute for the category is *present* on it, on the wording of §4/D3 (D-030), and is `NOT_APPLICABLE` where that attribute set is empty — for an assigned category or for `uncategorized` — on the precedent §4/D2 already sets (D-029); `VARIANT.MEDIA_LINKED`'s *"visual option existing"* condition is decided by a closed option-name vocabulary of exactly `color`, `colour`, `finish`, `shade`, and defers rather than removing itself where no such option is found (D-031). No check, point allocation, severity or confidence in this document changed. `0.3` applies the P3.2 review decisions: `IDENT.TITLE_DISTINGUISHING` counts only the five kinds §4/D1 names (D-024); variant coverage never falls below the ambiguity credit where every variant carries a value (D-025); a recognition-derived finding never reports `high` confidence (D-026, PRD §9.5); and `unnamed_eco_claim` is withdrawn until the D7 route `taxonomy.md` §5.1 names exists (D-027). No check, point allocation or severity in this document changed. `0.2` implements the first deterministic recognition predicates. No check, point allocation, severity or confidence in this document changed; what changed is that some supplied values now reach `PASS` or `PARTIAL` where they previously produced no finding at all. §1.1 makes `rubric_version` the version of the *scoring function*, not of this file, so a change that moves a score bumps it ([`decisions.md`](./decisions.md) D-023). Variant coverage over mixed verdicts is scored strictly — `satisfied / total` (D-021).
 
 Companions: [`PRD.md`](./PRD.md) · [`taxonomy.md`](./taxonomy.md) · [`decisions.md`](./decisions.md)
 
@@ -380,7 +382,7 @@ Note what the report does **not** do: it does not decide that machine-washable i
 ## 9. Rubric governance
 
 1. **Point totals must sum to 100.** A change that breaks this is rejected at review.
-2. **Any point-allocation change bumps `rubric_version`** and requires updating every affected expectation file in the same commit (PRD §12.5).
+2. **Any change that can move a fixture score bumps `rubric_version`** and requires updating every affected expectation file in the same commit (PRD §12.5). A point-allocation change is the obvious case, but it is not the only one: §1.1 versions the *scoring function*, so implementing a recognition predicate or editing `engine/lexicon.py` bumps it too ([`decisions.md`](./decisions.md) D-023, D-022). A behaviour-neutral refactor does not.
 3. **New checks require:** a stable `check_id`, `checked_paths`, a fixed severity/confidence, an eval fixture that exercises both its pass and its fail path, and a merchant-answerable question.
 4. **No check may be added that cannot produce evidence.** No evidence, no check.
 5. **No check may score prose style, keyword density, or character counts.** We measure information, not writing.

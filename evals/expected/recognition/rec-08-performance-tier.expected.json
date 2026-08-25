@@ -1,0 +1,47 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-08-performance-tier",
+  "set": "recognition",
+  "rubric_version": "0.4",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the recognition arms this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "SPORTS.SKILL_OR_INTENSITY_LEVEL is the only slice-E predicate with a satisfying arm and no ambiguity arm; implied_by_marketing_tone stays deferred because it is explicitly a judgment about tone.",
+  "products": [
+    {
+      "product_id": "handle:rec-08-performance-tier",
+      "must_not_fabricate": [
+        "6 mm",
+        "closed-cell foam",
+        "non-slip",
+        "1.8 kg"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "SPORTS.SKILL_OR_INTENSITY_LEVEL",
+          "status": "PASS",
+          "evidence_locators": [
+            "attributes[skill_or_intensity_level].value_raw"
+          ]
+        },
+        {
+          "check_id": "SPORTS.SPORT_OR_ACTIVITY",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "attributes[sport_or_activity].value_raw"
+          ]
+        },
+        {
+          "check_id": "SPORTS.USE_ENVIRONMENT",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "attributes[use_environment].value_raw"
+          ]
+        }
+      ]
+    }
+  ]
+}

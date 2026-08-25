@@ -27,6 +27,7 @@ _ASSERTIVE_FIELDS = frozenset([
 # Leaf field names that are enums, identifiers or machine paths.
 _STRUCTURAL_FIELDS = frozenset([
     "check_id", "finding_id", "dimension", "status", "severity", "confidence",
+    "determination",
     "type", "locator", "checked_paths", "scope", "level", "ref", "product_id",
     "assigned", "method", "grade", "grade_capped_by", "report_version",
     "rubric_version", "taxonomy_version", "npr_version", "pip_version",

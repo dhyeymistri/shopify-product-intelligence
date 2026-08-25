@@ -268,3 +268,24 @@ CATEGORY_MAP = (
     ("sports", ("sport", "fitness", "outdoor", "camping", "cycling",
                 "running gear", "yoga", "athletic equipment", "exercise")),
 )
+
+
+def variant_scope_keys(category):
+    # type: (str) -> Tuple[str, ...]
+    """`K` -- the category's non-inheritable variant-scope attribute keys.
+
+    The one definition of the set, read by `runner._na_reason` -- which removes
+    `VARIANT.ATTRIBUTE_COVERAGE` where it is empty (D-029) -- and by
+    `checks.check_variant_attribute_coverage`, which measures against it. One
+    definition, so the check and the rule that removes it can never disagree
+    about what the category requires.
+
+    `attributes_for` is the category's own `taxonomy.md` 5 set.
+    The Common Core (`taxonomy.md` 3) is excluded deliberately: it is audited
+    in D1, D5 and D8 and never in D2, and its two variant-scope non-inheritable
+    rows -- `product_identifier` and `price` -- are already scored per variant
+    by `IDENT.IDENTIFIER_PRESENT` and `VARIANT.IDENTIFIER_UNIQUE`. Counting
+    them again here would charge one gap twice (D-030).
+    """
+    return tuple(row.key for row in attributes_for(category)
+                 if row.scope == SCOPE_VARIANT and row.inheritable is False)

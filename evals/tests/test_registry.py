@@ -246,5 +246,204 @@ class TestApplicability(unittest.TestCase):
                 self.assertIn(check.check_id, ids, category)
 
 
+class TestSatisfactionIsThreeValued(unittest.TestCase):
+    """PRE-4. A boolean cannot express "needs recognition we now have"."""
+
+    def test_value_present_checks_need_no_predicate(self):
+        for check in registry.ALL_CHECKS:
+            if check.satisfies == T.VALUE_PRESENT:
+                self.assertIs(check.satisfaction, registry.NO_PREDICATE,
+                              check.check_id)
+
+    def test_a_declared_predicate_with_no_evaluator_is_unimplemented(self):
+        declared = [c for c in registry.ALL_CHECKS
+                    if c.satisfies != T.VALUE_PRESENT]
+        self.assertTrue(declared)
+        for check in declared:
+            if check.satisfies in registry.IMPLEMENTED_PREDICATES:
+                continue
+            self.assertIs(check.satisfaction, registry.UNIMPLEMENTED,
+                          check.check_id)
+
+    def test_a_check_with_no_evaluator_is_undecided_for_every_value(self):
+        check = next(c for c in registry.ALL_CHECKS if not c.has_recognition
+                     and c.satisfies != T.VALUE_PRESENT)
+        for value in ("95% cotton", "", "varies"):
+            self.assertIs(check.recognize(value), registry.UNDECIDED)
+
+    def test_a_structural_check_recognizes_nothing(self):
+        """A check that needs no recognition consults no predicate, and asking
+        it returns the residue rather than a verdict nobody registered."""
+        check = next(c for c in registry.ALL_CHECKS
+                     if c.satisfies == T.VALUE_PRESENT)
+        self.assertFalse(check.has_recognition)
+        self.assertIs(check.recognize("anything"), registry.UNDECIDED)
+
+    def test_the_satisfying_arm_is_tested_before_the_ambiguity_arm(self):
+        """D-021's governing property, at the level of a single value: a value
+        that satisfies may never be scored as merely ambiguous."""
+        check = registry.get("APPAREL.MATERIAL_COMPOSITION")
+        self.assertIs(check.recognize("60% cotton, 40% polyester"),
+                      registry.SATISFIED)
+        self.assertIs(check.recognize("cotton blend"), registry.AMBIGUOUS)
+        self.assertIs(check.recognize("2-ply cotton"), registry.UNDECIDED)
+
+    def test_structural_satisfaction_still_means_what_it_meant(self):
+        """PRE-4 is behaviour-neutral: the boolean every check path reads is
+        still exactly `satisfies == VALUE_PRESENT`."""
+        for check in registry.ALL_CHECKS:
+            self.assertEqual(check.structural_satisfaction,
+                             check.satisfies == T.VALUE_PRESENT,
+                             check.check_id)
+
+    def test_an_implemented_evaluator_is_called_with_the_supplied_value(self):
+        seen = []
+
+        check = next(c for c in registry.ALL_CHECKS
+                     if c.satisfies != T.VALUE_PRESENT
+                     and c.satisfies not in registry.IMPLEMENTED_PREDICATES)
+        original = dict(registry.IMPLEMENTED_PREDICATES)
+        registry.IMPLEMENTED_PREDICATES[check.satisfies] = \
+            lambda value: seen.append(value) or True
+        try:
+            self.assertIs(check.recognize("95% cotton"), registry.SATISFIED)
+        finally:
+            registry.IMPLEMENTED_PREDICATES.clear()
+            registry.IMPLEMENTED_PREDICATES.update(original)
+        self.assertEqual(seen, ["95% cotton"])
+        self.assertIs(check.satisfaction, registry.UNIMPLEMENTED)
+
+
+class TestImplementationMapInvariants(unittest.TestCase):
+    """PRE-5. The invariants must be capable of failing, so each is tripped."""
+
+    def _with_map(self, mapping):
+        original = dict(registry.IMPLEMENTED_PREDICATES)
+        registry.IMPLEMENTED_PREDICATES.clear()
+        registry.IMPLEMENTED_PREDICATES.update(mapping)
+        try:
+            registry._invariants()
+        finally:
+            registry.IMPLEMENTED_PREDICATES.clear()
+            registry.IMPLEMENTED_PREDICATES.update(original)
+
+    def test_the_shipped_map_passes_its_own_invariants(self):
+        self._with_map(dict(registry.IMPLEMENTED_PREDICATES))
+
+    def test_every_implemented_predicate_is_declared_by_a_check(self):
+        for predicate_id in registry.IMPLEMENTED_PREDICATES:
+            self.assertIn(predicate_id, registry.RECOGNITION_PREDICATES)
+
+    def test_an_orphan_predicate_fails_the_import_invariants(self):
+        self.assertRaises(
+            AssertionError, self._with_map,
+            {"no_check_declares_this": lambda check, candidate: None})
+
+    def test_a_non_callable_evaluator_fails_the_import_invariants(self):
+        predicate_id = sorted(registry.RECOGNITION_PREDICATES)[0]
+        self.assertRaises(AssertionError, self._with_map,
+                          {predicate_id: "not callable"})
+
+    def test_a_penalty_predicate_fails_the_import_invariants(self):
+        """rubric.md 1.2: D6 and D7 are penalty exposure. A lexicon entry may
+        never subtract points from a merchant, so the exclusion is structural
+        rather than a habit in review."""
+        penalty_predicates = set()
+        for check in registry.ALL_CHECKS:
+            if not check.is_penalty:
+                continue
+            for declared in (check.satisfies, check.partial_if,
+                             check.conditional_trigger):
+                if declared and declared != T.VALUE_PRESENT:
+                    penalty_predicates.add(declared)
+        self.assertTrue(penalty_predicates,
+                        "no penalty check declares a predicate to exclude")
+        for predicate_id in sorted(penalty_predicates):
+            self.assertRaises(
+                AssertionError, self._with_map,
+                {predicate_id: lambda check, candidate: None})
+
+    def test_no_shipped_predicate_belongs_to_a_penalty_check(self):
+        for check in registry.ALL_CHECKS:
+            if not check.is_penalty:
+                continue
+            for declared in (check.satisfies, check.partial_if,
+                             check.conditional_trigger):
+                self.assertNotIn(declared, registry.IMPLEMENTED_PREDICATES,
+                                 check.check_id)
+
+
+class TestVerdicts(unittest.TestCase):
+    def test_a_verdict_is_not_a_rubric_status(self):
+        """A predicate reports what it read; the check owns the arithmetic."""
+        for verdict in registry.VERDICTS:
+            self.assertNotIn(verdict, R.STATUSES)
+
+    def test_the_three_verdicts_are_distinct_singletons(self):
+        self.assertEqual(len(set(id(v) for v in registry.VERDICTS)), 3)
+
+
+
+class TestRecognitionConfidenceCeiling(unittest.TestCase):
+    """D-026. PRD 9.5 caps the recognition path at `medium`.
+
+    The cap sits on the arm, not on the check: `rubric.md` 4's figure stays
+    the check's stated confidence and the structural arm still reports it.
+    """
+
+    def test_no_check_can_report_high_by_recognition(self):
+        for check in registry.ALL_CHECKS:
+            self.assertIn(check.confidence.recognition_arm, ("medium", "low"),
+                          check.check_id)
+
+    def test_the_rubrics_own_figure_is_not_overridden(self):
+        check = registry.get("TRUST.WARRANTY_OR_GUARANTEE")
+        self.assertEqual(check.confidence.recognized, "high")
+        self.assertEqual(check.confidence.structural, "high")
+        self.assertEqual(check.confidence.recognition_arm, "medium")
+
+    def test_a_medium_or_low_check_is_left_alone(self):
+        for stated in ("medium", "low"):
+            rule = registry.ConfidenceRule(stated)
+            self.assertEqual(rule.recognition_arm, stated)
+
+    def test_the_invariant_can_actually_fire(self):
+        """A registry that could report `high` by recognition must not load."""
+        original = registry.ConfidenceRule.RECOGNITION_CEILING
+        registry.ConfidenceRule.RECOGNITION_CEILING = "high"
+        try:
+            self.assertEqual(
+                registry.get("TRUST.WARRANTY_OR_GUARANTEE")
+                .confidence.recognition_arm, "high")
+            self.assertRaises(AssertionError, registry._invariants)
+        finally:
+            registry.ConfidenceRule.RECOGNITION_CEILING = original
+        registry._invariants()
+
+
+class TestTitleDistinguishingKeySet(unittest.TestCase):
+    """D-024. The set is attribute *keys*, and it is closed."""
+
+    def test_every_entry_is_a_taxonomy_attribute_key(self):
+        from engine import lexicon, taxonomy_keys
+        self.assertTrue(lexicon.IDENT_TITLE_DISTINGUISHING_KEYS)
+        for key in lexicon.IDENT_TITLE_DISTINGUISHING_KEYS:
+            self.assertTrue(taxonomy_keys.is_attribute_key(key), key)
+
+    def test_no_entry_is_a_recognition_value(self):
+        """A value here would be a product fact wearing a key's clothes."""
+        from engine import lexicon
+        self.assertEqual(
+            lexicon.IDENT_TITLE_DISTINGUISHING_KEYS & lexicon.VALUE_SHAPED,
+            frozenset())
+
+    def test_the_count_kind_has_no_taxonomy_key_yet(self):
+        """Recorded in D-024 so its absence is deliberate, not an oversight."""
+        from engine import taxonomy_keys
+        self.assertEqual(
+            [k for k in taxonomy_keys.ATTRIBUTE_KEYS
+             if "count" in k.split("_")], [])
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

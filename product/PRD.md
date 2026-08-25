@@ -333,7 +333,7 @@ Two artifacts per run, written to `reports/<run-id>/`. The JSON is the source of
     "started_at": "2026-08-24T14:05:02Z",
     "input": { "file": "evals/fixtures/apparel_basic.csv", "format": "shopify_csv",
                "products_in": 12, "products_audited": 12 },
-    "rubric_version": "0.1",
+    "rubric_version": "0.3",
     "taxonomy_version": "0.1",
     "run_errors": []
   },
@@ -401,6 +401,11 @@ Every finding line in the Markdown must show its evidence excerpt or its checked
   "status": "UNKNOWN",                        // PASS | PARTIAL | FAIL | UNKNOWN | NOT_APPLICABLE
   "severity": "major",                        // §7.4
   "confidence": "high",                       // §7.5 — confidence in the FINDING, not the product
+  "determination": "structural",              // structural | recognized — which of D-020's two
+                                              // arms produced `confidence`. Drives §9.5's
+                                              // *(interpreted)* tag in the Markdown report;
+                                              // `confidence` alone cannot, because a `low`
+                                              // check reports `low` on both arms. See D-026.
   "title": "Fabric composition is not stated",
   "detail": "No fabric or material composition was found in the description, the product metafields, or any variant attribute.",
   "evidence": [ /* §8.1 */ ],

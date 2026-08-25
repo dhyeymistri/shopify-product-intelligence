@@ -1,0 +1,44 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-09-variant-scope-fully-covered",
+  "set": "recognition",
+  "rubric_version": "0.4",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the slice-D structural coverage this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "Both D3 structural coverage checks at full coverage. VARIANT.ATTRIBUTE_COVERAGE counts presence and quotes every required key on every variant (D-030); VARIANT.MEDIA_LINKED's trigger is the `Color` option name (D-031).",
+  "products": [
+    {
+      "product_id": "handle:rec-09-variant-scope-fully-covered",
+      "must_not_fabricate": [
+        "solid oak",
+        "wall mounted",
+        "12 kg",
+        "FSC certified"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "VARIANT.ATTRIBUTE_COVERAGE",
+          "status": "PASS",
+          "evidence_locators": [
+            "variants[sku:R9-OAK].attributes[assembled_dimensions].value_raw",
+            "variants[sku:R9-OAK].attributes[color_finish].value_raw",
+            "variants[sku:R9-WAL].attributes[assembled_dimensions].value_raw",
+            "variants[sku:R9-WAL].attributes[color_finish].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.MEDIA_LINKED",
+          "status": "PASS",
+          "evidence_locators": [
+            "media[0]",
+            "media[1]"
+          ]
+        }
+      ]
+    }
+  ]
+}

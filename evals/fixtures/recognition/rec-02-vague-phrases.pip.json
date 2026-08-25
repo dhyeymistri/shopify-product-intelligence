@@ -1,0 +1,160 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "rec-02-vague-phrases",
+    "set": "recognition",
+    "intent": "Every slice-A vague phrase this category admits, stated as the whole value. Each must reach PARTIAL at half credit with the supplied value quoted, and none may state what the merchant should have written.",
+    "provenance": "Synthetic. Authored for this eval corpus to exercise the deterministic recognition predicates. Not derived from any real merchant's catalog or private data.",
+    "notes": "The phrases are transcribed from taxonomy.md's own PARTIAL columns. APPAREL.MATERIAL_COMPOSITION takes its ambiguity arm on a value carrying no digit and no percentage. `sustainability_credentials` is deliberately absent from the expected findings: `taxonomy.md` 5.1 routes an unnamed eco claim to D7 as unsupported, and the awarding half may not ship without the subtracting half (D-027)."
+  },
+  "products": [
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:rec-02-vague-phrases",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-02-vague-phrases.pip.json",
+        "locator": "products[handle:rec-02-vague-phrases]"
+      },
+      "identity": {
+        "title": {
+          "value": "Harbourline Everyday Shirt",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Harbourline",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "rec-02-vague-phrases",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": null,
+          "src": null
+        },
+        "declared_category": {
+          "value": "Apparel & Accessories > Clothing > Shirts & Tops",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": null,
+          "src": null
+        },
+        "description_html": {
+          "value": null,
+          "src": null
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 0
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [
+        {
+          "key": "intended_use_context",
+          "value_raw": "Everyday",
+          "origin": "merchant_structured",
+          "src": "attributes[intended_use_context].value_raw",
+          "scope": "product"
+        },
+        {
+          "key": "care_instructions",
+          "value_raw": "Easy care",
+          "origin": "merchant_structured",
+          "src": "attributes[care_instructions].value_raw",
+          "scope": "product"
+        },
+        {
+          "key": "sustainability_credentials",
+          "value_raw": "Eco-friendly",
+          "origin": "merchant_structured",
+          "src": "attributes[sustainability_credentials].value_raw",
+          "scope": "product"
+        },
+        {
+          "key": "material_composition",
+          "value_raw": "Cotton blend",
+          "origin": "merchant_structured",
+          "src": "attributes[material_composition].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [
+        {
+          "name": "Size",
+          "values": [
+            "Small",
+            "Large"
+          ],
+          "src": "options[Size]"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:RC2-S",
+          "option_values": {
+            "Size": "Small"
+          },
+          "sku": {
+            "value": "RC2-S",
+            "src": "variants[sku:RC2-S].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "38.00",
+            "currency": null,
+            "src": "variants[sku:RC2-S].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        },
+        {
+          "variant_id": "sku:RC2-L",
+          "option_values": {
+            "Size": "Large"
+          },
+          "sku": {
+            "value": "RC2-L",
+            "src": "variants[sku:RC2-L].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "38.00",
+            "currency": null,
+            "src": "variants[sku:RC2-L].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

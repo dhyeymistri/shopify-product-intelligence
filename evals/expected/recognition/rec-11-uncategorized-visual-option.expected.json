@@ -1,0 +1,38 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-11-uncategorized-visual-option",
+  "set": "recognition",
+  "rubric_version": "0.4",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the slice-D structural coverage this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "The two branches no other fixture reaches: D-029's uncategorized N/A on a multi-variant product, and D-031's product-scope media, which is PARTIAL at zero with the item quoted rather than UNKNOWN over a value that is there (PRD 8.3 rule 5).",
+  "products": [
+    {
+      "product_id": "handle:rec-11-uncategorized-visual-option",
+      "must_not_fabricate": [
+        "ceramic",
+        "stoneware",
+        "hand thrown",
+        "250 ml"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "VARIANT.ATTRIBUTE_COVERAGE",
+          "status": "NOT_APPLICABLE",
+          "evidence_locators": []
+        },
+        {
+          "check_id": "VARIANT.MEDIA_LINKED",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "media[0]"
+          ]
+        }
+      ]
+    }
+  ]
+}

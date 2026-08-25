@@ -1,7 +1,40 @@
 {
-  "baseline_version": "0.1",
+  "baseline_version": "0.2",
   "note": "Pinned so that implementing a recognition predicate cannot move it. Recognition may convert a deferral into PASS or PARTIAL and nothing else: the UNKNOWN set, the FAIL set, the NOT_APPLICABLE set and the penalty total of every product must be unchanged by it. A diff here is not a test to update -- it is a recognition predicate that has introduced absence, a defect, or a penalty.",
-  "phase": "P3.1 + P3.2 prerequisites",
+  "repin": {
+    "version": "0.2",
+    "reason": "Re-pinned once, for P3.2 slice D, which is a *structural* semantics change carrying signed-off decision records -- not a recognition predicate, and not covered by the rule above. The movement is stated here exhaustively so the re-pin is reviewable rather than a silent rewrite of the thing that was supposed to be immovable.",
+    "rubric_version": "0.3 -> 0.4",
+    "decisions": [
+      "D-029",
+      "D-030",
+      "D-031"
+    ],
+    "check_ids_whose_pinned_membership_moved": [
+      "VARIANT.MEDIA_LINKED"
+    ],
+    "what_moved": "VARIANT.MEDIA_LINKED left the UNKNOWN set on the 11 products listed below and now defers there instead. Under D-031 the check runs only once a visual option name is found; on these products none is, so the previous UNKNOWN asserted a gap without having established that the check applied at all. Both states earn 0.00 and penalize 0.00, so no score moved -- what moved is that 11 `minor` findings are no longer emitted.",
+    "products_where_media_linked_left_the_unknown_set": [
+      "adv-02-category-implies-attributes::handle:trailpro-bike-helmet",
+      "checks-04-non-inheritable::handle:checks-non-inheritable",
+      "checks-06-duplicate-identifier::handle:checks-duplicate-sku",
+      "checks-08-non-inheritable-recognition::handle:checks-scope-before-recognition",
+      "rec-01-title-and-proportions::handle:rec-01-title-and-proportions",
+      "rec-02-vague-phrases::handle:rec-02-vague-phrases",
+      "rec-03-vague-in-a-sentence::handle:rec-03-vague-in-a-sentence",
+      "rec-04-mixed-variant-coverage::handle:rec-04-mixed-variant-coverage",
+      "rec-05-unreadable-variant-silences-the-check::handle:rec-05-unreadable-variant-silences-the-check",
+      "sparse-apparel-02::handle:harbourline-everyday-tee",
+      "sparse-sports-02::handle:tempo-training-mat"
+    ],
+    "what_did_not_move": "VARIANT.ATTRIBUTE_COVERAGE moved no pinned set on any existing product. Where it changed at all it went from a deferral to PARTIAL, which is the one transition the rule above already permits. No FAIL, no NOT_APPLICABLE and no penalty total changed anywhere in the corpus, and no other check_id moved in any set.",
+    "products_added": [
+      "rec-09-variant-scope-fully-covered::handle:rec-09-variant-scope-fully-covered",
+      "rec-10-variant-scope-partly-covered::handle:rec-10-variant-scope-partly-covered",
+      "rec-11-uncategorized-visual-option::handle:rec-11-uncategorized-visual-option"
+    ]
+  },
+  "phase": "P3.1 + P3.2 prerequisites + P3.2 slice D",
   "products": {
     "adv-01-evocative-title-no-facts::handle:the-meridian": {
       "fail": [],
@@ -74,8 +107,7 @@
         "USECASE.INTENDED_USER",
         "USECASE.NOT_FOR",
         "USECASE.PRIMARY_USE",
-        "VARIANT.ATTRIBUTE_COVERAGE",
-        "VARIANT.MEDIA_LINKED"
+        "VARIANT.ATTRIBUTE_COVERAGE"
       ]
     },
     "adv-03-placeholder-values::handle:placeholder-storage-bin": {
@@ -267,8 +299,7 @@
         "USECASE.INTENDED_USER",
         "USECASE.NOT_FOR",
         "USECASE.PRIMARY_USE",
-        "VARIANT.ATTRIBUTE_COVERAGE",
-        "VARIANT.MEDIA_LINKED"
+        "VARIANT.ATTRIBUTE_COVERAGE"
       ]
     },
     "checks-05-variant-partial::handle:checks-variant-partial": {
@@ -334,8 +365,7 @@
         "USECASE.INTENDED_USER",
         "USECASE.NOT_FOR",
         "USECASE.PRIMARY_USE",
-        "VARIANT.ATTRIBUTE_COVERAGE",
-        "VARIANT.MEDIA_LINKED"
+        "VARIANT.ATTRIBUTE_COVERAGE"
       ]
     },
     "checks-07-uncategorized::handle:checks-uncategorized": {
@@ -398,8 +428,341 @@
         "USECASE.INTENDED_USER",
         "USECASE.NOT_FOR",
         "USECASE.PRIMARY_USE",
+        "VARIANT.ATTRIBUTE_COVERAGE"
+      ]
+    },
+    "rec-01-title-and-proportions::handle:rec-01-title-and-proportions": {
+      "fail": [],
+      "not_applicable": [],
+      "penalty_total": "0",
+      "unknown": [
+        "APPAREL.CARE_INSTRUCTIONS",
+        "APPAREL.CLOSURE_AND_CONSTRUCTION",
+        "APPAREL.COLOR_FINISH",
+        "APPAREL.COUNTRY_OF_ORIGIN",
+        "APPAREL.FIT_AND_CUT",
+        "APPAREL.GARMENT_MEASUREMENTS",
+        "APPAREL.INTENDED_USE_CONTEXT",
+        "APPAREL.MODEL_REFERENCE_MEASUREMENTS",
+        "APPAREL.SUSTAINABILITY_CREDENTIALS",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE"
+      ]
+    },
+    "rec-02-vague-phrases::handle:rec-02-vague-phrases": {
+      "fail": [],
+      "not_applicable": [],
+      "penalty_total": "0",
+      "unknown": [
+        "APPAREL.CLOSURE_AND_CONSTRUCTION",
+        "APPAREL.COLOR_FINISH",
+        "APPAREL.COUNTRY_OF_ORIGIN",
+        "APPAREL.FIT_AND_CUT",
+        "APPAREL.GARMENT_MEASUREMENTS",
+        "APPAREL.MODEL_REFERENCE_MEASUREMENTS",
+        "APPAREL.SIZE_SYSTEM",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE",
+        "VARIANT.ATTRIBUTE_COVERAGE"
+      ]
+    },
+    "rec-03-vague-in-a-sentence::handle:rec-03-vague-in-a-sentence": {
+      "fail": [],
+      "not_applicable": [],
+      "penalty_total": "0",
+      "unknown": [
+        "APPAREL.CLOSURE_AND_CONSTRUCTION",
+        "APPAREL.COLOR_FINISH",
+        "APPAREL.COUNTRY_OF_ORIGIN",
+        "APPAREL.FIT_AND_CUT",
+        "APPAREL.GARMENT_MEASUREMENTS",
+        "APPAREL.MODEL_REFERENCE_MEASUREMENTS",
+        "APPAREL.SIZE_SYSTEM",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE",
+        "VARIANT.ATTRIBUTE_COVERAGE"
+      ]
+    },
+    "rec-04-mixed-variant-coverage::handle:rec-04-mixed-variant-coverage": {
+      "fail": [],
+      "not_applicable": [],
+      "penalty_total": "0",
+      "unknown": [
+        "HOME.ASSEMBLY",
+        "HOME.COLOR_FINISH",
+        "HOME.INDOOR_OUTDOOR_USE",
+        "HOME.MATERIALS_AND_FINISH",
+        "HOME.PACKAGED_DIMENSIONS_WEIGHT",
+        "HOME.ROOM_OR_PLACEMENT",
+        "HOME.SAFETY_AND_COMPLIANCE",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE"
+      ]
+    },
+    "rec-05-unreadable-variant-silences-the-check::handle:rec-05-unreadable-variant-silences-the-check": {
+      "fail": [],
+      "not_applicable": [],
+      "penalty_total": "0",
+      "unknown": [
+        "HOME.ASSEMBLY",
+        "HOME.CARE_AND_CLEANING",
+        "HOME.COLOR_FINISH",
+        "HOME.INDOOR_OUTDOOR_USE",
+        "HOME.MATERIALS_AND_FINISH",
+        "HOME.PACKAGED_DIMENSIONS_WEIGHT",
+        "HOME.ROOM_OR_PLACEMENT",
+        "HOME.SAFETY_AND_COMPLIANCE",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE"
+      ]
+    },
+    "rec-06-durations-and-contents::handle:rec-06-durations-and-contents": {
+      "fail": [],
+      "not_applicable": [
         "VARIANT.ATTRIBUTE_COVERAGE",
+        "VARIANT.DIFFERENTIATED",
+        "VARIANT.MEDIA_LINKED",
+        "VARIANT.OPTION_VALUES_CONSISTENT"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "ELEC.BATTERY",
+        "ELEC.COLOR_FINISH",
+        "ELEC.CONNECTIVITY_AND_PORTS",
+        "ELEC.CORE_SPECIFICATIONS",
+        "ELEC.MODEL_IDENTIFIER",
+        "ELEC.POWER_REQUIREMENTS",
+        "ELEC.REGULATORY_CERTIFICATIONS",
+        "ELEC.SOFTWARE_REQUIREMENTS",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE"
+      ]
+    },
+    "rec-07-shade-codes-and-quantities::handle:rec-07-shade-codes-and-quantities": {
+      "fail": [],
+      "not_applicable": [],
+      "penalty_total": "0",
+      "unknown": [
+        "BEAUTY.APPLICATION_TOOLS_INCLUDED",
+        "BEAUTY.CERTIFICATIONS_AND_TESTING",
+        "BEAUTY.FORMULATION_FORMAT",
+        "BEAUTY.FRAGRANCE_STATUS",
+        "BEAUTY.INGREDIENTS_FULL",
+        "BEAUTY.KEY_ACTIVES_AND_CONCENTRATION",
+        "BEAUTY.SHELF_LIFE_OR_PAO",
+        "BEAUTY.SUITABILITY",
+        "BEAUTY.WARNINGS_AND_RESTRICTIONS",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE",
         "VARIANT.MEDIA_LINKED"
+      ]
+    },
+    "rec-08-performance-tier::handle:rec-08-performance-tier": {
+      "fail": [],
+      "not_applicable": [
+        "VARIANT.ATTRIBUTE_COVERAGE",
+        "VARIANT.DIFFERENTIATED",
+        "VARIANT.MEDIA_LINKED",
+        "VARIANT.OPTION_VALUES_CONSISTENT"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "SPORTS.AGE_OR_USER_SUITABILITY",
+        "SPORTS.DIMENSIONS_AND_WEIGHT",
+        "SPORTS.INCLUDED_ACCESSORIES",
+        "SPORTS.LOAD_OR_CAPACITY_RATING",
+        "SPORTS.MAINTENANCE_REQUIREMENTS",
+        "SPORTS.MATERIALS_AND_CONSTRUCTION",
+        "SPORTS.USER_FIT_SPECIFICATION",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE"
+      ]
+    },
+    "rec-09-variant-scope-fully-covered::handle:rec-09-variant-scope-fully-covered": {
+      "fail": [],
+      "not_applicable": [],
+      "penalty_total": "0",
+      "unknown": [
+        "HOME.ASSEMBLY",
+        "HOME.CARE_AND_CLEANING",
+        "HOME.INDOOR_OUTDOOR_USE",
+        "HOME.MATERIALS_AND_FINISH",
+        "HOME.PACKAGED_DIMENSIONS_WEIGHT",
+        "HOME.ROOM_OR_PLACEMENT",
+        "HOME.SAFETY_AND_COMPLIANCE",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE"
+      ]
+    },
+    "rec-10-variant-scope-partly-covered::handle:rec-10-variant-scope-partly-covered": {
+      "fail": [],
+      "not_applicable": [],
+      "penalty_total": "0",
+      "unknown": [
+        "HOME.ASSEMBLY",
+        "HOME.CARE_AND_CLEANING",
+        "HOME.INDOOR_OUTDOOR_USE",
+        "HOME.MATERIALS_AND_FINISH",
+        "HOME.PACKAGED_DIMENSIONS_WEIGHT",
+        "HOME.ROOM_OR_PLACEMENT",
+        "HOME.SAFETY_AND_COMPLIANCE",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE"
+      ]
+    },
+    "rec-11-uncategorized-visual-option::handle:rec-11-uncategorized-visual-option": {
+      "fail": [],
+      "not_applicable": [
+        "VARIANT.ATTRIBUTE_COVERAGE"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+        "STRUCT.ATTRIBUTES_IN_FIELDS",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE"
       ]
     },
     "sparse-apparel-01::handle:northgate-crew-neck-tee": {
@@ -451,8 +814,7 @@
         "STRUCT.DESCRIPTION_PARSEABLE",
         "STRUCT.MEDIA_ALT_TEXT",
         "STRUCT.SEO_FIELDS_POPULATED",
-        "VARIANT.ATTRIBUTE_COVERAGE",
-        "VARIANT.MEDIA_LINKED"
+        "VARIANT.ATTRIBUTE_COVERAGE"
       ]
     },
     "sparse-beauty-01::handle:lumen-daily-serum": {
@@ -668,8 +1030,7 @@
         "STRUCT.DESCRIPTION_PARSEABLE",
         "STRUCT.MEDIA_ALT_TEXT",
         "STRUCT.SEO_FIELDS_POPULATED",
-        "VARIANT.ATTRIBUTE_COVERAGE",
-        "VARIANT.MEDIA_LINKED"
+        "VARIANT.ATTRIBUTE_COVERAGE"
       ]
     }
   }

@@ -1,0 +1,50 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-02-vague-phrases",
+  "set": "recognition",
+  "rubric_version": "0.4",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the recognition arms this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "The phrases are transcribed from taxonomy.md's own PARTIAL columns. APPAREL.MATERIAL_COMPOSITION takes its ambiguity arm on a value carrying no digit and no percentage. `sustainability_credentials` is deliberately absent from the expected findings: `taxonomy.md` 5.1 routes an unnamed eco claim to D7 as unsupported, and the awarding half may not ship without the subtracting half (D-027).",
+  "products": [
+    {
+      "product_id": "handle:rec-02-vague-phrases",
+      "must_not_fabricate": [
+        "gots certified",
+        "machine wash cold",
+        "60% cotton",
+        "office wear"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "APPAREL.INTENDED_USE_CONTEXT",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "attributes[intended_use_context].value_raw"
+          ]
+        },
+        {
+          "check_id": "APPAREL.CARE_INSTRUCTIONS",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "attributes[care_instructions].value_raw"
+          ]
+        },
+        {
+          "check_id": "APPAREL.MATERIAL_COMPOSITION",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "attributes[material_composition].value_raw"
+          ]
+        }
+      ],
+      "expected_deferred_checks": [
+        "APPAREL.SUSTAINABILITY_CREDENTIALS"
+      ]
+    }
+  ]
+}

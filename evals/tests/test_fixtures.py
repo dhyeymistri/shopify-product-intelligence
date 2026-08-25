@@ -19,7 +19,8 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 FIXTURES = sorted(glob.glob(os.path.join(REPO, "evals/fixtures/*/*.pip.json")))
 EXPECTED = sorted(glob.glob(os.path.join(REPO, "evals/expected/*/*.expected.json")))
 
-REQUIRED_SETS = {"sparse": 10, "adversarial": 4, "checks": 8}
+REQUIRED_SETS = {"sparse": 10, "adversarial": 4, "checks": 8,
+                 "recognition": 11}
 
 
 def load(path):

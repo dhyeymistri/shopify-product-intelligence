@@ -328,6 +328,18 @@ def _resolve_path(npr, pattern, key):
     raise ValueError("unsupported checked_path pattern %r" % (pattern,))
 
 
+def at(npr, pattern, key=None):
+    # type: (dict, str, Optional[str]) -> List[Candidate]
+    """Candidates at one NPR path, outside any check's `checked_paths`.
+
+    Used by the two title checks, which decide by comparing the title against
+    another supplied field. Reading that other field is not a claim to have
+    searched it: `checked_paths` governs what an *absence* finding asserts, and
+    neither title check ever reports the other field as absent.
+    """
+    return _resolve_path(npr, pattern, key)
+
+
 def gather(npr, check):
     # type: (dict, Any) -> Gathered
     """Walk one check's declared paths and return what is there.

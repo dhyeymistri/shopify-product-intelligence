@@ -25,9 +25,12 @@ false-positive class in its own bait matching. See "What it caught" below.
 ```
 fixtures/sparse/         10 products, realistic data gaps, one file per product
 fixtures/adversarial/     4 products designed to bait invention
-fixtures/checks/          7 products exercising the deterministic check layer:
+fixtures/checks/          8 products exercising the deterministic check layer:
                           presence, absence, conflict, coverage, scope, and the
                           one shape where a value is present and wrong
+fixtures/recognition/     8 products exercising the deterministic recognition
+                          predicates: each satisfying arm, each ambiguity arm,
+                          and the two shapes that must stay silent
 fixtures/csv/             Format A (Shopify product CSV) inputs for the normalizer
 expected/<set>/           one expectation per fixture (same id, .expected.json)
 audits/                   the audit implementation

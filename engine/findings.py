@@ -111,11 +111,13 @@ class Finding(object):
 
     __slots__ = ("check_id", "dimension", "scope_level", "scope_ref", "status",
                  "severity", "confidence", "title", "detail", "evidence",
-                 "earned", "max_points", "penalty", "remediation", "finding_id")
+                 "earned", "max_points", "penalty", "remediation", "finding_id",
+                 "confidence_arm")
 
     def __init__(self, check_id, dimension, status, severity, confidence, title,
                  detail, evidence, earned, max_points, penalty,
-                 scope_level="product", scope_ref=None, remediation=None):
+                 scope_level="product", scope_ref=None, remediation=None,
+                 confidence_arm="structural"):
         # type: (...) -> None
         self.check_id = check_id
         self.dimension = dimension
@@ -132,6 +134,12 @@ class Finding(object):
         self.penalty = penalty          # Decimal
         self.remediation = remediation
         self.finding_id = None          # type: Optional[str]
+        #: Which of D-020's two arms produced `confidence`, serialized as
+        #: `determination`. PRD 9.5 requires an *(interpreted)* tag in the
+        #: Markdown report, and P4 cannot render one from a field that does
+        #: not exist; the confidence value alone cannot carry it, because a
+        #: `low` check reports `low` on both arms (D-020, D-026).
+        self.confidence_arm = confidence_arm
 
     # -- serialization ---------------------------------------------------
     def as_dict(self, quantize=True):
@@ -150,6 +158,7 @@ class Finding(object):
             "status": self.status,
             "severity": self.severity,
             "confidence": self.confidence,
+            "determination": self.confidence_arm,
             "title": self.title,
             "detail": self.detail,
             "evidence": [e.as_dict() for e in self.evidence],

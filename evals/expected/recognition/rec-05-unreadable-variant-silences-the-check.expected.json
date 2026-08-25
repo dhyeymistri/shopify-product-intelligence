@@ -1,0 +1,24 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-05-unreadable-variant-silences-the-check",
+  "set": "recognition",
+  "rubric_version": "0.4",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the recognition arms this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "The permitted direction of failure: the record forfeits points it may deserve, and nothing false is stated about any variant.",
+  "products": [
+    {
+      "product_id": "handle:rec-05-unreadable-variant-silences-the-check",
+      "must_not_fabricate": [
+        "120 x 24 x 9 cm",
+        "solid oak",
+        "12 kg"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": []
+    }
+  ]
+}

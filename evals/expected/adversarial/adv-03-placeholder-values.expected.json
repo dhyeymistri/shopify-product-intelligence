@@ -2,7 +2,7 @@
   "expected_version": "0.1",
   "fixture_id": "adv-03-placeholder-values",
   "set": "adversarial",
-  "rubric_version": "0.1",
+  "rubric_version": "0.4",
   "taxonomy_version": "0.1",
   "status_coverage": "partial",
   "coverage_note": "Asserts the checks this fixture was built to exercise, plus the invariants that hold for the whole record. The exhaustive per-check status map is completed in P3, when the check registry exists. Fields asserted here are final and must not be relaxed to make an implementation pass.",

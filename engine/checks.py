@@ -33,19 +33,15 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
 from . import facts
+from . import lexicon
+from . import registry
 from . import rubric_data as R
+from . import taxonomy_data as T
 from .findings import (DO_NOT_GENERATE, NOT_STATED, Evidence, EvidenceError,
                        Finding, Remediation, REMEDIATION_CORRECTION,
                        REMEDIATION_QUESTION, REMEDIATION_STRUCTURE)
 
 ZERO = Decimal("0")
-
-#: Option names that name nothing (`rubric.md` 4/D3). A closed list: an option
-#: name is judged against these literals and against emptiness, never against a
-#: notion of how meaningful it reads.
-RESERVED_OPTION_NAMES = frozenset([
-    "title", "default", "default title", "option 1", "option 2", "option 3",
-])
 
 #: rubric.md 4/D6: numeric values within this tolerance are not a conflict.
 NUMERIC_TOLERANCE = Decimal("0.02")
@@ -111,18 +107,32 @@ def _correction_remediation(check, excerpts):
                        check.target_field(), DO_NOT_GENERATE)
 
 
-def _defer_for_recognition(check, ctx):
-    # type: (Any, Any) -> List[Finding]
+def _defer_for_recognition(check, ctx, verdict=None):
+    # type: (Any, Any, Any) -> List[Finding]
     """A value is supplied and judging it needs recognition (D-019).
 
-    One reason string, in one place, so that every path which abstains for the
-    same reason is recorded identically and the deferral ledger stays a usable
-    measurement of the recall gap.
+    Two reason strings, in one place, so that every path which abstains for
+    the same reason is recorded identically and the deferral ledger stays a
+    usable measurement of the recall gap.
+
+    The two are kept apart because they measure different things (PRE-6).
+    *No evaluator* is a coverage gap: the predicate is declared and nothing
+    implements it, and writing one would close the case. *Ran and abstained*
+    is the residue proper: an evaluator looked at this value and could not say.
+    D-019 asks for that residue to be measured rather than assumed, and an
+    undifferentiated bucket cannot measure it.
+
+    Either way the check emits nothing. Which reason applies changes what the
+    ledger records, never what the merchant sees.
     """
-    ctx.ledger.defer(
-        check.check_id,
-        "A value is supplied, and deciding whether it satisfies this "
-        "check needs recognition over prose (%s)." % check.satisfies)
+    if verdict is registry.UNDECIDED:
+        reason = ("A value is supplied and the recognition predicate (%s) "
+                  "ran and could not decide it." % check.satisfies)
+    else:
+        reason = ("A value is supplied, and deciding whether it satisfies "
+                  "this check needs the recognition predicate (%s), which "
+                  "has no evaluator in this build." % check.satisfies)
+    ctx.ledger.defer(check.check_id, reason)
     return []
 
 
@@ -130,7 +140,9 @@ def _finding(check, status, evidence, earned, confidence_arm="structural",
              title=None, detail=None, scope_level=None, scope_ref=None,
              remediation=None, penalty=ZERO, severity=None, max_points=None):
     # type: (...) -> Finding
-    confidence = getattr(check.confidence, confidence_arm)
+    confidence = (check.confidence.recognition_arm
+                  if confidence_arm == "recognized"
+                  else check.confidence.structural)
     return Finding(
         check_id=check.check_id,
         dimension=check.dimension,
@@ -146,6 +158,7 @@ def _finding(check, status, evidence, earned, confidence_arm="structural",
         scope_level=scope_level or check.scope,
         scope_ref=scope_ref,
         remediation=remediation,
+        confidence_arm=confidence_arm,
     )
 
 
@@ -178,15 +191,49 @@ def unknown(check, builder, gathered):
         remediation=_question_remediation(check))
 
 
-def present(check, builder, candidate, note=None):
-    # type: (Any, Any, Any, Optional[str]) -> Finding
-    """A stated value satisfies a check whose taxonomy row states no PARTIAL."""
+def present(check, builder, candidate, note=None, recognized=False):
+    # type: (Any, Any, Any, Optional[str], bool) -> Finding
+    """A stated value satisfies the check.
+
+    `recognized` selects the confidence arm (D-020). A predicate decision is
+    recognition even when its mechanism is exact -- the tool read a value and
+    judged its shape -- so it reports the check's `recognized` confidence, not
+    the structural arm reserved for presence, absence and arithmetic.
+    """
     evidence = [builder.field_value(candidate, note=note)]
     return _finding(
         check, R.PASS, evidence, check.max_points,
+        confidence_arm="recognized" if recognized else "structural",
         title="%s: stated in the supplied data" % _label(check),
         detail="A value is supplied at the locator quoted in the evidence.",
         scope_level=candidate.scope, scope_ref=candidate.ref)
+
+
+def ambiguous(check, builder, candidate):
+    # type: (Any, Any, Any) -> Finding
+    """A stated value is present and does not resolve the check (PRD 9.3).
+
+    `rubric.md` 3.1: `PARTIAL` earns `max x partial_credit`, and the figure
+    comes from the registry rather than from here. The finding asserts exactly
+    one thing -- that a value is present and ambiguous -- and quotes it
+    verbatim, so the assertion is checkable at its own locator. It states
+    nothing about what the value *should* have been, and the remediation is
+    the registry's question, which offers the axis of ambiguity without
+    proposing a value (D-005).
+    """
+    evidence = [builder.field_value(
+        candidate,
+        note="A value is supplied here and it leaves the check's question "
+             "open.")]
+    return _finding(
+        check, R.PARTIAL, evidence, check.max_points * check.partial_credit,
+        confidence_arm="recognized",
+        title="%s: stated, but leaves the question open" % _label(check),
+        detail="A value is supplied at the locator quoted in the evidence, "
+               "and it does not settle what the check asks. The supplied "
+               "value is quoted rather than interpreted.",
+        scope_level=candidate.scope, scope_ref=candidate.ref,
+        remediation=_question_remediation(check))
 
 
 def not_applicable(check, builder, reason):
@@ -204,40 +251,84 @@ def not_applicable(check, builder, reason):
         detail=reason)
 
 
-def coverage(check, builder, covered, uncovered, note=None):
-    # type: (Any, Any, List[Any], List[str], Optional[str]) -> Optional[Finding]
-    """Variant coverage, scored proportionally and naming what is uncovered.
+def coverage(check, builder, covered, uncovered, note=None, unresolved=(),
+             recognized=False):
+    # type: (Any, Any, List[Any], List[str], Optional[str], Any, bool) -> Optional[Finding]
+    """Variant coverage, scored strictly and naming what is uncovered.
 
-    PRD 9.7: partial coverage is `PARTIAL` at `covered/total`, and the evidence
-    names the uncovered variant ids explicitly -- never "some variants".
+    `rubric.md` 3.1 and PRD 9.7: partial coverage is `PARTIAL` at
+    `covered/total`, and the evidence names the uncovered variant ids
+    explicitly -- never "some variants".
+
+    **D-021.** `covered` counts a variant only when its own value *satisfies*
+    the check. `unresolved` holds the variants whose value is present and
+    ambiguous: they do not count toward `covered`, they are not weighted as
+    partial coverage, and they are reported by quoting the supplied value at
+    its own locator rather than as an empty field. A value that is there and
+    reported as a gap is the false negative PRD 8.3 rule 5 calls
+    blocker-severity, so the two groups carry different evidence types on
+    purpose.
     """
-    total = len(covered) + len(uncovered)
+    unresolved = list(unresolved)
+    total = len(covered) + len(uncovered) + len(unresolved)
     if not total:
         return None
+    arm = "recognized" if recognized else "structural"
     evidence = []
     for candidate in covered:
         try:
             evidence.append(builder.field_value(candidate, note=note))
         except EvidenceError:
             continue
+    for candidate in unresolved:
+        try:
+            evidence.append(builder.field_value(
+                candidate,
+                note="A value is supplied for this variant and it leaves the "
+                     "check's question open, so the variant is not counted as "
+                     "covered (D-021)."))
+        except EvidenceError:
+            continue
     if not evidence:
         return None
-    if not uncovered:
+    if not uncovered and not unresolved:
         return _finding(
             check, R.PASS, evidence, check.max_points,
+            confidence_arm=arm,
             title="%s: stated for every variant" % _label(check),
             detail="A value is supplied for each of the %d variants, at the "
                    "locators quoted in the evidence." % total)
-    evidence.append(builder.absence(
-        check.checked_paths,
-        note="Checked and empty for these variants: %s." % ", ".join(uncovered)))
+    if uncovered:
+        evidence.append(builder.absence(
+            check.checked_paths,
+            note="Checked and empty for these variants: %s."
+                 % ", ".join(uncovered)))
     earned = check.max_points * Decimal(len(covered)) / Decimal(total)
+    if not uncovered:
+        # D-025. Every variant carries a value, so `rubric.md` 3.1's *first*
+        # `PARTIAL` clause applies as well as its coverage clause: something is
+        # present and ambiguous everywhere the check looked. The check takes
+        # whichever clause the data supports and never less than the ambiguity
+        # credit. No ambiguous variant enters the numerator -- the floor is a
+        # separate clause, not a re-weighting of coverage, so D-021's rejection
+        # of weighted coverage stands.
+        floor = check.max_points * check.partial_credit
+        if floor > earned:
+            earned = floor
+    detail = ("A value that answers this check is supplied for %d of the %d "
+              "variants." % (len(covered), total))
+    if unresolved:
+        detail += (" A further %d carr%s a value that leaves the question "
+                   "open; each is quoted at its own locator in the evidence."
+                   % (len(unresolved), "ies" if len(unresolved) == 1 else "y"))
+    if uncovered:
+        detail += (" The variants no value was found for are named in the "
+                   "evidence.")
     return _finding(
         check, R.PARTIAL, evidence, earned,
+        confidence_arm=arm,
         title="%s: stated for some of the variants" % _label(check),
-        detail="A value is supplied for %d of the %d variants. The variants it "
-               "was not found for are named in the evidence."
-               % (len(covered), total),
+        detail=detail,
         remediation=_question_remediation(check))
 
 
@@ -374,9 +465,14 @@ def attribute_check(check, ctx):
         # need recognition.
         if check.scope == "variant" and check.inheritable is False:
             return _variant_coverage(check, ctx, stated)
-        if not check.structural_satisfaction:
-            return _defer_for_recognition(check, ctx)
-        return [present(check, builder, stated[0])]
+        if check.structural_satisfaction:
+            return [present(check, builder, stated[0])]
+        verdict, candidate = _best_verdict(check, stated)
+        if verdict is registry.SATISFIED:
+            return [present(check, builder, candidate, recognized=True)]
+        if verdict is registry.AMBIGUOUS:
+            return [ambiguous(check, builder, candidate)]
+        return _defer_for_recognition(check, ctx, verdict)
 
     # 3. nothing is stated, but prose was found and not read.
     if gathered.unrecognized_prose:
@@ -388,6 +484,30 @@ def attribute_check(check, ctx):
 
     # 4. nothing is stated anywhere that was searched.
     return [unknown(check, builder, gathered)]
+
+
+def _best_verdict(check, candidates):
+    # type: (Any, List[Any]) -> Tuple[Any, Any]
+    """The strongest verdict any supplied value reaches, and the value itself.
+
+    Strongest wins because more information may not earn less than less
+    (D-021): a record that states the same attribute twice, once satisfyingly
+    and once vaguely, has stated the satisfying value, and the finding cites
+    the value that decided it.
+
+    Returns `(None, None)` when the check has no evaluator at all, which is a
+    different fact from a predicate that ran and abstained (PRE-6).
+    """
+    if not check.has_recognition:
+        return None, None
+    verdict, chosen = registry.UNDECIDED, candidates[0]
+    for candidate in candidates:
+        current = check.recognize(candidate.value)
+        if current is registry.SATISFIED:
+            return current, candidate
+        if current is registry.AMBIGUOUS and verdict is registry.UNDECIDED:
+            verdict, chosen = current, candidate
+    return verdict, chosen
 
 
 def _by_subject(candidates):
@@ -497,11 +617,32 @@ def _variant_coverage(check, ctx, stated):
         if not check.structural_satisfaction:
             return _defer_for_recognition(check, ctx)
         return [unknown(check, ctx.builder, facts.gather(ctx.npr, check))]
-    if not check.structural_satisfaction:
+    if check.structural_satisfaction:
+        finding = coverage(check, ctx.builder, covered, uncovered)
+        return [finding] if finding else []
+    if not check.has_recognition:
         # Something covers a variant, and whether it satisfies the check is a
         # recognition question. Coverage is not asserted on an unread value.
         return _defer_for_recognition(check, ctx)
-    finding = coverage(check, ctx.builder, covered, uncovered)
+
+    # D-021, strict: `coverage = satisfied_variants / total_variants`.
+    satisfied, unresolved = [], []
+    for candidate in covered:
+        verdict = check.recognize(candidate.value)
+        if verdict is registry.SATISFIED:
+            satisfied.append(candidate)
+        elif verdict is registry.AMBIGUOUS:
+            unresolved.append(candidate)
+        else:
+            # A verdict the predicate could not reach is not a verdict against
+            # the variant. Counting it as uncovered would assert its value
+            # fails to satisfy the check -- exactly what the predicate declined
+            # to say -- and naming it as empty would be a false gap. The whole
+            # check says nothing instead, forfeiting points the record may
+            # deserve, which is the permitted direction of failure (D-019).
+            return _defer_for_recognition(check, ctx, registry.UNDECIDED)
+    finding = coverage(check, ctx.builder, satisfied, uncovered,
+                       unresolved=unresolved, recognized=True)
     return [finding] if finding else []
 
 
@@ -630,7 +771,7 @@ def check_option_names(check, ctx):
     gathered = facts.gather(ctx.npr, check)
     if not gathered.stated:
         return [unknown(check, ctx.builder, gathered)]
-    reserved = [c for c in gathered.stated if _norm(c.value) in RESERVED_OPTION_NAMES]
+    reserved = [c for c in gathered.stated if _norm(c.value) in lexicon.VARIANT_OPTION_NAMES_RESERVED]
     if reserved:
         evidence = []
         for candidate in reserved:
@@ -942,11 +1083,383 @@ def check_attributes_in_fields(check, ctx):
 
 #: Checks whose logic is their own. Everything else is the generic attribute
 #: check, which is what keeps the D2 family table-driven.
+def _title_relation(check, ctx, pairs, note):
+    # type: (Any, Any, List[Tuple[str, Any]], str) -> List[Finding]
+    """Shared body of the two title checks (slice C).
+
+    Both decide by comparing the title against another value the record
+    already states, so both cite **two** locators: the title, and the field it
+    repeats. Nothing external is consulted and no vocabulary is involved.
+
+    **Neither check has a negative arm, and that is deliberate.** A title may
+    name a product type, or carry a distinguishing attribute, that the record
+    states nowhere else. Concluding otherwise would be an assertion about the
+    title that the supplied data does not support, so a relation that does not
+    hold produces a deferral and no finding.
+    """
+    gathered = facts.gather(ctx.npr, check)
+    stated = gathered.stated
+    if not stated:
+        return [unknown(check, ctx.builder, gathered)]
+    title = stated[0]
+    relation = ctx.registry.IMPLEMENTED_RELATIONS.get(check.satisfies)
+    if relation is None:
+        return _defer_for_recognition(check, ctx)
+    matched = relation(title.value, [text for text, _ in pairs])
+    if matched is None:
+        return _defer_for_recognition(check, ctx, registry.UNDECIDED)
+    candidate = next(c for text, c in pairs if text == matched)
+    try:
+        evidence = [
+            ctx.builder.field_value(
+                title, note="The title, as supplied."),
+            ctx.builder.field_value(candidate, note=note),
+        ]
+    except EvidenceError:
+        return _defer_for_recognition(check, ctx, registry.UNDECIDED)
+    return [_finding(
+        check, R.PASS, evidence, check.max_points,
+        confidence_arm="recognized",
+        title="%s: the title repeats a value the record states" % _label(check),
+        detail="The title and the second locator quoted in the evidence carry "
+               "the same term. Both are supplied values; the tool compares "
+               "them and states nothing else about either.")]
+
+
+def _stated_at(npr, pattern, key=None):
+    # type: (dict, str, Optional[str]) -> List[Any]
+    return [c for c in facts.at(npr, pattern, key) if not c.is_placeholder]
+
+
+def check_title_specific(check, ctx):
+    # type: (Any, Any) -> List[Finding]
+    """C1. The title names a product type the record states elsewhere.
+
+    A `declared_category` is compared on its final `>`-delimited segment --
+    the leaf is the type; the path above it is the hierarchy that contains it.
+    The whole field is still what gets quoted, at its own locator.
+    """
+    pairs = []
+    for candidate in _stated_at(ctx.npr, "identity.product_type"):
+        pairs.append((candidate.value, candidate))
+    for candidate in _stated_at(ctx.npr, "identity.declared_category"):
+        pairs.append((candidate.value.rsplit(">", 1)[-1].strip(), candidate))
+    return _title_relation(
+        check, ctx, pairs,
+        "The product type or category this title repeats, as supplied here.")
+
+
+def check_title_distinguishing(check, ctx):
+    # type: (Any, Any) -> List[Finding]
+    """C2. The title carries an attribute value the record states elsewhere.
+
+    `rubric.md` 4/D1 fixes `PASS` at "a distinguishing attribute (material,
+    size, model, capacity, count)", and D-024 reads that parenthesis as a
+    closed list. The candidate set is therefore every structured value held at
+    a taxonomy attribute key that *is* one of those five kinds -- product
+    attributes, per-variant attributes and exactly-keyed metafields.
+
+    Two exclusions, both narrowing:
+
+    * `identity.brand` never enters, by construction. A title that repeats the
+      brand carries no distinguishing attribute, which is the point of the
+      check.
+    * Variant **option values** never enter either. An option named `Size`
+      carrying `Large` is a size, but deciding that an option *name* denotes
+      one of the five kinds needs a vocabulary of option names, and that
+      vocabulary would be a new scoring artifact. Under-detection is the
+      permitted direction until it is decided on its own merits (D-024).
+    """
+    pairs = []
+    for pattern in ("attributes[*]", "variants[*].attributes", "metafields.*"):
+        for candidate in _stated_at(ctx.npr, pattern):
+            if candidate.key not in lexicon.IDENT_TITLE_DISTINGUISHING_KEYS:
+                continue
+            pairs.append((candidate.value, candidate))
+    return _title_relation(
+        check, ctx, pairs,
+        "The attribute value this title repeats, as supplied here.")
+
+
+def check_variant_attribute_coverage(check, ctx):
+    # type: (Any, Any) -> List[Finding]
+    """D3. Every attribute the category requires per variant is present on each.
+
+    **Presence, not satisfaction (D-030).** `rubric.md` 4/D3 fixes this check's
+    `PASS` at "Every non-inheritable variant-scope attribute for the category
+    is *present* on every variant", and that word governs. No attribute's
+    recognition predicate runs here. The D2 check that owns each key decides
+    whether its value is any good; this check decides only whether the record
+    resolves per variant, and the two are different questions about the same
+    value rather than two answers to one.
+
+    **The coverage unit is the variant, which is why this does not reuse
+    `coverage`.** That helper counts one candidate per unit; here a covered
+    variant carries one candidate *per key*, so passing them through it would
+    compute `satisfied_values / total_values` instead of
+    `covered_variants / total_variants`. The arithmetic below is `rubric.md`
+    3.1's coverage clause over variants, and nothing else.
+
+    **D-025's floor is not written here, deliberately.** Under presence
+    semantics no ambiguity arm runs, so there is no present-but-ambiguous group
+    for a floor to be taken over -- and this check's `partial_credit` is 0.0 in
+    any case. Raising that figure re-opens D-030, rather than quietly starting
+    to bind.
+
+    **`checked_paths` stays `("variants[*].attributes",)`.** A product-scope
+    value at one of these keys is outside what this check searched, so no
+    D-018 branch fires here and the absence evidence claims only what is true:
+    variant attributes were searched and were empty. That value is reported,
+    quoted, by its own D2 attribute check under D-018.
+    """
+    keys = T.variant_scope_keys(ctx.category)
+    if not keys:
+        # Unreachable in practice: `runner._na_reason` removes the check before
+        # it runs (D-029). Kept as a guard so the arithmetic below can assume a
+        # non-empty requirement, and so a caller that bypasses the runner
+        # cannot silently divide by a requirement that is not there.
+        return []
+    variants = ctx.npr.get("variants") or []
+    gathered = facts.gather(ctx.npr, check)
+    if not variants:
+        return [_nothing_required_per_variant(check, ctx, keys, 0, gathered)]
+
+    # D-018 and D-021 rule 2: only a value at variant scope, carrying the
+    # variant it belongs to, can cover that variant. A product-scope value
+    # covers none of them whatever it says. `checked_paths` does not reach
+    # product scope at all, so no such value is gathered here in the first
+    # place -- the filter is the rule stated where it can be read.
+    by_variant = {}  # type: Dict[str, Dict[str, Any]]
+    for candidate in gathered.stated:
+        if candidate.scope != "variant" or not candidate.ref:
+            continue
+        if candidate.key in keys:
+            by_variant.setdefault(candidate.ref, {}).setdefault(
+                candidate.key, candidate)
+
+    covered, missing, quotable = [], [], []
+    for variant in variants:
+        vid = variant.get("variant_id")
+        held = by_variant.get(vid) or {}
+        for key in keys:
+            if key in held:
+                quotable.append((key, held[key]))
+        absent = [key for key in keys if key not in held]
+        if absent:
+            missing.append((vid, absent))
+        else:
+            covered.append(vid)
+
+    total = len(variants)
+    if not quotable:
+        # Nothing this check requires is stated for any variant. Only here is
+        # absence the whole truth, and the note says what was looked for so the
+        # claim is checkable against the record (PRD 8.3 rule 5).
+        return [_nothing_required_per_variant(check, ctx, keys, total, gathered)]
+
+    evidence = []
+    for key, candidate in quotable:
+        try:
+            evidence.append(ctx.builder.field_value(
+                candidate,
+                note="This variant resolves %s, one of the %d attributes this "
+                     "category requires per variant." % (key, len(keys))))
+        except EvidenceError:
+            continue
+    if not evidence:
+        return []
+
+    if not missing:
+        return [_finding(
+            check, R.PASS, evidence, check.max_points,
+            title="%s: every required variant-scope attribute is present on "
+                  "every variant" % _label(check),
+            detail="Each of the %d variants carries a value for all %d "
+                   "attributes this category requires per variant, at the "
+                   "locators quoted in the evidence."
+                   % (total, len(keys)))]
+
+    # PRD 9.7 / D-021 rule 4: every uncovered variant named individually, with
+    # the keys it is missing. Both are structural names, never product values.
+    #
+    # This branch covers `covered == 0` as well, and that is deliberate. Some
+    # of what the check requires *is* stated, so the record is incomplete
+    # rather than empty: `rubric.md` 3.1 reserves `UNKNOWN` for "not found in
+    # any checked_paths", and reporting a gap over values that are there is
+    # the false negative PRD 8.3 rule 5 calls blocker-severity. The arithmetic
+    # is unchanged -- 0 of N covered earns exactly 0.00 -- so nothing is paid
+    # for the partial data; it is only reported honestly.
+    evidence.append(ctx.builder.absence(
+        check.checked_paths,
+        note="Checked and empty for these variants: %s."
+             % "; ".join("%s (%s)" % (vid, ", ".join(absent))
+                         for vid, absent in missing)))
+    earned = check.max_points * Decimal(len(covered)) / Decimal(total)
+    return [_finding(
+        check, R.PARTIAL, evidence, earned,
+        title="%s: required variant-scope attributes are present for some of "
+              "the variants" % _label(check),
+        detail="%d of the %d variants carry a value for all %d attributes this "
+               "category requires per variant. The variants that do not, and "
+               "the attributes each is missing, are named in the evidence."
+               % (len(covered), total, len(keys)),
+        remediation=_question_remediation(check))]
+
+
+def _nothing_required_per_variant(check, ctx, keys, total, gathered):
+    # type: (Any, Any, Tuple[str, ...], int, Any) -> Finding
+    """`UNKNOWN` for `VARIANT.ATTRIBUTE_COVERAGE`, saying what was looked for.
+
+    The generic `unknown` constructor reports "no value was found at the
+    checked paths". That sentence would be false here whenever a variant
+    carries an attribute outside `K`: something *was* found at
+    `variants[*].attributes`, just nothing this check requires. Naming the keys
+    keeps the absence claim exactly as wide as the search that produced it
+    (PRD 8.3 rule 5).
+    """
+    evidence = [ctx.builder.absence(
+        check.checked_paths,
+        note="Checked each variant for %s, and none of them is stated for any "
+             "variant." % ", ".join(keys))]
+    for candidate in gathered.placeholders:
+        try:
+            evidence.append(ctx.builder.field_value(
+                candidate,
+                note="A placeholder occupies this field, so it states no value "
+                     "(PRD 9.4)."))
+        except EvidenceError:
+            continue
+    return _finding(
+        check, R.UNKNOWN, evidence, ZERO,
+        title="%s: not stated for any variant" % _label(check),
+        detail="%s No value for any of the %d attributes this category "
+               "requires per variant was found on any of the %d variants, at "
+               "the checked path listed in the evidence."
+               % (NOT_STATED, len(keys), total),
+        remediation=_question_remediation(check))
+
+
+def _linked_media(npr, variant):
+    # type: (dict, dict) -> Optional[Any]
+    """The first media item this variant links to, as a quotable candidate.
+
+    `media_refs` holds urls; `media[]` holds the record with the locator. The
+    candidate is built from the media entry so the evidence quotes a locator
+    the normalizer already proved resolvable, never one composed here.
+    """
+    refs = [r for r in (variant.get("media_refs") or [])
+            if isinstance(r, str) and r.strip()]
+    if not refs:
+        return None
+    for index, item in enumerate(npr.get("media") or []):
+        if item.get("url") in refs and item.get("src"):
+            return facts.Candidate(
+                item["url"], item["src"], "merchant_structured",
+                "media[%d]" % index, scope="variant",
+                ref=variant.get("variant_id"))
+    return None
+
+
+def check_media_linked(check, ctx):
+    # type: (Any, Any) -> List[Finding]
+    """D3. Where a visual option exists, every variant links its own media.
+
+    **The trigger is an option name, from a closed vocabulary (D-031).**
+    `rubric.md` 4/D3 makes the check "conditional on a visual option existing"
+    and names the axis as "color/finish/shade"; D-024 reads such a parenthesis
+    as a closed list. The name is matched whole and normalized, exactly as
+    `check_option_names` matches the reserved defaults -- and against option
+    *names* only, never against their values.
+
+    **No match is a deferral, never `NOT_APPLICABLE`.** `taxonomy.md` 4.4: a
+    trigger is structural and never assumed. Not finding a colour option does
+    not establish that the variants do not differ visually -- the axis may be
+    named outside the vocabulary, which deliberate under-detection guarantees
+    will happen -- and removing 1.5 points from the denominator on that
+    assumption is the one thing PRD 10.3 forbids.
+
+    **Determined structurally throughout**, so the finding reports the
+    structural arm (D-020): membership in a closed list, then presence or
+    absence of a media reference per variant. No supplied value is read for
+    what it means, so PRD 9.5's recognition cap is not in play (D-026).
+    """
+    visual = []
+    for option in ctx.npr.get("options") or []:
+        name = option.get("name")
+        if not isinstance(name, str) or not name.strip():
+            continue
+        if lexicon.normalize(name) in lexicon.VARIANT_MEDIA_LINKED_VISUAL_OPTION_NAMES:
+            visual.append(name)
+    if not visual:
+        ctx.ledger.defer(
+            check.check_id,
+            "No option name is one this check recognizes as a visual axis, so "
+            "the structural trigger is not shown to be present. It is not "
+            "shown to be absent either, and the check states nothing rather "
+            "than removing itself (taxonomy.md 4.4, D-031).")
+        return []
+
+    variants = ctx.npr.get("variants") or []
+    gathered = facts.gather(ctx.npr, check)
+    if not variants:
+        return [unknown(check, ctx.builder, gathered)]
+
+    covered, uncovered = [], []
+    for variant in variants:
+        candidate = _linked_media(ctx.npr, variant)
+        if candidate is None:
+            uncovered.append(variant.get("variant_id"))
+        else:
+            covered.append(candidate)
+
+    if covered:
+        finding = coverage(
+            check, ctx.builder, covered, uncovered,
+            note="This variant links to this media item.")
+        return [finding] if finding else []
+
+    # Nothing is linked per variant. Whether that is a gap depends on what the
+    # other checked path holds.
+    product_media = [c for c in gathered.stated if c.scope != "variant"]
+    if product_media:
+        # D-018's shape, applied to media: something was found at a path this
+        # check declares it searched, so reporting absence would be the false
+        # negative PRD 8.3 rule 5 calls blocker-severity. It earns nothing --
+        # product media resolves to no variant -- and the value is quoted
+        # rather than treated as though nothing were there (D-031).
+        try:
+            evidence = [ctx.builder.field_value(
+                product_media[0],
+                note="Supplied for the product. No variant links to it, so it "
+                     "does not resolve to a visually distinct variant.")]
+        except EvidenceError:
+            return [unknown(check, ctx.builder, gathered)]
+        evidence.append(ctx.builder.absence(
+            check.checked_paths,
+            note="Checked and empty for these variants: %s."
+                 % ", ".join(v for v in uncovered if v)))
+        return [_finding(
+            check, R.PARTIAL, evidence, ZERO,
+            title="%s: media is supplied for the product, not per variant"
+                  % _label(check),
+            detail="This product varies on a visual option and media is "
+                   "supplied at the locator quoted in the evidence, at product "
+                   "scope. It covers 0 of the %d variants, and every variant "
+                   "no linked media was found for is named in the evidence."
+                   % len(variants),
+            remediation=_question_remediation(check))]
+    return [unknown(check, ctx.builder, gathered)]
+
+
 DISPATCH = {
+    "IDENT.TITLE_SPECIFIC": check_title_specific,
+    "IDENT.TITLE_DISTINGUISHING": check_title_distinguishing,
     "IDENT.IDENTIFIER_PRESENT": check_identifier_present,
     "VARIANT.DIFFERENTIATED": check_variant_differentiated,
     "VARIANT.OPTION_NAMES_MEANINGFUL": check_option_names,
     "VARIANT.OPTION_VALUES_CONSISTENT": check_option_values,
+    "VARIANT.ATTRIBUTE_COVERAGE": check_variant_attribute_coverage,
+    "VARIANT.MEDIA_LINKED": check_media_linked,
     "VARIANT.IDENTIFIER_UNIQUE": check_identifier_unique,
     "STRUCT.NO_PLACEHOLDER_VALUES": check_no_placeholders,
     "STRUCT.SEO_FIELDS_POPULATED": check_seo_fields,

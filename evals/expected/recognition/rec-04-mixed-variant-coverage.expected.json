@@ -1,0 +1,41 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-04-mixed-variant-coverage",
+  "set": "recognition",
+  "rubric_version": "0.4",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the recognition arms this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "HOME.ASSEMBLED_DIMENSIONS is variant-scope and non-inheritable at 4.40, the largest single D2 check. '80 x 24 x 9 cm' satisfies; '80 x 24 cm' is two of three dimensions and takes the ambiguity arm.",
+  "products": [
+    {
+      "product_id": "handle:rec-04-mixed-variant-coverage",
+      "must_not_fabricate": [
+        "9 cm deep",
+        "solid oak",
+        "wall mounted",
+        "12 kg"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "HOME.ASSEMBLED_DIMENSIONS",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "variants[sku:RC4-A].attributes[assembled_dimensions].value_raw",
+            "variants[sku:RC4-B].attributes[assembled_dimensions].value_raw"
+          ]
+        },
+        {
+          "check_id": "HOME.CARE_AND_CLEANING",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "attributes[care_and_cleaning].value_raw"
+          ]
+        }
+      ]
+    }
+  ]
+}

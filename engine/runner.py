@@ -22,6 +22,7 @@ from . import registry
 from . import rubric_data as R
 from .evidence import EvidenceBuilder
 from .findings import EvidenceError, FindingLedger
+from . import taxonomy_data as T
 from .taxonomy_data import UNCATEGORIZED
 
 
@@ -78,17 +79,36 @@ class ProductResult(object):
         return out
 
 
-def _na_reason(check, npr):
-    # type: (Any, dict) -> Optional[str]
+def _na_reason(check, npr, category):
+    # type: (Any, dict, str) -> Optional[str]
     """Structural triggers only (`taxonomy.md` 4.4).
 
     A check is never removed because information is missing; that is `UNKNOWN`,
     and it keeps its points in the denominator.
+
+    Applicability is decided here rather than inside a check for a reason worth
+    keeping: a check that decides its own applicability can decide it from
+    something it read, and `taxonomy.md` 4.4's rule is that a trigger is
+    structural and never assumed. Everything this function reads is the shape
+    of the record and the assigned category -- never a supplied value.
     """
-    if check.na_trigger == R.NA_SINGLE_VARIANT:
+    triggers = check.na_trigger
+    if R.NA_SINGLE_VARIANT in triggers:
         if len(npr.get("variants") or []) <= 1:
             return ("A single variant is supplied, so this check has no "
                     "structural trigger.")
+    if R.NA_EMPTY_VARIANT_SCOPE_SET in triggers:
+        # D-029. Both grounds are structural and neither is a missing value,
+        # but they are different facts and the merchant is told which.
+        if category == UNCATEGORIZED:
+            return ("No category is assigned, so no category attribute "
+                    "requires per-variant resolution. The category-specific "
+                    "attribute checks did not run either (rubric.md 4/D2); "
+                    "setting a product category is what makes both apply.")
+        if not T.variant_scope_keys(category):
+            return ("No attribute in this product's category has to resolve "
+                    "per variant, so there is no per-variant requirement for "
+                    "this check to measure.")
     return None
 
 
@@ -123,7 +143,7 @@ def run_product(npr, source, override=None):
                              "perform.")
             continue
 
-        reason = _na_reason(check, npr)
+        reason = _na_reason(check, npr, classification.assigned)
         if reason:
             try:
                 ledger.add(check_module.not_applicable(check, builder, reason))
