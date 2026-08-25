@@ -79,9 +79,23 @@ class Classification(object):
 
     def as_dict(self):
         # type: () -> Dict[str, Any]
-        return {"assigned": self.assigned, "method": self.method,
-                "confidence": self.confidence,
-                "evidence": [e.as_dict() for e in self.evidence]}
+        """The category block of PRD 7.1.
+
+        `note` is serialized when there is one. `taxonomy.md` 2 rule 1 requires
+        a same-tier disagreement to be *reported*, naming both signals; this
+        class already recorded it and the serialization dropped it, so the
+        statement never reached the block a reader sees. Q-11 stands open on
+        whether that belongs on a `CATEGORY.*` finding instead, and emitting
+        the note here settles nothing about that: it carries no check_id, no
+        points, no severity and no confidence of its own, and the two signals
+        it refers to are the evidence items already beside it.
+        """
+        out = {"assigned": self.assigned, "method": self.method,
+               "confidence": self.confidence,
+               "evidence": [e.as_dict() for e in self.evidence]}
+        if self.note:
+            out["note"] = self.note
+        return out
 
 
 def _match_in(text, locator):

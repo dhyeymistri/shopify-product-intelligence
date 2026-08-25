@@ -25,6 +25,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Tuple
 
+from . import htmltext
 from .model import is_placeholder
 
 #: Narrative fields that hold prose. A value stated only in prose has to be
@@ -38,11 +39,12 @@ PROSE_PATHS = ("narrative.description_text", "narrative.description_html",
 class Candidate(object):
     """One supplied value found at a searched path."""
 
-    __slots__ = ("value", "src", "origin", "scope", "ref", "npr_path", "key")
+    __slots__ = ("value", "src", "origin", "scope", "ref", "npr_path", "key",
+                 "text")
 
     def __init__(self, value, src, origin, npr_path, scope="product", ref=None,
-                 key=None):
-        # type: (str, Optional[str], str, str, str, Optional[str], Optional[str]) -> None
+                 key=None, text=None):
+        # type: (str, Optional[str], str, str, str, Optional[str], Optional[str], Optional[str]) -> None
         self.value = value
         self.src = src
         self.origin = origin
@@ -50,6 +52,12 @@ class Candidate(object):
         self.ref = ref
         self.npr_path = npr_path
         self.key = key
+        #: The plain-text reading of `value`, when the two differ. PRD 5.4
+        #: extracts text from description HTML for analysis and retains the
+        #: markup for evidence offsets, so a candidate carries both: `value`
+        #: is what gets quoted at the locator, `text` is what gets judged.
+        #: Everything else passes `None` and the two are the same string.
+        self.text = value if text is None else text
 
     @property
     def is_placeholder(self):
@@ -58,8 +66,15 @@ class Candidate(object):
 
         It is absent for the purpose of every check except the one whose job is
         to quote it (`STRUCT.NO_PLACEHOLDER_VALUES`).
+
+        Decided on `text`, not on `value`. A description of `<p>N/A</p>` states
+        exactly what a description of `N/A` states; letting the markup hide the
+        placeholder made a field that asserts nothing read as unread prose, and
+        that in turn suppressed an `UNKNOWN` the merchant should have been
+        asked about. Detection stays literal (PRD 9.4) -- extraction is what
+        moved, not the vocabulary.
         """
-        return is_placeholder(self.value)
+        return is_placeholder(self.text)
 
     def __repr__(self):  # pragma: no cover - debugging aid
         return "Candidate(%r at %s)" % (self.value, self.src)
@@ -176,7 +191,11 @@ def _narrative(npr, field):
     value, src = _pair((npr.get("narrative") or {}).get(field))
     if value is None:
         return []
-    return [Candidate(value, src, "merchant_prose", "narrative.%s" % field)]
+    # PRD 5.4: text is extracted for analysis, the markup is retained for
+    # evidence offsets. The quote still comes from `value` at its locator.
+    text = htmltext.to_text(value) if htmltext.looks_like_html(value) else value
+    return [Candidate(value, src, "merchant_prose", "narrative.%s" % field,
+                      text=text)]
 
 
 def _variant_field(npr, field):
@@ -311,18 +330,30 @@ def _resolve_path(npr, pattern, key):
 
 def gather(npr, check):
     # type: (dict, Any) -> Gathered
-    """Walk one check's declared paths and return what is there."""
+    """Walk one check's declared paths and return what is there.
+
+    Prose is separated from structured values because reading it needs
+    recognition (D-019) -- but a prose field holding a *placeholder* is not
+    unread prose. It asserts nothing (PRD 9.4), so it is absent for every
+    check's satisfaction purpose and quotable by the one check whose job is to
+    quote it. Dropping it entirely was wrong twice over: it left
+    `STRUCT.NO_PLACEHOLDER_VALUES` unable to report a placeholder at a path it
+    declares it searched, and it let a placeholder description count as
+    something unread, which suppressed the `UNKNOWN` that field should raise.
+    """
     candidates = []  # type: List[Candidate]
     prose = []  # type: List[Candidate]
     seen = set()
     for pattern in check.checked_paths:
         found = _resolve_path(npr, pattern, check.attribute_key)
-        target = prose if pattern in PROSE_PATHS else candidates
+        is_prose = pattern in PROSE_PATHS
         for candidate in found:
             fingerprint = (candidate.npr_path, candidate.src, candidate.value)
             if fingerprint in seen:
                 continue
             seen.add(fingerprint)
-            target.append(candidate)
-    return Gathered(candidates, [c for c in prose if not c.is_placeholder],
-                    tuple(check.checked_paths))
+            if is_prose and not candidate.is_placeholder:
+                prose.append(candidate)
+            else:
+                candidates.append(candidate)
+    return Gathered(candidates, prose, tuple(check.checked_paths))

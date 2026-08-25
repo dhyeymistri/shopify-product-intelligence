@@ -440,3 +440,152 @@ class TestDeterminism(unittest.TestCase):
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
+
+
+class TestScopeIsDecidedBeforeRecognition(unittest.TestCase):
+    """D-018 must be reachable for attributes that declare a predicate.
+
+    `taxonomy.md` 4.3 makes non-inheritability a property of the attribute, not
+    of how readable its values happen to be. Deciding satisfaction first meant
+    every non-inheritable attribute carrying a recognition predicate --
+    `size_system`, `garment_measurements`, `net_content`, `color_shade`,
+    `assembled_dimensions`, `user_fit_specification`, apparel `color_finish` --
+    deferred on the supplied value and never reached the scope arithmetic at
+    all. Coverage is 0 / N whatever the value turns out to say, so the two
+    decisions are independent and the scope one comes first.
+    """
+
+    FIXTURE = "checks-08-non-inheritable-recognition"
+    CHECK = "APPAREL.SIZE_SYSTEM"
+
+    def test_the_check_declares_a_recognition_predicate(self):
+        """Without this the fixture would be testing the D-018 path already covered."""
+        check = registry.get(self.CHECK)
+        self.assertFalse(check.structural_satisfaction)
+        self.assertIn(check.satisfies, registry.RECOGNITION_PREDICATES)
+        self.assertEqual(check.scope, "variant")
+        self.assertIs(check.inheritable, False)
+
+    def test_it_reaches_d018_instead_of_deferring(self):
+        npr, result = run(self.FIXTURE)
+        self.assertEqual(finding_for(result, self.CHECK).status, "PARTIAL")
+        self.assertNotIn(self.CHECK, [d["check_id"] for d in result.ledger.deferred])
+
+    def test_a_product_scope_value_earns_nothing_and_costs_nothing(self):
+        npr, result = run(self.FIXTURE)
+        finding = finding_for(result, self.CHECK)
+        self.assertEqual(float(finding.earned), 0.0)
+        self.assertEqual(float(finding.penalty), 0.0)
+
+    def test_the_product_scope_value_is_quoted_never_counted_as_variant_evidence(self):
+        npr, result = run(self.FIXTURE)
+        finding = finding_for(result, self.CHECK)
+        quoted = [e for e in finding.evidence if e.type == "field_value"]
+        self.assertEqual([e.excerpt for e in quoted], ["US 10"])
+        # One product-scope locator, and no evidence item addressing a variant.
+        self.assertEqual(quoted[0].locator, "attributes[size_system].value_raw")
+        for item in finding.evidence:
+            self.assertNotIn("variants[", item.locator or "")
+
+    def test_it_is_not_reported_as_absent(self):
+        """PRD 8.3 rule 5: a supplied value must never become a claimed gap."""
+        npr, result = run(self.FIXTURE)
+        self.assertNotEqual(finding_for(result, self.CHECK).status, "UNKNOWN")
+
+    def test_every_uncovered_variant_is_named(self):
+        npr, result = run(self.FIXTURE)
+        finding = finding_for(result, self.CHECK)
+        notes = " ".join(e.note or "" for e in finding.evidence)
+        self.assertIn("sku:HL-CREW-S", notes)
+        self.assertIn("sku:HL-CREW-L", notes)
+        self.assertNotIn("some variants", notes.lower())
+
+    def test_no_finding_asserts_that_the_value_satisfies_the_predicate(self):
+        """Reachability is not recognition. Nothing here may say `US 10` is a
+        size standard -- only that it was supplied, and at the wrong scope."""
+        npr, result = run(self.FIXTURE)
+        finding = finding_for(result, self.CHECK)
+        self.assertNotEqual(finding.status, "PASS")
+        self.assertNotIn("size standard", (finding.detail or "").lower())
+
+    def test_a_covered_variant_attribute_still_defers_pending_recognition(self):
+        """The other branch of the same function. When a value does resolve to
+        a variant, whether it satisfies the check is still a recognition
+        question, and D-019's silence is unchanged there."""
+        npr, result = run(self.FIXTURE)
+        npr = json.loads(json.dumps(npr))
+        for variant in npr["variants"]:
+            variant["attributes"] = [{
+                "key": "size_system", "value_raw": "US 10",
+                "origin": "merchant_structured",
+                "src": "variants[%s].attributes" % variant["variant_id"],
+                "scope": "variant"}]
+        path = os.path.join(FIXTURES, "checks", "%s.pip.json" % self.FIXTURE)
+        with open(path) as handle:
+            document = json.load(handle)
+        document["products"][0] = npr
+        result = run_product(npr, PipSource(document, file=path))
+        self.assertIsNone(finding_for(result, self.CHECK))
+        self.assertIn(self.CHECK, [d["check_id"] for d in result.ledger.deferred])
+
+
+class TestPlaceholderInDescription(unittest.TestCase):
+    """adv-03's remaining gap: a placeholder hidden behind a declared path.
+
+    `STRUCT.NO_PLACEHOLDER_VALUES` declares `narrative.description_text` and
+    could not see a placeholder there, because every prose path was routed away
+    from the bucket its evidence is drawn from. Separately, `<p>N/A</p>` was not
+    recognized as a placeholder at all, so a description that states nothing
+    counted as prose nobody had read -- which suppressed the `UNKNOWN` that
+    `IDENT.DESCRIPTION_SUBSTANCE` owes the merchant.
+    """
+
+    def test_the_structure_check_quotes_the_description_placeholder(self):
+        npr, result = run("adv-03-placeholder-values", folder="adversarial")
+        finding = finding_for(result, "STRUCT.NO_PLACEHOLDER_VALUES")
+        self.assertEqual(finding.status, "FAIL")
+        located = dict((e.locator, e.excerpt) for e in finding.evidence)
+        self.assertEqual(located.get("narrative.description_text"), "N/A")
+
+    def test_a_placeholder_only_description_is_unknown_not_deferred(self):
+        npr, result = run("adv-03-placeholder-values", folder="adversarial")
+        finding = finding_for(result, "IDENT.DESCRIPTION_SUBSTANCE")
+        self.assertIsNotNone(finding)
+        self.assertEqual(finding.status, "UNKNOWN")
+        self.assertEqual(float(finding.earned), 0.0)
+        self.assertEqual(float(finding.penalty), 0.0)
+        self.assertNotIn("IDENT.DESCRIPTION_SUBSTANCE",
+                         [d["check_id"] for d in result.ledger.deferred])
+
+    def test_the_placeholder_is_quoted_beside_the_absence_never_read_as_a_fact(self):
+        npr, result = run("adv-03-placeholder-values", folder="adversarial")
+        finding = finding_for(result, "IDENT.DESCRIPTION_SUBSTANCE")
+        types = set(e.type for e in finding.evidence)
+        self.assertIn("absence", types)
+        self.assertIn("N/A", [e.excerpt for e in finding.evidence])
+
+    def test_markup_around_a_placeholder_does_not_hide_it(self):
+        from engine.facts import Candidate
+        raw = Candidate("<p>N/A</p>", "narrative.description_html",
+                        "merchant_prose", "narrative.description_html")
+        self.assertFalse(raw.is_placeholder)     # the value alone is not one
+        extracted = Candidate("<p>N/A</p>", "narrative.description_html",
+                              "merchant_prose", "narrative.description_html",
+                              text="N/A")
+        self.assertTrue(extracted.is_placeholder)
+        # The quote is still the markup: extraction moved the judgment, not
+        # the excerpt (PRD 5.4, PRD 8.3 rule 4).
+        self.assertEqual(extracted.value, "<p>N/A</p>")
+
+    def test_real_prose_is_still_unread_prose(self):
+        """D-019 is untouched: only placeholders left the prose bucket."""
+        from engine import facts
+        npr, _ = run("checks-01-present-and-absent")
+        npr = json.loads(json.dumps(npr))
+        npr["narrative"]["description_html"] = {
+            "value": "<p>Solid oak, oiled.</p>", "src": "narrative.description_html"}
+        npr["narrative"]["description_text"] = {
+            "value": "Solid oak, oiled.", "src": "narrative.description_text"}
+        gathered = facts.gather(npr, registry.get("IDENT.DESCRIPTION_SUBSTANCE"))
+        self.assertTrue(gathered.unrecognized_prose)
+        self.assertFalse(gathered.placeholders)

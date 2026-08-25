@@ -111,6 +111,21 @@ def _correction_remediation(check, excerpts):
                        check.target_field(), DO_NOT_GENERATE)
 
 
+def _defer_for_recognition(check, ctx):
+    # type: (Any, Any) -> List[Finding]
+    """A value is supplied and judging it needs recognition (D-019).
+
+    One reason string, in one place, so that every path which abstains for the
+    same reason is recorded identically and the deferral ledger stays a usable
+    measurement of the recall gap.
+    """
+    ctx.ledger.defer(
+        check.check_id,
+        "A value is supplied, and deciding whether it satisfies this "
+        "check needs recognition over prose (%s)." % check.satisfies)
+    return []
+
+
 def _finding(check, status, evidence, earned, confidence_arm="structural",
              title=None, detail=None, scope_level=None, scope_ref=None,
              remediation=None, penalty=ZERO, severity=None, max_points=None):
@@ -349,14 +364,18 @@ def attribute_check(check, ctx):
 
     # 2. something is stated.
     if stated:
-        if not check.structural_satisfaction:
-            ctx.ledger.defer(
-                check.check_id,
-                "A value is supplied, and deciding whether it satisfies this "
-                "check needs recognition over prose (%s)." % check.satisfies)
-            return []
+        # Scope is decided before satisfaction, and the order matters. A
+        # non-inheritable attribute stated only at product scope covers no
+        # variant whatever the value turns out to say (`taxonomy.md` 4.3), so
+        # D-018's arithmetic does not depend on a recognition predicate.
+        # Gating it on one made D-018 unreachable for every such attribute
+        # that declares a predicate -- the value was never even looked at for
+        # scope. `_variant_coverage` still defers the branches that genuinely
+        # need recognition.
         if check.scope == "variant" and check.inheritable is False:
             return _variant_coverage(check, ctx, stated)
+        if not check.structural_satisfaction:
+            return _defer_for_recognition(check, ctx)
         return [present(check, builder, stated[0])]
 
     # 3. nothing is stated, but prose was found and not read.
@@ -436,6 +455,19 @@ def _variant_coverage(check, ctx, stated):
     hold per-variant data they do not hold, so a product-scope value does not
     cover a variant here -- but it is still a supplied value, and it is quoted
     rather than treated as though nothing were there.
+
+    Two of the branches below are decidable without recognition and two are
+    not, and they are separated deliberately:
+
+    * **0 of N covered, with a product-scope value** is D-018. Coverage is 0
+      because the value sits at the wrong scope, which is true whatever the
+      value says, so no predicate is consulted.
+    * **Some variant covered** needs recognition to say whether those values
+      satisfy the check, so a check that declares a predicate defers -- and
+      defers *without* emitting anything, exactly as before.
+
+    No branch here reports absence while a value is stated: where a value was
+    found and cannot be judged, the check says nothing (D-019).
     """
     variants = ctx.npr.get("variants") or []
     product_scope = [c for c in stated if c.scope != "variant"]
@@ -443,6 +475,8 @@ def _variant_coverage(check, ctx, stated):
         if product_scope:
             finding = unresolved_scope(check, ctx.builder, product_scope[0])
             return [finding] if finding else []
+        if not check.structural_satisfaction:
+            return _defer_for_recognition(check, ctx)
         return [unknown(check, ctx.builder, facts.gather(ctx.npr, check))]
 
     by_variant = dict((c.ref, c) for c in stated if c.scope == "variant" and c.ref)
@@ -455,10 +489,18 @@ def _variant_coverage(check, ctx, stated):
             uncovered.append(vid)
     if not covered:
         if product_scope:
+            # D-018: zero earned, `PARTIAL`, the supplied value quoted, every
+            # uncovered variant named. Decidable without recognition.
             finding = unresolved_scope(check, ctx.builder, product_scope[0],
                                        uncovered)
             return [finding] if finding else []
+        if not check.structural_satisfaction:
+            return _defer_for_recognition(check, ctx)
         return [unknown(check, ctx.builder, facts.gather(ctx.npr, check))]
+    if not check.structural_satisfaction:
+        # Something covers a variant, and whether it satisfies the check is a
+        # recognition question. Coverage is not asserted on an unread value.
+        return _defer_for_recognition(check, ctx)
     finding = coverage(check, ctx.builder, covered, uncovered)
     return [finding] if finding else []
 

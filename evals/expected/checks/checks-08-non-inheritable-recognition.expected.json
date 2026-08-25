@@ -1,0 +1,22 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "checks-08-non-inheritable-recognition",
+  "set": "checks",
+  "rubric_version": "0.1",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the check-layer behaviour this fixture was authored for. Recognition-dependent checks are deliberately not asserted here; they belong to the phase that implements them.",
+  "notes": "A non-inheritable variant-scope attribute declaring a recognition predicate, supplied only at product scope. APPAREL.SIZE_SYSTEM must reach D-018: PARTIAL, zero earned, the value quoted at attributes[size_system].value_raw, and both variant ids named as uncovered. No finding may assert that the supplied value names a size standard.",
+  "products": [
+    {
+      "product_id": "handle:checks-scope-before-recognition",
+      "must_not_fabricate": [
+        "cotton",
+        "regular fit",
+        "machine wash cold",
+        "EU 42",
+        "chest 52 cm"
+      ]
+    }
+  ]
+}

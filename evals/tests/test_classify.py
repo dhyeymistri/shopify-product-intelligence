@@ -136,3 +136,90 @@ class TestOrderingRules(unittest.TestCase):
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
+
+
+class TestSameTierDisagreementIsSerialized(unittest.TestCase):
+    """`taxonomy.md` 2 rule 1 requires the disagreement to be *reported*.
+
+    The classifier already recorded it and `as_dict()` dropped it, so the
+    statement never reached the block a reader sees: two mapping terms from
+    different categories appeared side by side with nothing saying they
+    disagreed or that the disagreement is why the product is `uncategorized`.
+
+    This is serialization only. Q-11 asks whether the disagreement should
+    instead be carried by a `CATEGORY.*` finding, and nothing here answers
+    that: no check_id, no points, no severity and no confidence of its own is
+    created, and no finding is emitted.
+    """
+
+    DOCUMENT = {
+        "pip_version": "0.1",
+        "products": [{
+            "npr_version": "0.1",
+            "product_id": "handle:q11-two-tags-disagree",
+            "source": {"format": "pip_json", "file": "<in-memory>",
+                       "locator": "products[handle:q11-two-tags-disagree]"},
+            "identity": {
+                "title": {"value": "Studio Set", "src": "identity.title"},
+                "brand": {"value": None, "src": None},
+                "model_or_mpn": {"value": None, "src": None},
+                "handle": {"value": "q11-two-tags-disagree", "src": "identity.handle"},
+                "product_type": {"value": None, "src": None},
+                "declared_category": {"value": None, "src": None},
+            },
+            "narrative": {
+                "description_text": {"value": None, "src": None},
+                "description_html": {"value": None, "src": None},
+                "structure": {"has_lists": False, "has_tables": False,
+                              "has_headings": False, "word_count": 0},
+                "seo_title": {"value": None, "src": None},
+                "seo_description": {"value": None, "src": None},
+            },
+            "attributes": [], "options": [], "variants": [], "media": [],
+            "metafields": [],
+            "tags": [{"value": "yoga", "src": "tags[0].value"},
+                     {"value": "shampoo", "src": "tags[1].value"}],
+            "claims": [], "raw_extras": {},
+        }],
+    }
+
+    def classify_it(self):
+        npr = self.DOCUMENT["products"][0]
+        builder = EvidenceBuilder(
+            PipSource(self.DOCUMENT, file="<in-memory>"), npr["product_id"])
+        return classify(npr, builder)
+
+    def test_two_same_tier_signals_disagreeing_yield_uncategorized(self):
+        result = self.classify_it()
+        self.assertEqual(result.assigned, UNCATEGORIZED)
+        self.assertEqual(result.confidence, "low")
+
+    def test_the_disagreement_reaches_the_serialized_block(self):
+        block = self.classify_it().as_dict()
+        self.assertIn("note", block)
+        self.assertIn("different categories", block["note"])
+
+    def test_both_signals_are_named_in_the_serialized_evidence(self):
+        block = self.classify_it().as_dict()
+        excerpts = [e.get("excerpt") for e in block["evidence"]]
+        self.assertIn("yoga", excerpts)
+        self.assertIn("shampoo", excerpts)
+
+    def test_serialization_invents_no_check_no_points_no_severity(self):
+        block = self.classify_it().as_dict()
+        for forbidden in ("check_id", "points", "severity", "max_points",
+                          "penalty", "status", "finding_id"):
+            self.assertNotIn(forbidden, block)
+        self.assertEqual(set(block) - {"assigned", "method", "confidence",
+                                       "evidence", "note"}, set())
+
+    def test_an_agreeing_classification_carries_no_note(self):
+        """The key appears only when there is something to say."""
+        document = json.loads(json.dumps(self.DOCUMENT))
+        npr = document["products"][0]
+        npr["tags"] = [{"value": "yoga", "src": "tags[0].value"}]
+        builder = EvidenceBuilder(PipSource(document, file="<in-memory>"),
+                                  npr["product_id"])
+        block = classify(npr, builder).as_dict()
+        self.assertEqual(block["assigned"], "sports")
+        self.assertNotIn("note", block)
