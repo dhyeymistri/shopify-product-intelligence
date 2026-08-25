@@ -45,11 +45,30 @@
         ]
       },
       "score": {
-        "total": 0.0,
-        "max_applicable": 100.0,
+        "total": 37.7,
+        "max_applicable": 10.6,
         "grade": "insufficient",
         "grade_capped_by": null,
-        "dimensions": []
+        "dimensions": [
+          {
+            "dimension": "D1_identity",
+            "earned": 4.0,
+            "max": 4.0,
+            "checks": [
+              { "check_id": "IDENT.BRAND_PRESENT", "status": "PASS", "earned": 2.0, "max": 2.0 },
+              { "check_id": "IDENT.IDENTIFIER_PRESENT", "status": "PASS", "earned": 2.0, "max": 2.0 }
+            ]
+          },
+          {
+            "dimension": "D2_category_attributes",
+            "earned": 0.0,
+            "max": 6.6,
+            "checks": [
+              { "check_id": "APPAREL.MATERIAL_COMPOSITION", "status": "UNKNOWN", "earned": 0.0, "max": 3.3 },
+              { "check_id": "APPAREL.SIZE_SYSTEM", "status": "UNKNOWN", "earned": 0.0, "max": 3.3 }
+            ]
+          }
+        ]
       },
       "findings": [
         {

@@ -1,0 +1,51 @@
+{
+  "report_version": "0.1",
+  "run": {
+    "run_id": "2026-08-25T09-00-00Z-test",
+    "started_at": "2026-08-25T09:00:00Z",
+    "input": {
+      "file": "evals/fixtures/sparse/sparse-apparel-01.pip.json",
+      "format": "pip_json",
+      "products_in": 1,
+      "products_audited": 1
+    },
+    "rubric_version": "0.1",
+    "taxonomy_version": "0.1",
+    "run_errors": []
+  },
+  "catalog_summary": {
+    "score_mean": 0.0,
+    "score_median": 0.0,
+    "grade_distribution": { "agent_ready": 0, "strong": 0, "adequate": 0, "weak": 0, "insufficient": 1 },
+    "blocker_count": 0, "top_systemic_gaps": []
+  },
+  "products": [
+    {
+      "product_id": "handle:northgate-crew-neck-tee",
+      "title": "Northgate Crew Neck T-Shirt",
+      "category": {
+        "assigned": "apparel",
+        "method": "title_inference",
+        "confidence": "low",
+        "evidence": [ { "type": "quote", "locator": "identity.title[10:27]", "excerpt": "Crew Neck T-Shirt", "checked_paths": null, "note": "Category inferred from the product title (interpreted)." } ]
+      },
+      "score": { "total": 0.0, "max_applicable": 100.0, "grade": "insufficient", "grade_capped_by": null, "dimensions": [] },
+      "findings": [
+        {
+          "finding_id": "F-0001",
+          "check_id": "APPAREL.MATERIAL_COMPOSITION",
+          "dimension": "D2_category_attributes",
+          "scope": { "level": "product", "ref": null },
+          "status": "UNKNOWN", "severity": "critical", "confidence": "high",
+          "title": "Fabric composition is missing",
+          "detail": "The product does not contain a fabric composition value. It lacks a material specification.",
+          "evidence": [ { "type": "absence", "locator": null, "excerpt": null, "checked_paths": ["attributes[material_composition]", "metafields.*", "narrative.description_text", "variants[*].attributes"], "note": null } ],
+          "points": { "earned": 0.0, "max": 3.3, "penalty": 0.0 },
+          "remediation": { "type": "question", "question": "What is the fabric composition, by percentage?", "target_field": "attributes[material_composition]", "note": "Do not generate a value." }
+        }
+      ],
+      "unknowns": [ { "attribute": "care_instructions", "checked_paths": ["attributes[care_instructions]", "metafields.*", "narrative.description_text"], "question": "What are the care instructions for this garment?" } ],
+      "questions_for_merchant": [ { "priority": 1, "question": "What is the fabric composition, by percentage?", "unlocks_points": 3.3, "related_findings": ["F-0001"] } ]
+    }
+  ]
+}

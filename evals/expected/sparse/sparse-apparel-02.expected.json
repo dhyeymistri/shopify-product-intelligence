@@ -22,8 +22,7 @@
         "model_reference_measurements"
       ],
       "expected_present_attributes": [
-        "material_composition",
-        "color_finish"
+        "material_composition"
       ],
       "must_not_fabricate": [
         "100% cotton",

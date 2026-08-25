@@ -45,11 +45,29 @@
         ]
       },
       "score": {
-        "total": 0.0,
-        "max_applicable": 100.0,
-        "grade": "insufficient",
+        "total": 50.3,
+        "max_applicable": 9.95,
+        "grade": "weak",
         "grade_capped_by": null,
-        "dimensions": []
+        "dimensions": [
+          {
+            "dimension": "D2_category_attributes",
+            "earned": 0.0,
+            "max": 4.95,
+            "checks": [
+              { "check_id": "SPORTS.SAFETY_CERTIFICATION", "status": "UNKNOWN", "earned": 0.0, "max": 1.65 },
+              { "check_id": "SPORTS.USER_FIT_SPECIFICATION", "status": "UNKNOWN", "earned": 0.0, "max": 3.3 }
+            ]
+          },
+          {
+            "dimension": "D3_variant",
+            "earned": 5.0,
+            "max": 5.0,
+            "checks": [
+              { "check_id": "VARIANT.DIFFERENTIATED", "status": "PASS", "earned": 5.0, "max": 5.0 }
+            ]
+          }
+        ]
       },
       "findings": [
         {

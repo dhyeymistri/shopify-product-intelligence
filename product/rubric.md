@@ -283,14 +283,14 @@ Severity and confidence are **properties of the check definition**, never chosen
 A single-variant electronics product. Four D3 checks are N/A, removing 11.5 points from the denominator.
 
 ```
-raw_max     = 100 − 11.5 = 88.5
+raw_max     = 82.0 − 11.5 = 70.5
 raw_earned  = 61.0
-normalized  = 61.0 / 88.5 × 100 = 68.9
+normalized  = 61.0 / 70.5 × 100 = 86.5
 penalties   = 2.0   (one CLAIM.UNSUPPORTED_COMPARATIVE)
-total       = 66.9  → grade: adequate
+total       = 84.5  → grade: strong
 ```
 
-The report prints `max_applicable: 88.5`, the renormalization factor `1.1299`, and the list of N/A checks with reasons — so the merchant can see exactly what was and was not assessed.
+The report prints `max_applicable: 70.5`, the renormalization factor `1.4184`, and the list of N/A checks with reasons — so the merchant can see exactly what was and was not assessed.
 
 ### 6.4 Grade bands
 

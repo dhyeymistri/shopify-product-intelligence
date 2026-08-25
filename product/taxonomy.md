@@ -275,7 +275,7 @@ Mapping from common Shopify `category` / `productType` / tag values to our five 
 | --- | --- |
 | `apparel`, `clothing`, `shirt`, `dress`, `pants`, `outerwear`, `footwear`, `shoes`, `socks`, `underwear`, `activewear`, `swimwear`, `hat`, `scarf`, `glove` | `apparel` |
 | `beauty`, `cosmetic`, `skincare`, `haircare`, `makeup`, `fragrance`, `perfume`, `serum`, `moisturizer`, `shampoo`, `personal care` | `beauty` |
-| `electronics`, `computer`, `phone`, `audio`, `headphone`, `camera`, `charger`, `cable`, `monitor`, `speaker`, `wearable tech`, `smart home device` | `electronics` |
+| `electronics`, `computer`, `phone`, `audio`, `headphone`, `earbud`, `earbuds`, `camera`, `charger`, `cable`, `monitor`, `speaker`, `wearable tech`, `smart home device` | `electronics` |
 | `home`, `furniture`, `kitchen`, `bedding`, `decor`, `storage`, `lighting`, `rug`, `cookware`, `bath` | `home` |
 | `sport`, `fitness`, `outdoor`, `camping`, `cycling`, `running gear`, `yoga`, `athletic equipment`, `exercise` | `sports` |
 
