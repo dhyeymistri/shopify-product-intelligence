@@ -30,7 +30,10 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-NPR_VERSION = "0.1"
+#: D-033 moved this to 0.2: `variants[*].option_values` carries `{value, src}`
+#: pairs rather than bare scalars, so that a variant's option value can be
+#: evidenced at its own locator (PRD 6.2 rule 1).
+NPR_VERSION = "0.2"
 
 #: Origins a value may carry (PRD 9.4).
 ORIGIN_STRUCTURED = "merchant_structured"
@@ -111,6 +114,13 @@ def option(name, values, src):
 def variant(variant_id, option_values=None, sku=None, barcode=None, price=None,
             media_refs=None, attributes=None):
     # type: (...) -> Dict[str, Any]
+    """``option_values`` maps option name to a ``{value, src}`` pair (D-033).
+
+    Not a bare scalar: an option value is merchant-supplied data that a check
+    reasons over and must be able to quote, so PRD 6.2 rule 1 reaches it like
+    any other value. Callers build the pair with :func:`value`, which is what
+    keeps the locator beside the thing it locates.
+    """
     return {
         "variant_id": variant_id,
         "option_values": dict(option_values or {}),

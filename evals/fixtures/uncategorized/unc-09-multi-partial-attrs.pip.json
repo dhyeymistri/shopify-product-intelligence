@@ -1,0 +1,152 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "unc-09-multi-partial-attrs",
+    "set": "uncategorized",
+    "intent": "Mid-density on both axes, so neither direction is built in. Counterfactual category is apparel (Q-6a). The record carries no category signal at any of the five paths taxonomy.md 2 reads, so the assignment is uncategorized on rule 6 and D2 is removed in full.",
+    "provenance": "Synthetic. Authored for the Q-6a uncategorized corpus. Not derived from any real merchant's catalog or private data.",
+    "notes": "Two of the four decidable apparel D2 checks are satisfied and the other two would be UNKNOWN under the counterfactual."
+  },
+  "products": [
+    {
+      "npr_version": "0.2",
+      "product_id": "handle:unc-09-multi-partial-attrs",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/uncategorized/unc-09-multi-partial-attrs.pip.json",
+        "locator": "products[handle:unc-09-multi-partial-attrs]"
+      },
+      "identity": {
+        "title": {
+          "value": "Tolworth Weave",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Tolworth",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "unc-09-multi-partial-attrs",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": null,
+          "src": null
+        },
+        "declared_category": {
+          "value": null,
+          "src": null
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": "Woven in three panels on a narrow band loom, then finished by hand.",
+          "src": "narrative.description_text"
+        },
+        "description_html": {
+          "value": null,
+          "src": null
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 13
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [
+        {
+          "key": "material_composition",
+          "value_raw": "60% cotton, 40% polyester",
+          "origin": "merchant_structured",
+          "src": "attributes[material_composition].value_raw",
+          "scope": "product"
+        },
+        {
+          "key": "country_of_origin",
+          "value_raw": "Portugal",
+          "origin": "merchant_structured",
+          "src": "attributes[country_of_origin].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [
+        {
+          "name": "Length",
+          "values": [
+            "Short",
+            "Regular"
+          ],
+          "src": "options[Length].name"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:U09-A",
+          "option_values": {
+            "Length": {
+              "value": "Short",
+              "src": "variants[sku:U09-A].option_values[Length]"
+            }
+          },
+          "sku": {
+            "value": "U09-A",
+            "src": "variants[sku:U09-A].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "20.00",
+            "currency": null,
+            "src": "variants[sku:U09-A].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        },
+        {
+          "variant_id": "sku:U09-B",
+          "option_values": {
+            "Length": {
+              "value": "Regular",
+              "src": "variants[sku:U09-B].option_values[Length]"
+            }
+          },
+          "sku": {
+            "value": "U09-B",
+            "src": "variants[sku:U09-B].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "20.00",
+            "currency": null,
+            "src": "variants[sku:U09-B].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

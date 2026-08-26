@@ -1,0 +1,162 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "unc-05-multi-empty-low",
+    "set": "uncategorized",
+    "intent": "Floor control at three variants. This is where D-029's uncategorized ground fires rather than the single-variant one. Counterfactual category is apparel (Q-6a). The record carries no category signal at any of the five paths taxonomy.md 2 reads, so the assignment is uncategorized on rule 6 and D2 is removed in full.",
+    "provenance": "Synthetic. Authored for the Q-6a uncategorized corpus. Not derived from any real merchant's catalog or private data.",
+    "notes": "VARIANT.ATTRIBUTE_COVERAGE leaves the denominator because no category requires anything per variant, which is D-029 case 2."
+  },
+  "products": [
+    {
+      "npr_version": "0.2",
+      "product_id": "handle:unc-05-multi-empty-low",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/uncategorized/unc-05-multi-empty-low.pip.json",
+        "locator": "products[handle:unc-05-multi-empty-low]"
+      },
+      "identity": {
+        "title": {
+          "value": "Tolworth Panel",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": null,
+          "src": null
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "unc-05-multi-empty-low",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": null,
+          "src": null
+        },
+        "declared_category": {
+          "value": null,
+          "src": null
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": null,
+          "src": null
+        },
+        "description_html": {
+          "value": null,
+          "src": null
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 0
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [],
+      "options": [
+        {
+          "name": "Length",
+          "values": [
+            "Short",
+            "Regular",
+            "Long"
+          ],
+          "src": "options[Length].name"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:U05-A",
+          "option_values": {
+            "Length": {
+              "value": "Short",
+              "src": "variants[sku:U05-A].option_values[Length]"
+            }
+          },
+          "sku": {
+            "value": "U05-A",
+            "src": "variants[sku:U05-A].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "18.00",
+            "currency": null,
+            "src": "variants[sku:U05-A].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        },
+        {
+          "variant_id": "sku:U05-B",
+          "option_values": {
+            "Length": {
+              "value": "Regular",
+              "src": "variants[sku:U05-B].option_values[Length]"
+            }
+          },
+          "sku": {
+            "value": "U05-B",
+            "src": "variants[sku:U05-B].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "18.00",
+            "currency": null,
+            "src": "variants[sku:U05-B].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        },
+        {
+          "variant_id": "sku:U05-C",
+          "option_values": {
+            "Length": {
+              "value": "Long",
+              "src": "variants[sku:U05-C].option_values[Length]"
+            }
+          },
+          "sku": {
+            "value": "U05-C",
+            "src": "variants[sku:U05-C].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "18.00",
+            "currency": null,
+            "src": "variants[sku:U05-C].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

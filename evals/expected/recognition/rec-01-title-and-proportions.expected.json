@@ -2,7 +2,7 @@
   "expected_version": "0.1",
   "fixture_id": "rec-01-title-and-proportions",
   "set": "recognition",
-  "rubric_version": "0.4",
+  "rubric_version": "0.6",
   "taxonomy_version": "0.1",
   "status_coverage": "partial",
   "coverage_note": "Asserts the recognition arms this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
@@ -49,6 +49,13 @@
           "evidence_locators": [
             "variants[sku:RC1-S].attributes[size_system].value_raw",
             "variants[sku:RC1-L].attributes[size_system].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "PASS",
+          "evidence_locators": [
+            "options[Size].name"
           ]
         }
       ]

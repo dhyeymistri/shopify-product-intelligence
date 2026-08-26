@@ -74,14 +74,17 @@
             "Ash",
             "Slate"
           ],
-          "src": "options[Colour]"
+          "src": "options[Colour].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:LG-TRAY-A",
           "option_values": {
-            "Colour": "Ash"
+            "Colour": {
+              "value": "Ash",
+              "src": "variants[sku:LG-TRAY-A].option_values[Colour]"
+            }
           },
           "sku": {
             "value": "LG-TRAY-A",
@@ -110,7 +113,10 @@
         {
           "variant_id": "sku:LG-TRAY-S",
           "option_values": {
-            "Colour": "Slate"
+            "Colour": {
+              "value": "Slate",
+              "src": "variants[sku:LG-TRAY-S].option_values[Colour]"
+            }
           },
           "sku": {
             "value": "LG-TRAY-S",

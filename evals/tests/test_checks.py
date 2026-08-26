@@ -13,6 +13,7 @@ accident and expensive to violate in production:
 
 from __future__ import annotations
 
+import glob
 import json
 import os
 import sys
@@ -26,6 +27,7 @@ if REPO not in sys.path:
 from audits import factlex                                   # noqa: E402
 from audits.pip_locator import resolve                       # noqa: E402
 from engine import checks                                    # noqa: E402
+from engine import facts, normalize                          # noqa: E402
 from engine import lexicon, recognize, taxonomy_keys         # noqa: E402
 from engine import registry                                  # noqa: E402
 from engine import rubric_data as R                          # noqa: E402
@@ -1197,3 +1199,199 @@ class TestStructuralPredicatesAreRegistered(unittest.TestCase):
         for predicate_id in registry.IMPLEMENTED_STRUCTURAL:
             self.assertNotIn(predicate_id, registry.IMPLEMENTED_PREDICATES)
             self.assertNotIn(predicate_id, registry.IMPLEMENTED_RELATIONS)
+
+
+# ---------------------------------------------------------------------------
+# D-032 -- a check may drop a finding, but never in silence.
+# ---------------------------------------------------------------------------
+class TestOptionNamesIsNeverSilent(unittest.TestCase):
+    """The regression D-032 was written for, held against real engine output.
+
+    `VARIANT.OPTION_NAMES_MEANINGFUL` emitted nothing at all on every Format C
+    record carrying options: no finding, no deferral, no `run_error`. The cause
+    was provenance -- the option locator addressed the element rather than the
+    name, so `evidence.field_value` raised and `checks.check_option_names`
+    returned `[]` at the swallow site. `rubric.md` 4/D3's rule for the check
+    never changed and is not touched here; what these assertions pin is that
+    the rule can still be *evidenced*.
+
+    PRD 8.3 rule 1 is the authority: a finding with empty evidence is dropped
+    **"and logged as a `run_error`"**. The drop was permitted. The silence was
+    not.
+    """
+
+    CHECK = "VARIANT.OPTION_NAMES_MEANINGFUL"
+
+    def _corpus(self):
+        out = []
+        for path in sorted(glob.glob(os.path.join(FIXTURES, "*/*.pip.json"))):
+            with open(path) as handle:
+                source_document = json.load(handle)
+            source = PipSource(source_document, file=path)
+            for npr in source_document["products"]:
+                out.append((os.path.basename(path), npr, run_product(npr, source)))
+        return out
+
+    def test_every_product_carrying_options_emits_the_check(self):
+        seen = 0
+        for name, npr, result in self._corpus():
+            if not (npr.get("options") or []):
+                continue
+            self.assertIsNotNone(
+                result.status_of(self.CHECK),
+                "%s: %s emitted no finding on a product with %d option(s). A "
+                "check that cannot build evidence must say so, not vanish "
+                "(PRD 8.3 rule 1)." % (name, self.CHECK, len(npr["options"])))
+            seen += 1
+        self.assertGreater(seen, 0, "no fixture carries an option")
+
+    def test_it_is_never_silent_anywhere_in_the_corpus(self):
+        """Silent means: no finding, no deferral, and no run error."""
+        for name, npr, result in self._corpus():
+            if result.status_of(self.CHECK) is not None:
+                continue
+            deferred = set(d["check_id"] for d in result.ledger.deferred)
+            self.assertIn(self.CHECK, deferred,
+                          "%s: %s produced neither a finding nor a deferral"
+                          % (name, self.CHECK))
+
+    def test_its_evidence_locator_addresses_the_option_name(self):
+        """The finding must quote the name, at the name's own locator."""
+        for name, npr, result in self._corpus():
+            for finding in result.findings:
+                if finding.check_id != self.CHECK:
+                    continue
+                names = [o.get("name") for o in npr.get("options") or []]
+                for item in finding.evidence:
+                    if item.locator is None:     # absence evidence on UNKNOWN
+                        continue
+                    self.assertTrue(item.locator.endswith(".name"),
+                                    "%s: %r is not an option-name locator"
+                                    % (name, item.locator))
+                    self.assertIn(item.excerpt, names,
+                                  "%s: excerpt %r is not one of this product's "
+                                  "option names %r" % (name, item.excerpt, names))
+
+
+# ---------------------------------------------------------------------------
+# D-033 -- provenance for a variant's option value is copied, never composed.
+# ---------------------------------------------------------------------------
+class TestOptionValueProvenanceIsCopiedNotComposed(unittest.TestCase):
+    """D-033, at the two call sites that used to build their own locators.
+
+    `check_variant_differentiated` composed `variants[<vid>].option_values[
+    <name>]` for its `PASS` evidence and `facts._variant_option_values`
+    composed the same string for a candidate `src`. That form resolves under
+    Format C and does not parse under Format A, so the check emitted nothing at
+    all on every multi-variant CSV product -- no finding, no deferral, no run
+    error. Neither call site knows the format; the normalizer does, so the
+    locator is recorded there and copied here.
+
+    `rubric.md` 4/D3 decides this check and nothing below asserts anything
+    about what it decides -- only about what it is able to cite.
+    """
+
+    CHECK = "VARIANT.DIFFERENTIATED"
+
+    def _multi_variant(self):
+        """(label, npr, source, ProductResult) for every multi-variant product."""
+        out = []
+        paths = sorted(glob.glob(os.path.join(FIXTURES, "*/*.pip.json")))
+        for path in paths:
+            with open(path) as handle:
+                document = json.load(handle)
+            source = PipSource(document, file=path)
+            for npr in document["products"]:
+                if len(npr.get("variants") or []) > 1:
+                    out.append((os.path.basename(path), npr, source,
+                                run_product(npr, source)))
+        for name in sorted(os.listdir(os.path.join(FIXTURES, "csv"))):
+            if not name.endswith(".csv"):
+                continue
+            result = normalize.normalize_file(os.path.join(FIXTURES, "csv", name))
+            for npr in result.products:
+                if len(npr.get("variants") or []) > 1:
+                    out.append((name, npr, result.source,
+                                run_product(npr, result.source)))
+        return out
+
+    def test_both_formats_are_represented(self):
+        """Otherwise this class could pass while testing one format."""
+        labels = [n for n, _, _, _ in self._multi_variant()]
+        self.assertTrue([n for n in labels if n.endswith(".csv")], labels)
+        self.assertTrue([n for n in labels if n.endswith(".pip.json")], labels)
+
+    def test_the_check_is_never_silent_on_a_multi_variant_product(self):
+        for name, npr, _, result in self._multi_variant():
+            if result.status_of(self.CHECK) is not None:
+                continue
+            deferred = set(d["check_id"] for d in result.ledger.deferred)
+            self.assertIn(self.CHECK, deferred,
+                          "%s: %s produced neither a finding nor a deferral "
+                          "(PRD 8.3 rule 1)" % (name, self.CHECK))
+
+    def test_its_evidence_locator_is_one_the_record_supplied(self):
+        """Copied, not composed: every ref must appear in the NPR verbatim."""
+        checked = 0
+        for name, npr, _, result in self._multi_variant():
+            for finding in result.findings:
+                if finding.check_id != self.CHECK:
+                    continue
+                supplied = set()
+                for variant in npr["variants"]:
+                    for pair in (variant.get("option_values") or {}).values():
+                        if isinstance(pair, dict) and pair.get("src"):
+                            supplied.add(pair["src"])
+                for item in finding.evidence:
+                    if item.locator is None:
+                        continue
+                    self.assertIn(item.locator, supplied,
+                                  "%s: %r was composed, not copied from the record"
+                                  % (name, item.locator))
+                    checked += 1
+        self.assertGreater(checked, 0)
+
+    def test_every_evidence_locator_resolves_in_its_own_format(self):
+        for name, npr, source, result in self._multi_variant():
+            for finding in result.findings:
+                if finding.check_id != self.CHECK:
+                    continue
+                for item in finding.evidence:
+                    if item.locator is None:
+                        continue
+                    resolution = source.resolve(item.locator, npr["product_id"])
+                    self.assertTrue(resolution.ok,
+                                    "%s: %r -> %s"
+                                    % (name, item.locator, resolution.error))
+
+    def test_facts_copies_the_supplied_locator_too(self):
+        """`facts._variant_option_values` is the same defect one layer over."""
+        checked = 0
+        for name, npr, source, _ in self._multi_variant():
+            check = registry.get(self.CHECK)
+            for candidate in facts.gather(npr, check).stated:
+                if candidate.npr_path and "option_values" not in candidate.npr_path:
+                    continue
+                self.assertTrue(candidate.src, "%s: candidate with no locator" % name)
+                resolution = source.resolve(candidate.src, npr["product_id"])
+                self.assertTrue(resolution.ok,
+                                "%s: %r -> %s" % (name, candidate.src, resolution.error))
+                self.assertEqual(resolution.text, candidate.value, name)
+                checked += 1
+        self.assertGreater(checked, 0)
+
+    def test_a_pair_without_a_locator_defers_rather_than_vanishing(self):
+        """The contract's failure arm (D-033), asserted at the check layer."""
+        import copy
+        name, npr, source, _ = self._multi_variant()[0]
+        npr = copy.deepcopy(npr)
+        first = npr["variants"][0]
+        option = sorted(first["option_values"])[0]
+        first["option_values"][option] = {"value":
+                                          first["option_values"][option]["value"],
+                                          "src": None}
+        result = run_product(npr, source)
+        self.assertIsNone(result.status_of(self.CHECK))
+        deferred = dict((d["check_id"], d["reason"]) for d in result.ledger.deferred)
+        self.assertIn(self.CHECK, deferred)
+        self.assertIn("carries no locator", deferred[self.CHECK])

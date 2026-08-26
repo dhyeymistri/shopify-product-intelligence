@@ -352,12 +352,16 @@ def _build_variant(number, cells, get, declared, option_values, variant_ids):
 
     values = {}
     for position, name, _ in declared:
-        cell = get(cells, OPTION_VALUE_COLUMNS[position])
+        column = OPTION_VALUE_COLUMNS[position]
+        cell = get(cells, column)
         if _blank(cell):
             # Absent on this row means absent for this variant. A value present
             # on a sibling row describes that sibling (PRD 9.7, taxonomy.md 4.3).
             continue
-        values[name] = cell
+        # D-033. The locator is composed here and nowhere else: this is the one
+        # place that knows both the row and the option column, and a locator
+        # composed anywhere downstream could not be format-neutral.
+        values[name] = model.value(cell, csv_locator(number, column))
         if cell not in option_values[name]:
             option_values[name].append(cell)
 

@@ -74,14 +74,17 @@
             "80",
             "120"
           ],
-          "src": "options[Width]"
+          "src": "options[Width].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:RC5-A",
           "option_values": {
-            "Width": "80"
+            "Width": {
+              "value": "80",
+              "src": "variants[sku:RC5-A].option_values[Width]"
+            }
           },
           "sku": {
             "value": "RC5-A",
@@ -110,7 +113,10 @@
         {
           "variant_id": "sku:RC5-B",
           "option_values": {
-            "Width": "120"
+            "Width": {
+              "value": "120",
+              "src": "variants[sku:RC5-B].option_values[Width]"
+            }
           },
           "sku": {
             "value": "RC5-B",

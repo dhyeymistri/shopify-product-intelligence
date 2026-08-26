@@ -82,14 +82,17 @@
             "80",
             "120"
           ],
-          "src": "options[Width]"
+          "src": "options[Width].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:RC4-A",
           "option_values": {
-            "Width": "80"
+            "Width": {
+              "value": "80",
+              "src": "variants[sku:RC4-A].option_values[Width]"
+            }
           },
           "sku": {
             "value": "RC4-A",
@@ -118,7 +121,10 @@
         {
           "variant_id": "sku:RC4-B",
           "option_values": {
-            "Width": "120"
+            "Width": {
+              "value": "120",
+              "src": "variants[sku:RC4-B].option_values[Width]"
+            }
           },
           "sku": {
             "value": "RC4-B",

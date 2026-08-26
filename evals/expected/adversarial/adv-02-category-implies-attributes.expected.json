@@ -2,7 +2,7 @@
   "expected_version": "0.1",
   "fixture_id": "adv-02-category-implies-attributes",
   "set": "adversarial",
-  "rubric_version": "0.4",
+  "rubric_version": "0.6",
   "taxonomy_version": "0.1",
   "status_coverage": "partial",
   "coverage_note": "Asserts the checks this fixture was built to exercise, plus the invariants that hold for the whole record. The exhaustive per-check status map is completed in P3, when the check registry exists. Fields asserted here are final and must not be relaxed to make an implementation pass.",
@@ -66,6 +66,13 @@
           "evidence_locators": [
             "variants[sku:TP-HELM-SM].option_values[Size]",
             "variants[sku:TP-HELM-LX].option_values[Size]"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "PASS",
+          "evidence_locators": [
+            "options[Size].name"
           ]
         }
       ]

@@ -16,11 +16,32 @@ from audits.pip_locator import resolve
 from audits.provenance import ProvenanceIndex
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+#: Format C fixtures. `FIXTURES` keeps its name and its meaning: the tests that
+#: read an NPR-shaped document -- envelope, `{value, src}` pairs, PIP locators --
+#: are Format C tests and stay that way.
 FIXTURES = sorted(glob.glob(os.path.join(REPO, "evals/fixtures/*/*.pip.json")))
+PIP_FIXTURES = FIXTURES
+
+#: `evals/fixtures/csv/` is normalizer input (PRD 5.1), not a scored corpus set:
+#: it has no expectations and is not in `REQUIRED_SETS`. A Format A fixture that
+#: belongs to a scored set lives in that set's directory beside its Format C
+#: siblings, because a set is defined by what it measures and not by its format.
+NORMALIZER_ONLY_DIRS = {"csv"}
+CSV_FIXTURES = sorted(
+    path for path in glob.glob(os.path.join(REPO, "evals/fixtures/*/*.csv"))
+    if os.path.basename(os.path.dirname(path)) not in NORMALIZER_ONLY_DIRS)
+
+ALL_FIXTURES = sorted(PIP_FIXTURES + CSV_FIXTURES)
 EXPECTED = sorted(glob.glob(os.path.join(REPO, "evals/expected/*/*.expected.json")))
 
 REQUIRED_SETS = {"sparse": 10, "adversarial": 4, "checks": 8,
-                 "recognition": 11}
+                 "recognition": 11, "uncategorized": 12}
+
+#: Expectation formats (PRD 12.2). An expectation that omits `format` addresses
+#: a Format C fixture, which is why the 33 that predate this are unchanged.
+FORMAT_PIP = "pip_json"
+FORMAT_CSV = "shopify_csv"
 
 
 def load(path):
@@ -28,10 +49,20 @@ def load(path):
         return json.load(handle)
 
 
+def fixture_format(expectation):
+    return expectation.get("format", FORMAT_PIP)
+
+
+def fixture_path(expectation):
+    ext = ".csv" if fixture_format(expectation) == FORMAT_CSV else ".pip.json"
+    return os.path.join(REPO, "evals/fixtures", expectation["set"],
+                        expectation["fixture_id"] + ext)
+
+
 class TestCorpusShape(unittest.TestCase):
     def test_required_counts(self):
         counts = {}
-        for path in FIXTURES:
+        for path in ALL_FIXTURES:
             counts.setdefault(os.path.basename(os.path.dirname(path)), 0)
             counts[os.path.basename(os.path.dirname(path))] += 1
         for name, expected in REQUIRED_SETS.items():
@@ -59,6 +90,31 @@ class TestCorpusShape(unittest.TestCase):
             )
             self.assertTrue(os.path.exists(expected), "missing expectation for %s" % path)
 
+    def test_every_csv_fixture_has_an_expectation_file(self):
+        """Format A carries no envelope, so the set and id come from the path."""
+        by_path = dict((fixture_path(load(p)), p) for p in EXPECTED)
+        for path in CSV_FIXTURES:
+            self.assertIn(path, by_path, "missing expectation for %s" % path)
+
+    def test_every_csv_fixture_declares_provenance_in_its_expectation(self):
+        """PRD 12.1 requires a provenance note on every fixture. A Format A file
+        has nowhere to put one -- there is no envelope -- so its expectation
+        carries it, and this is the assertion that keeps that from being
+        forgotten rather than merely permitted."""
+        for path in EXPECTED:
+            expectation = load(path)
+            if fixture_format(expectation) != FORMAT_CSV:
+                continue
+            provenance = expectation.get("provenance")
+            self.assertTrue(provenance, "%s: missing provenance" % path)
+            self.assertIn("Synthetic", provenance, path)
+
+    def test_every_expectation_names_a_fixture_that_exists(self):
+        for path in EXPECTED:
+            expectation = load(path)
+            self.assertTrue(os.path.exists(fixture_path(expectation)),
+                            "%s: names a fixture that does not exist" % path)
+
     def test_products_carry_value_src_pairs(self):
         """PRD 6.2 rule 1: a bare scalar in the record is a spec violation."""
         for path in FIXTURES:
@@ -79,6 +135,10 @@ class TestFixtureLocators(unittest.TestCase):
                     ("attributes", product.get("attributes", [])),
                     ("metafields", product.get("metafields", [])),
                     ("claims", product.get("claims", [])),
+                    # `options` was omitted here until D-032, and that omission
+                    # is how 21 fixtures carried an option locator addressing
+                    # the element rather than the name.
+                    ("options", product.get("options", [])),
                 ):
                     for item in items:
                         if not item.get("src"):
@@ -89,6 +149,39 @@ class TestFixtureLocators(unittest.TestCase):
                             "%s: %s src %r -> %s"
                             % (path, group, item["src"], resolution.error),
                         )
+
+    def test_option_src_reproduces_the_option_name(self):
+        """D-032, at the corpus layer.
+
+        PRD 6.1's own NPR example locates an option at its **name**
+        (``"src": "row12.Option1 name"``) and PRD 6.2 rule 1 requires a ``src``
+        to resolve back to the value beside it. Resolving is not enough: an
+        element locator such as ``options[Size]`` resolves to a node, carries
+        no text of its own, and therefore cannot be quoted -- which is what
+        silently suppressed `VARIANT.OPTION_NAMES_MEANINGFUL` on every Format C
+        record with options. The assertion is equality with the name, so
+        neither the element locator nor a near miss like
+        ``options[Size].values`` can come back.
+        """
+        checked = 0
+        for path in FIXTURES:
+            for product in load(path)["products"]:
+                for option in product.get("options", []):
+                    src = option.get("src")
+                    self.assertTrue(
+                        src, "%s: option %r carries no src" % (path, option.get("name")))
+                    resolution = resolve(product, src)
+                    self.assertTrue(
+                        resolution.ok,
+                        "%s: option src %r -> %s" % (path, src, resolution.error))
+                    self.assertEqual(
+                        resolution.text, option.get("name"),
+                        "%s: option src %r resolves to %r, not the option name %r; "
+                        "a value that cannot be reproduced at its locator cannot "
+                        "be evidenced (PRD 8.3 rule 4)"
+                        % (path, src, resolution.text, option.get("name")))
+                    checked += 1
+        self.assertGreater(checked, 0, "no option carried a src to check")
 
     def test_attribute_spans_reproduce_their_value(self):
         """A span locator must return exactly the value it claims to source."""
@@ -109,12 +202,22 @@ class TestFixtureLocators(unittest.TestCase):
 
 class TestExpectations(unittest.TestCase):
     def _fixture_for(self, expectation):
-        return load(
-            os.path.join(
-                REPO, "evals/fixtures", expectation["set"],
-                "%s.pip.json" % expectation["fixture_id"],
-            )
-        )
+        """The Format C document an expectation addresses.
+
+        Format A has no NPR-shaped document to return, so the tests that read
+        one skip it explicitly via :meth:`_is_csv` rather than being handed an
+        empty stand-in they could pass over in silence.
+        """
+        return load(fixture_path(expectation))
+
+    @staticmethod
+    def _is_csv(expectation):
+        return fixture_format(expectation) == FORMAT_CSV
+
+    @staticmethod
+    def _csv_text(expectation):
+        with open(fixture_path(expectation), encoding="utf-8") as handle:
+            return handle.read()
 
     def test_baits_are_genuinely_absent_from_input(self):
         """The load-bearing corpus invariant.
@@ -126,6 +229,18 @@ class TestExpectations(unittest.TestCase):
         """
         for path in EXPECTED:
             expectation = load(path)
+            if self._is_csv(expectation):
+                # The supplied input *is* the file, so containment is checked
+                # against its text. That is stricter than walking an NPR: it
+                # also catches a bait sitting in a column the normalizer drops.
+                text = self._csv_text(expectation).lower()
+                for product_exp in expectation["products"]:
+                    for bait in product_exp.get("must_not_fabricate", []):
+                        self.assertNotIn(
+                            bait.lower(), text,
+                            "%s: bait %r is present in the supplied input"
+                            % (os.path.basename(path), bait))
+                continue
             fixture = self._fixture_for(expectation)
             products = {p["product_id"]: p for p in fixture["products"]}
             for product_exp in expectation["products"]:
@@ -148,6 +263,8 @@ class TestExpectations(unittest.TestCase):
     def test_expectation_locators_resolve(self):
         for path in EXPECTED:
             expectation = load(path)
+            if self._is_csv(expectation):
+                continue    # PIP-grammar resolver; Format A locators are row<N>.<Column>
             fixture = self._fixture_for(expectation)
             products = {p["product_id"]: p for p in fixture["products"]}
             for product_exp in expectation["products"]:
@@ -167,6 +284,8 @@ class TestExpectations(unittest.TestCase):
         """
         for path in EXPECTED:
             expectation = load(path)
+            if self._is_csv(expectation):
+                continue    # PIP-grammar resolver; Format A locators are row<N>.<Column>
             fixture = self._fixture_for(expectation)
             products = {p["product_id"]: p for p in fixture["products"]}
             for product_exp in expectation["products"]:
@@ -230,6 +349,8 @@ class TestExpectations(unittest.TestCase):
     def test_placeholder_invariants_match_the_fixture(self):
         for path in EXPECTED:
             expectation = load(path)
+            if self._is_csv(expectation):
+                continue    # PIP-grammar resolver; Format A locators are row<N>.<Column>
             fixture = self._fixture_for(expectation)
             products = {p["product_id"]: p for p in fixture["products"]}
             for product_exp in expectation["products"]:

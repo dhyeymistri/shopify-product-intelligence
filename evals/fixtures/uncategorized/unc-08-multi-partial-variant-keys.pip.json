@@ -1,0 +1,206 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "unc-08-multi-partial-variant-keys",
+    "set": "uncategorized",
+    "intent": "Between unc-07 and unc-05: under the counterfactual VARIANT.ATTRIBUTE_COVERAGE would be PARTIAL at 1 of 3 rather than PASS or UNKNOWN, so the removed amount is a fraction of 3.00. Counterfactual category is apparel (Q-6a). The record carries no category signal at any of the five paths taxonomy.md 2 reads, so the assignment is uncategorized on rule 6 and D2 is removed in full.",
+    "provenance": "Synthetic. Authored for the Q-6a uncategorized corpus. Not derived from any real merchant's catalog or private data.",
+    "notes": "One variant carries the complete key set and two carry none, which is the coverage shape rubric.md 3.1 scores as max x covered/total."
+  },
+  "products": [
+    {
+      "npr_version": "0.2",
+      "product_id": "handle:unc-08-multi-partial-variant-keys",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/uncategorized/unc-08-multi-partial-variant-keys.pip.json",
+        "locator": "products[handle:unc-08-multi-partial-variant-keys]"
+      },
+      "identity": {
+        "title": {
+          "value": "Ashgrove Panel",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Ashgrove",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "unc-08-multi-partial-variant-keys",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": null,
+          "src": null
+        },
+        "declared_category": {
+          "value": null,
+          "src": null
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": "Woven in three panels on a narrow band loom, then finished by hand.",
+          "src": "narrative.description_text"
+        },
+        "description_html": {
+          "value": null,
+          "src": null
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 13
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [
+        {
+          "key": "material_composition",
+          "value_raw": "60% cotton, 40% polyester",
+          "origin": "merchant_structured",
+          "src": "attributes[material_composition].value_raw",
+          "scope": "product"
+        },
+        {
+          "key": "closure_and_construction",
+          "value_raw": "flatlock seams, ribbed neckband",
+          "origin": "merchant_structured",
+          "src": "attributes[closure_and_construction].value_raw",
+          "scope": "product"
+        },
+        {
+          "key": "country_of_origin",
+          "value_raw": "Portugal",
+          "origin": "merchant_structured",
+          "src": "attributes[country_of_origin].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [
+        {
+          "name": "Length",
+          "values": [
+            "Short",
+            "Regular",
+            "Long"
+          ],
+          "src": "options[Length].name"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:U08-A",
+          "option_values": {
+            "Length": {
+              "value": "Short",
+              "src": "variants[sku:U08-A].option_values[Length]"
+            }
+          },
+          "sku": {
+            "value": "U08-A",
+            "src": "variants[sku:U08-A].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "22.00",
+            "currency": null,
+            "src": "variants[sku:U08-A].price"
+          },
+          "media_refs": [],
+          "attributes": [
+            {
+              "key": "size_system",
+              "value_raw": "US 8",
+              "origin": "merchant_structured",
+              "src": "variants[sku:U08-A].attributes[size_system].value_raw",
+              "scope": "variant"
+            },
+            {
+              "key": "garment_measurements",
+              "value_raw": "chest 96 cm, length 68 cm",
+              "origin": "merchant_structured",
+              "src": "variants[sku:U08-A].attributes[garment_measurements].value_raw",
+              "scope": "variant"
+            },
+            {
+              "key": "color_finish",
+              "value_raw": "Bracken",
+              "origin": "merchant_structured",
+              "src": "variants[sku:U08-A].attributes[color_finish].value_raw",
+              "scope": "variant"
+            }
+          ]
+        },
+        {
+          "variant_id": "sku:U08-B",
+          "option_values": {
+            "Length": {
+              "value": "Regular",
+              "src": "variants[sku:U08-B].option_values[Length]"
+            }
+          },
+          "sku": {
+            "value": "U08-B",
+            "src": "variants[sku:U08-B].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "22.00",
+            "currency": null,
+            "src": "variants[sku:U08-B].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        },
+        {
+          "variant_id": "sku:U08-C",
+          "option_values": {
+            "Length": {
+              "value": "Long",
+              "src": "variants[sku:U08-C].option_values[Length]"
+            }
+          },
+          "sku": {
+            "value": "U08-C",
+            "src": "variants[sku:U08-C].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "22.00",
+            "currency": null,
+            "src": "variants[sku:U08-C].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+Title,URL handle,Description,Vendor,Product category,Type,Tags,Status,Option1 name,Option1 value,SKU,Barcode,Price,Product image URL,Image alt text,SEO title,SEO description,Material composition (product.metafields.custom.material_composition),Construction (product.metafields.custom.closure_and_construction),Origin (product.metafields.custom.country_of_origin),Size system (product.metafields.custom.size_system),Warranty (product.metafields.custom.warranty_or_guarantee)
+Brindle Panel,unc-11-csv-multi-variant-keys,,,,,,active,Length,Short,U11-A,,22.00,,,,,"60% cotton, 40% polyester","flatlock seams, ribbed neckband",Portugal,US 10,
+,unc-11-csv-multi-variant-keys,,,,,,active,,Regular,U11-B,,22.00,,,,,,,,,
+,unc-11-csv-multi-variant-keys,,,,,,active,,Long,U11-C,,22.00,,,,,,,,,

@@ -74,14 +74,17 @@
             "Bracken",
             "Flint"
           ],
-          "src": "options[Shade]"
+          "src": "options[Shade].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:R11-BRA",
           "option_values": {
-            "Shade": "Bracken"
+            "Shade": {
+              "value": "Bracken",
+              "src": "variants[sku:R11-BRA].option_values[Shade]"
+            }
           },
           "sku": {
             "value": "R11-BRA",
@@ -102,7 +105,10 @@
         {
           "variant_id": "sku:R11-FLI",
           "option_values": {
-            "Shade": "Flint"
+            "Shade": {
+              "value": "Flint",
+              "src": "variants[sku:R11-FLI].option_values[Shade]"
+            }
           },
           "sku": {
             "value": "R11-FLI",

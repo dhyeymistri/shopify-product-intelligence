@@ -1,0 +1,159 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "unc-04-single-attrs-high",
+    "set": "uncategorized",
+    "intent": "Near-neutral: both the removed block and the remainder earn at a similar rate, so the sign of the effect is not predetermined. Counterfactual category is apparel (Q-6a). The record carries no category signal at any of the five paths taxonomy.md 2 reads, so the assignment is uncategorized on rule 6 and D2 is removed in full.",
+    "provenance": "Synthetic. Authored for the Q-6a uncategorized corpus. Not derived from any real merchant's catalog or private data.",
+    "notes": "Held beside unc-03, which shares its attributes and differs only in what the remainder supplies."
+  },
+  "products": [
+    {
+      "npr_version": "0.2",
+      "product_id": "handle:unc-04-single-attrs-high",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/uncategorized/unc-04-single-attrs-high.pip.json",
+        "locator": "products[handle:unc-04-single-attrs-high]"
+      },
+      "identity": {
+        "title": {
+          "value": "Ashgrove Band",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Ashgrove",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "unc-04-single-attrs-high",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": null,
+          "src": null
+        },
+        "declared_category": {
+          "value": null,
+          "src": null
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": "Woven on a narrow band loom in three panels. The weave is a plain twill. Each piece is finished by hand and inspected before it leaves the workroom.",
+          "src": "narrative.description_text"
+        },
+        "description_html": {
+          "value": null,
+          "src": null
+        },
+        "structure": {
+          "has_lists": true,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 28
+        },
+        "seo_title": {
+          "value": "Ashgrove Band",
+          "src": "narrative.seo_title"
+        },
+        "seo_description": {
+          "value": "Woven in three panels.",
+          "src": "narrative.seo_description"
+        }
+      },
+      "attributes": [
+        {
+          "key": "material_composition",
+          "value_raw": "60% cotton, 40% polyester",
+          "origin": "merchant_structured",
+          "src": "attributes[material_composition].value_raw",
+          "scope": "product"
+        },
+        {
+          "key": "closure_and_construction",
+          "value_raw": "flatlock seams, ribbed neckband",
+          "origin": "merchant_structured",
+          "src": "attributes[closure_and_construction].value_raw",
+          "scope": "product"
+        },
+        {
+          "key": "country_of_origin",
+          "value_raw": "Portugal",
+          "origin": "merchant_structured",
+          "src": "attributes[country_of_origin].value_raw",
+          "scope": "product"
+        },
+        {
+          "key": "warranty_or_guarantee",
+          "value_raw": "2 year warranty",
+          "origin": "merchant_structured",
+          "src": "attributes[warranty_or_guarantee].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [
+        {
+          "name": "Length",
+          "values": [
+            "Short"
+          ],
+          "src": "options[Length].name"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:U04-A",
+          "option_values": {
+            "Length": {
+              "value": "Short",
+              "src": "variants[sku:U04-A].option_values[Length]"
+            }
+          },
+          "sku": {
+            "value": "U04-A",
+            "src": "variants[sku:U04-A].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "26.00",
+            "currency": null,
+            "src": "variants[sku:U04-A].price"
+          },
+          "media_refs": [],
+          "attributes": [
+            {
+              "key": "size_system",
+              "value_raw": "EU 42",
+              "origin": "merchant_structured",
+              "src": "variants[sku:U04-A].attributes[size_system].value_raw",
+              "scope": "variant"
+            }
+          ]
+        }
+      ],
+      "media": [
+        {
+          "url": "https://example.invalid/media/u04.jpg",
+          "alt": {
+            "value": "A woven band on a plain ground",
+            "src": "media[0].alt"
+          },
+          "scope": "product",
+          "src": "media[0]"
+        }
+      ],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

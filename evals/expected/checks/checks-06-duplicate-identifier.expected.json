@@ -2,7 +2,7 @@
   "expected_version": "0.1",
   "fixture_id": "checks-06-duplicate-identifier",
   "set": "checks",
-  "rubric_version": "0.4",
+  "rubric_version": "0.6",
   "taxonomy_version": "0.1",
   "status_coverage": "partial",
   "coverage_note": "Asserts the check-layer behaviour this fixture was authored for. Recognition-dependent checks are deliberately not asserted here; they belong to the phase that implements them.",
@@ -15,6 +15,15 @@
         "45 x 75 cm",
         "non-slip",
         "outdoor use"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "PASS",
+          "evidence_locators": [
+            "options[Size].name"
+          ]
+        }
       ]
     }
   ]

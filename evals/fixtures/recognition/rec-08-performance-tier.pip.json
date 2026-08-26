@@ -95,14 +95,17 @@
           "values": [
             "180"
           ],
-          "src": "options[Length]"
+          "src": "options[Length].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:RC8-STD",
           "option_values": {
-            "Length": "180"
+            "Length": {
+              "value": "180",
+              "src": "variants[sku:RC8-STD].option_values[Length]"
+            }
           },
           "sku": {
             "value": "RC8-STD",

@@ -103,14 +103,17 @@
             "Small",
             "Large"
           ],
-          "src": "options[Size]"
+          "src": "options[Size].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:RC3-S",
           "option_values": {
-            "Size": "Small"
+            "Size": {
+              "value": "Small",
+              "src": "variants[sku:RC3-S].option_values[Size]"
+            }
           },
           "sku": {
             "value": "RC3-S",
@@ -131,7 +134,10 @@
         {
           "variant_id": "sku:RC3-L",
           "option_values": {
-            "Size": "Large"
+            "Size": {
+              "value": "Large",
+              "src": "variants[sku:RC3-L].option_values[Size]"
+            }
           },
           "sku": {
             "value": "RC3-L",

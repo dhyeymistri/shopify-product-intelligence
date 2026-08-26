@@ -102,14 +102,17 @@
           "values": [
             "Black"
           ],
-          "src": "options[Colour]"
+          "src": "options[Colour].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:RC6-BLK",
           "option_values": {
-            "Colour": "Black"
+            "Colour": {
+              "value": "Black",
+              "src": "variants[sku:RC6-BLK].option_values[Colour]"
+            }
           },
           "sku": {
             "value": "RC6-BLK",

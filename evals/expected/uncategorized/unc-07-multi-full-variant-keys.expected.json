@@ -1,0 +1,36 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "unc-07-multi-full-variant-keys",
+  "set": "uncategorized",
+  "rubric_version": "0.6",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the uncategorized applicability this fixture was authored for: the category gap charged once at IDENT.PRODUCT_TYPE_OR_CATEGORY, and VARIANT.ATTRIBUTE_COVERAGE removed on its documented ground. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "The case D-029 names and no fixture reached: every non-inheritable variant-scope attribute is present on every variant, so under the counterfactual the check would PASS at the full 3.00 and its removal is unfavourable.",
+  "products": [
+    {
+      "product_id": "handle:unc-07-multi-full-variant-keys",
+      "must_not_fabricate": [
+        "machine wash cold",
+        "size chart",
+        "made in Italy",
+        "slim fit"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+          "status": "UNKNOWN",
+          "evidence_locators": []
+        },
+        {
+          "check_id": "VARIANT.ATTRIBUTE_COVERAGE",
+          "status": "NOT_APPLICABLE",
+          "evidence_locators": []
+        }
+      ]
+    }
+  ]
+}

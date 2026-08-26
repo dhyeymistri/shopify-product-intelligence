@@ -83,14 +83,17 @@
             "M",
             "L"
           ],
-          "src": "options[Size]"
+          "src": "options[Size].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:HL-TEE-S",
           "option_values": {
-            "Size": "S"
+            "Size": {
+              "value": "S",
+              "src": "variants[sku:HL-TEE-S].option_values[Size]"
+            }
           },
           "sku": {
             "value": "HL-TEE-S",
@@ -111,7 +114,10 @@
         {
           "variant_id": "sku:HL-TEE-M",
           "option_values": {
-            "Size": "M"
+            "Size": {
+              "value": "M",
+              "src": "variants[sku:HL-TEE-M].option_values[Size]"
+            }
           },
           "sku": {
             "value": "HL-TEE-M",
@@ -132,7 +138,10 @@
         {
           "variant_id": "sku:HL-TEE-L",
           "option_values": {
-            "Size": "L"
+            "Size": {
+              "value": "L",
+              "src": "variants[sku:HL-TEE-L].option_values[Size]"
+            }
           },
           "sku": {
             "value": "HL-TEE-L",

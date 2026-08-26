@@ -1,0 +1,37 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "unc-11-csv-multi-variant-keys",
+  "set": "uncategorized",
+  "format": "shopify_csv",
+  "provenance": "Synthetic. Authored for the Q-6a uncategorized corpus. Not derived from any real merchant's catalog or private data.",
+  "intent": "Format A, three variants. Establishes that Format A cannot supply a variant-scope attribute, so the Q-6a measurement can separate a format limit from a scoring effect. Counterfactual category is apparel.",
+  "rubric_version": "0.6",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the uncategorized applicability this fixture was authored for: the category gap charged once at IDENT.PRODUCT_TYPE_OR_CATEGORY, and VARIANT.ATTRIBUTE_COVERAGE removed on its documented ground. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "Format A capability probe, not a mirror of unc-07. csv_input promotes every metafield at product scope and has no variant-scope attribute route at all, so VARIANT.ATTRIBUTE_COVERAGE cannot reach PASS from Format A under any category. Recorded rather than worked around.",
+  "products": [
+    {
+      "product_id": "handle:unc-11-csv-multi-variant-keys",
+      "must_not_fabricate": [
+        "machine wash cold",
+        "size chart",
+        "made in Italy",
+        "slim fit"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+          "status": "UNKNOWN"
+        },
+        {
+          "check_id": "VARIANT.ATTRIBUTE_COVERAGE",
+          "status": "NOT_APPLICABLE"
+        }
+      ]
+    }
+  ]
+}

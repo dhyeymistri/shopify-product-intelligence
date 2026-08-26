@@ -82,14 +82,17 @@
             "N-24",
             "N-32"
           ],
-          "src": "options[Shade]"
+          "src": "options[Shade].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:RC7-N24",
           "option_values": {
-            "Shade": "N-24"
+            "Shade": {
+              "value": "N-24",
+              "src": "variants[sku:RC7-N24].option_values[Shade]"
+            }
           },
           "sku": {
             "value": "RC7-N24",
@@ -125,7 +128,10 @@
         {
           "variant_id": "sku:RC7-N32",
           "option_values": {
-            "Shade": "N-32"
+            "Shade": {
+              "value": "N-32",
+              "src": "variants[sku:RC7-N32].option_values[Shade]"
+            }
           },
           "sku": {
             "value": "RC7-N32",

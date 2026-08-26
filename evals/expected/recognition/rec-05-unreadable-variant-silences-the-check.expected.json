@@ -2,7 +2,7 @@
   "expected_version": "0.1",
   "fixture_id": "rec-05-unreadable-variant-silences-the-check",
   "set": "recognition",
-  "rubric_version": "0.4",
+  "rubric_version": "0.6",
   "taxonomy_version": "0.1",
   "status_coverage": "partial",
   "coverage_note": "Asserts the recognition arms this fixture was authored for. Checks whose predicates remain unimplemented are deliberately not asserted here.",
@@ -18,7 +18,15 @@
       "forbidden_statuses": [
         "FAIL"
       ],
-      "expected_findings_include": []
+      "expected_findings_include": [
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "PASS",
+          "evidence_locators": [
+            "options[Width].name"
+          ]
+        }
+      ]
     }
   ]
 }

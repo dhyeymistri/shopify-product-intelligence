@@ -124,10 +124,25 @@ def validate_npr(npr):
             out.append(errors.RunError(
                 errors.INVALID_NPR, record,
                 "%s.price must be a {value, currency, src} carrier" % where))
-        if not isinstance(variant.get("option_values"), dict):
+        option_values = variant.get("option_values")
+        if not isinstance(option_values, dict):
             out.append(errors.RunError(
                 errors.INVALID_NPR, record,
                 "%s.option_values must be an object" % where))
+        else:
+            # D-033. Each entry is a `{value, src}` pair, because an option
+            # value is merchant-supplied data a check must be able to quote
+            # (PRD 6.2 rule 1). A bare scalar is a contract violation and is
+            # reported here rather than absorbed: unreported, it reaches a
+            # check as a value with no locator and the finding disappears.
+            for name in sorted(option_values):
+                if not _is_pair(option_values[name]):
+                    out.append(errors.RunError(
+                        errors.INVALID_NPR, record,
+                        "%s.option_values[%s] must be a {value, src} pair and "
+                        "is %r; an option value carries its own locator so it "
+                        "can be evidenced (PRD 6.2 rule 1, D-033)"
+                        % (where, name, option_values[name])))
 
     seen_options = set()
     for position, opt in enumerate(npr.get("options") or []):
@@ -249,13 +264,28 @@ def iter_locators(npr):
             pair("media[%d].alt" % position, item.get("alt"))
     for position, opt in enumerate(npr.get("options") or []):
         if isinstance(opt, dict) and opt.get("src"):
-            out.append(("options[%d].name" % position, None, opt["src"]))
+            # PRD 6.1's own example locates an option at its *name*
+            # (`"src": "row12.Option1 name"`), and PRD 6.2 rule 1 requires the
+            # locator to resolve back to the value beside it. Passing the name
+            # as the expected value is what enforces both: an element locator
+            # such as `options[Size]` resolves to a node with no text of its
+            # own and is caught here rather than surfacing later as an
+            # unconstructable evidence item (D-032).
+            out.append(("options[%d].name" % position, opt.get("name"),
+                        opt["src"]))
     for position, variant in enumerate(npr.get("variants") or []):
         if not isinstance(variant, dict):
             continue
         where = "variants[%d]" % position
         pair("%s.sku" % where, variant.get("sku"))
         pair("%s.barcode" % where, variant.get("barcode"))
+        # D-033. An option value's locator is provenance like any other and is
+        # proved here, so a pair whose `src` does not reproduce its `value`
+        # cannot reach a check.
+        option_values = variant.get("option_values")
+        if isinstance(option_values, dict):
+            for name in sorted(option_values):
+                pair("%s.option_values[%s]" % (where, name), option_values[name])
         price = variant.get("price")
         if isinstance(price, dict) and price.get("src"):
             out.append(("%s.price" % where, price.get("value"), price["src"]))
@@ -299,8 +329,11 @@ def validate_provenance(npr, source):
                 errors.BROKEN_LOCATOR, record,
                 "%s: locator %r does not parse: %s" % (path, locator, reason)))
             continue
-        # A locator on a node with no text of its own (an option element) is
-        # still provenance: it must resolve, but it has nothing to reproduce.
+        # A locator whose carrier asserts no text of its own -- a media URL
+        # carrier, say -- is still provenance: it must resolve, but it has
+        # nothing to reproduce. Options are **not** such a carrier and no
+        # longer reach this relaxation: `iter_locators` passes the option name
+        # as the expected value, so an element locator is caught above (D-032).
         view = None if isinstance(expected, str) else "node"
         resolution = source.resolve(locator, product_id=product_id, view=view)
         if not resolution.ok:

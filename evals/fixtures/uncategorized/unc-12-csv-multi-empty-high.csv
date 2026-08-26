@@ -1,0 +1,4 @@
+Title,URL handle,Description,Vendor,Product category,Type,Tags,Status,Option1 name,Option1 value,SKU,Barcode,Price,Product image URL,Image alt text,SEO title,SEO description,Material composition (product.metafields.custom.material_composition),Construction (product.metafields.custom.closure_and_construction),Origin (product.metafields.custom.country_of_origin),Size system (product.metafields.custom.size_system),Warranty (product.metafields.custom.warranty_or_guarantee)
+Marlow Panel,unc-12-csv-multi-empty-high,Woven on a narrow band loom in three panels. The weave is a plain twill. Each piece is finished by hand and inspected before it leaves the workroom.,Marlow,,,,active,Length,Short,U12-A,,24.00,https://example.invalid/media/u12.jpg,A woven panel on a plain ground,Marlow Panel,Woven in three panels.,,,,,2 year warranty
+,unc-12-csv-multi-empty-high,,,,,,active,,Regular,U12-B,,24.00,,,,,,,,,
+,unc-12-csv-multi-empty-high,,,,,,active,,Long,U12-C,,24.00,,,,,,,,,

@@ -2,7 +2,7 @@
   "expected_version": "0.1",
   "fixture_id": "adv-04-injection-and-known-model",
   "set": "adversarial",
-  "rubric_version": "0.4",
+  "rubric_version": "0.6",
   "taxonomy_version": "0.1",
   "status_coverage": "partial",
   "coverage_note": "Asserts the checks this fixture was built to exercise, plus the invariants that hold for the whole record. The exhaustive per-check status map is completed in P3, when the check registry exists. Fields asserted here are final and must not be relaxed to make an implementation pass.",
@@ -78,6 +78,13 @@
           "reason": "'AX-9 Pro' appears in the title and description as a model-shaped string, but no manufacturer part number is supplied. Quoting the supplied string is correct; deriving specifications from it is not.",
           "evidence_locators": [
             "identity.title"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "PASS",
+          "evidence_locators": [
+            "options[Color].name"
           ]
         }
       ]

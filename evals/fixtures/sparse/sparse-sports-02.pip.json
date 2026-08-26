@@ -82,14 +82,17 @@
             "Standard",
             "Long"
           ],
-          "src": "options[Size]"
+          "src": "options[Size].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:TP-MAT-STD",
           "option_values": {
-            "Size": "Standard"
+            "Size": {
+              "value": "Standard",
+              "src": "variants[sku:TP-MAT-STD].option_values[Size]"
+            }
           },
           "sku": {
             "value": "TP-MAT-STD",
@@ -110,7 +113,10 @@
         {
           "variant_id": "sku:TP-MAT-LNG",
           "option_values": {
-            "Size": "Long"
+            "Size": {
+              "value": "Long",
+              "src": "variants[sku:TP-MAT-LNG].option_values[Size]"
+            }
           },
           "sku": {
             "value": "TP-MAT-LNG",

@@ -1,0 +1,36 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "unc-06-multi-empty-high",
+  "set": "uncategorized",
+  "rubric_version": "0.6",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the uncategorized applicability this fixture was authored for: the category gap charged once at IDENT.PRODUCT_TYPE_OR_CATEGORY, and VARIANT.ATTRIBUTE_COVERAGE removed on its documented ground. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "Three variants, no attributes, populated remainder. Under the counterfactual VARIANT.ATTRIBUTE_COVERAGE would be UNKNOWN at 0 of 3.00.",
+  "products": [
+    {
+      "product_id": "handle:unc-06-multi-empty-high",
+      "must_not_fabricate": [
+        "machine wash cold",
+        "size chart",
+        "made in Italy",
+        "slim fit"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+          "status": "UNKNOWN",
+          "evidence_locators": []
+        },
+        {
+          "check_id": "VARIANT.ATTRIBUTE_COVERAGE",
+          "status": "NOT_APPLICABLE",
+          "evidence_locators": []
+        }
+      ]
+    }
+  ]
+}

@@ -73,14 +73,17 @@
           "values": [
             "Black"
           ],
-          "src": "options[Color]"
+          "src": "options[Color].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:AX9-PRO-BLK",
           "option_values": {
-            "Color": "Black"
+            "Color": {
+              "value": "Black",
+              "src": "variants[sku:AX9-PRO-BLK].option_values[Color]"
+            }
           },
           "sku": {
             "value": "AX9-PRO-BLK",

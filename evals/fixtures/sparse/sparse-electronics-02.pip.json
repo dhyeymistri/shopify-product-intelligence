@@ -74,14 +74,17 @@
             "Black",
             "White"
           ],
-          "src": "options[Color]"
+          "src": "options[Color].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:KS-LAMP-BLK",
           "option_values": {
-            "Color": "Black"
+            "Color": {
+              "value": "Black",
+              "src": "variants[sku:KS-LAMP-BLK].option_values[Color]"
+            }
           },
           "sku": {
             "value": "KS-LAMP-BLK",
@@ -102,7 +105,10 @@
         {
           "variant_id": "sku:KS-LAMP-WHT",
           "option_values": {
-            "Color": "White"
+            "Color": {
+              "value": "White",
+              "src": "variants[sku:KS-LAMP-WHT].option_values[Color]"
+            }
           },
           "sku": {
             "value": "KS-LAMP-WHT",

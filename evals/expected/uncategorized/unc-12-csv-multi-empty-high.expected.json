@@ -1,0 +1,37 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "unc-12-csv-multi-empty-high",
+  "set": "uncategorized",
+  "format": "shopify_csv",
+  "provenance": "Synthetic. Authored for the Q-6a uncategorized corpus. Not derived from any real merchant's catalog or private data.",
+  "intent": "Format A, three variants, no attributes, populated remainder. Counterfactual category is apparel (Q-6a).",
+  "rubric_version": "0.6",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the uncategorized applicability this fixture was authored for: the category gap charged once at IDENT.PRODUCT_TYPE_OR_CATEGORY, and VARIANT.ATTRIBUTE_COVERAGE removed on its documented ground. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "Format A mirror of unc-06.",
+  "products": [
+    {
+      "product_id": "handle:unc-12-csv-multi-empty-high",
+      "must_not_fabricate": [
+        "machine wash cold",
+        "size chart",
+        "made in Italy",
+        "slim fit"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+          "status": "UNKNOWN"
+        },
+        {
+          "check_id": "VARIANT.ATTRIBUTE_COVERAGE",
+          "status": "NOT_APPLICABLE"
+        }
+      ]
+    }
+  ]
+}

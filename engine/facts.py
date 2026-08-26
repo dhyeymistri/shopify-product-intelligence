@@ -218,12 +218,15 @@ def _variant_option_values(npr):
     out = []
     for variant in npr.get("variants") or []:
         vid = variant.get("variant_id")
-        for name, value in sorted((variant.get("option_values") or {}).items()):
+        for name, pair in sorted((variant.get("option_values") or {}).items()):
+            value, src = _pair(pair)
             if not isinstance(value, str) or not value.strip():
                 continue
+            # D-033. The locator is the one the record supplies, not one built
+            # here: a composed locator is right in one format and unparseable
+            # in the other, and this function does not know which it is in.
             out.append(Candidate(
-                value, "variants[%s].option_values[%s]" % (vid, name),
-                "merchant_structured",
+                value, src, "merchant_structured",
                 "variants[%s].option_values" % vid, scope="variant", ref=vid,
                 key=name))
     return out

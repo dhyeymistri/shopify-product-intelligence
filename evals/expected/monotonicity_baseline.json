@@ -1032,6 +1032,181 @@
         "STRUCT.SEO_FIELDS_POPULATED",
         "VARIANT.ATTRIBUTE_COVERAGE"
       ]
+    },
+    "unc-01-single-empty-low::handle:unc-01-single-empty-low": {
+      "fail": [],
+      "not_applicable": [
+        "VARIANT.ATTRIBUTE_COVERAGE",
+        "VARIANT.DIFFERENTIATED",
+        "VARIANT.MEDIA_LINKED",
+        "VARIANT.OPTION_VALUES_CONSISTENT"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "IDENT.BRAND_PRESENT",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+        "STRUCT.ATTRIBUTES_IN_FIELDS",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE"
+      ]
+    },
+    "unc-02-single-empty-high::handle:unc-02-single-empty-high": {
+      "fail": [],
+      "not_applicable": [
+        "VARIANT.ATTRIBUTE_COVERAGE",
+        "VARIANT.DIFFERENTIATED",
+        "VARIANT.MEDIA_LINKED",
+        "VARIANT.OPTION_VALUES_CONSISTENT"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+        "STRUCT.SEO_FIELDS_POPULATED"
+      ]
+    },
+    "unc-03-single-attrs-low::handle:unc-03-single-attrs-low": {
+      "fail": [],
+      "not_applicable": [
+        "VARIANT.ATTRIBUTE_COVERAGE",
+        "VARIANT.DIFFERENTIATED",
+        "VARIANT.MEDIA_LINKED",
+        "VARIANT.OPTION_VALUES_CONSISTENT"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "IDENT.BRAND_PRESENT",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE"
+      ]
+    },
+    "unc-04-single-attrs-high::handle:unc-04-single-attrs-high": {
+      "fail": [],
+      "not_applicable": [
+        "VARIANT.ATTRIBUTE_COVERAGE",
+        "VARIANT.DIFFERENTIATED",
+        "VARIANT.MEDIA_LINKED",
+        "VARIANT.OPTION_VALUES_CONSISTENT"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+        "STRUCT.SEO_FIELDS_POPULATED"
+      ]
+    },
+    "unc-05-multi-empty-low::handle:unc-05-multi-empty-low": {
+      "fail": [],
+      "not_applicable": [
+        "VARIANT.ATTRIBUTE_COVERAGE"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "IDENT.BRAND_PRESENT",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+        "STRUCT.ATTRIBUTES_IN_FIELDS",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE"
+      ]
+    },
+    "unc-06-multi-empty-high::handle:unc-06-multi-empty-high": {
+      "fail": [],
+      "not_applicable": [
+        "VARIANT.ATTRIBUTE_COVERAGE"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+        "STRUCT.SEO_FIELDS_POPULATED"
+      ]
+    },
+    "unc-07-multi-full-variant-keys::handle:unc-07-multi-full-variant-keys": {
+      "fail": [],
+      "not_applicable": [
+        "VARIANT.ATTRIBUTE_COVERAGE"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "IDENT.BRAND_PRESENT",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE"
+      ]
+    },
+    "unc-08-multi-partial-variant-keys::handle:unc-08-multi-partial-variant-keys": {
+      "fail": [],
+      "not_applicable": [
+        "VARIANT.ATTRIBUTE_COVERAGE"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED"
+      ]
+    },
+    "unc-09-multi-partial-attrs::handle:unc-09-multi-partial-attrs": {
+      "fail": [],
+      "not_applicable": [
+        "VARIANT.ATTRIBUTE_COVERAGE"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "IDENT.PRODUCT_TYPE_OR_CATEGORY",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED"
+      ]
     }
   }
 }

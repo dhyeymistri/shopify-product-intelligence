@@ -74,14 +74,17 @@
             "S/M",
             "L/XL"
           ],
-          "src": "options[Size]"
+          "src": "options[Size].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:TP-HELM-SM",
           "option_values": {
-            "Size": "S/M"
+            "Size": {
+              "value": "S/M",
+              "src": "variants[sku:TP-HELM-SM].option_values[Size]"
+            }
           },
           "sku": {
             "value": "TP-HELM-SM",
@@ -102,7 +105,10 @@
         {
           "variant_id": "sku:TP-HELM-LX",
           "option_values": {
-            "Size": "L/XL"
+            "Size": {
+              "value": "L/XL",
+              "src": "variants[sku:TP-HELM-LX].option_values[Size]"
+            }
           },
           "sku": {
             "value": "TP-HELM-LX",

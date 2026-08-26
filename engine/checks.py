@@ -707,8 +707,13 @@ def check_variant_differentiated(check, ctx):
     signatures = {}  # type: Dict[Tuple, List[dict]]
     for variant in variants:
         values = variant.get("option_values") or {}
-        signature = tuple(sorted((k, v) for k, v in values.items()
-                                 if isinstance(v, str) and v.strip()))
+        # D-033: the value lives in the pair. The comparison itself is
+        # unchanged -- `rubric.md` 4/D3 decides this check and nothing here
+        # touches what it decides, only where the value is read from.
+        signature = tuple(sorted(
+            (k, (v or {}).get("value")) for k, v in values.items()
+            if isinstance((v or {}).get("value"), str)
+            and (v or {}).get("value").strip()))
         signatures.setdefault(signature, []).append(variant)
 
     collisions = [group for signature, group in sorted(signatures.items())
@@ -745,18 +750,38 @@ def check_variant_differentiated(check, ctx):
                    "quoted in the evidence.",
             remediation=_question_remediation(check))]
 
-    refs = []
+    # D-033. The locator is *copied* from the record, never composed here: a
+    # composed string cannot be format-neutral, and this function does not know
+    # the format. `variants[<vid>].option_values[<name>]` resolves under
+    # Format C and does not parse under Format A, which is how this check came
+    # to emit nothing at all on every multi-variant CSV product.
+    refs, unprovenanced = [], []
     for variant in variants:
-        for name in sorted((variant.get("option_values") or {})):
-            refs.append("variants[%s].option_values[%s]"
-                        % (variant.get("variant_id"), name))
+        values = variant.get("option_values") or {}
+        for name in sorted(values):
+            src = (values.get(name) or {}).get("src")
+            if src:
+                refs.append(src)
+            else:
+                unprovenanced.append("%s/%s" % (variant.get("variant_id"), name))
+    if unprovenanced:
+        # The contract is unmet, so the check says so rather than vanishing
+        # (D-033, PRD 8.3 rule 1). `validate_npr` has already emitted the
+        # run error naming the record; this is the check's half of it.
+        ctx.ledger.defer(
+            check.check_id,
+            "An option value carries no locator, so the distinct combinations "
+            "cannot be evidenced at their own sources (%s)."
+            % ", ".join(sorted(unprovenanced)[:5]))
+        return []
     if len(refs) < 2:
         return []
     try:
         evidence = [ctx.builder.derived(
             refs, "%d variants, %d distinct option-value combinations"
                   % (len(variants), len(signatures)))]
-    except EvidenceError:
+    except EvidenceError as exc:
+        ctx.ledger.error("CHECK.EVIDENCE", str(exc), check.check_id)
         return []
     return [_finding(
         check, R.PASS, evidence, check.max_points,

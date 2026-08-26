@@ -74,14 +74,17 @@
             "Oak",
             "Walnut"
           ],
-          "src": "options[Color]"
+          "src": "options[Color].name"
         }
       ],
       "variants": [
         {
           "variant_id": "sku:R9-OAK",
           "option_values": {
-            "Color": "Oak"
+            "Color": {
+              "value": "Oak",
+              "src": "variants[sku:R9-OAK].option_values[Color]"
+            }
           },
           "sku": {
             "value": "R9-OAK",
@@ -119,7 +122,10 @@
         {
           "variant_id": "sku:R9-WAL",
           "option_values": {
-            "Color": "Walnut"
+            "Color": {
+              "value": "Walnut",
+              "src": "variants[sku:R9-WAL].option_values[Color]"
+            }
           },
           "sku": {
             "value": "R9-WAL",

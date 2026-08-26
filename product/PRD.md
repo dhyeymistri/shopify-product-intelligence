@@ -765,12 +765,13 @@ Fixtures live in `evals/fixtures/`, expected outcomes in `evals/expected/`. Targ
 | `ambiguous/` | 4 | "One size", "various", "eco-friendly". Tests §9.3 PARTIAL. |
 | `duplicates/` | 4 | Exact and near-duplicate attributes; one duplicate-with-different-values trap. Tests §9.8 and its routing to §9.2. |
 | `adversarial/` | 4 | Inputs that bait invention: an evocative title with no facts; a category strongly implying attributes; placeholder text; a description that *asks* the tool to fill in gaps. Tests AC-I1. |
+| `uncategorized/` | 12 | Uncategorized products spanning attribute density, variant cardinality, and both input formats. Measures the aggregate effect of D2's and D-029's removals (Q-6a). |
 
-Every fixture ships with a **provenance note** stating whether it is synthetic or derived from public data, and no fixture may contain a real merchant's private data.
+Every fixture ships with a **provenance note** stating whether it is synthetic or derived from public data, and no fixture may contain a real merchant's private data. A **Format A fixture carries its provenance note in its expectation file**: Format C wraps a record in the §5.3.1 envelope and a CSV has no equivalent slot, so the note lives in the one file that always accompanies the fixture. A set is defined by what it measures, not by input format, so a set may hold fixtures of both — `uncategorized/` does. `evals/fixtures/csv/` is not a set in this sense: it is normalizer input for §5.1 and carries no expectations.
 
 ### 12.2 Expected-outcome format
 
-Each fixture has an expectation file asserting, per product: assigned category; the set of `check_id`s expected `PASS` / `FAIL` / `UNKNOWN` / `PARTIAL` / `N/A`; expected score within a tolerance band (±2 points, tightening to ±0 once the rubric stabilizes); and, for seeded defects, the exact locators the evidence must cite.
+Each fixture has an expectation file asserting, per product: assigned category; the set of `check_id`s expected `PASS` / `FAIL` / `UNKNOWN` / `PARTIAL` / `N/A`; expected score within a tolerance band (±2 points, tightening to ±0 once the rubric stabilizes); and, for seeded defects, the exact locators the evidence must cite. An expectation may address either input format via an optional **`format`** member (`pip_json` | `shopify_csv`); omitting it means `pip_json`, so an expectation written before this existed addresses a Format C fixture and is unchanged by the addition.
 
 Expectations assert **check outcomes and evidence locators**, not report prose. Prose is checked by the audits in §12.3.
 

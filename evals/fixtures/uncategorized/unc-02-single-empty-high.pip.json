@@ -1,0 +1,130 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "unc-02-single-empty-high",
+    "set": "uncategorized",
+    "intent": "Maximum flattering candidate at one variant: the remainder earns well while the removed block would have earned nothing. Counterfactual category is apparel (Q-6a). The record carries no category signal at any of the five paths taxonomy.md 2 reads, so the assignment is uncategorized on rule 6 and D2 is removed in full.",
+    "provenance": "Synthetic. Authored for the Q-6a uncategorized corpus. Not derived from any real merchant's catalog or private data.",
+    "notes": "No attribute is supplied, so every apparel D2 check would be UNKNOWN under the counterfactual and would keep its maximum in the denominator."
+  },
+  "products": [
+    {
+      "npr_version": "0.2",
+      "product_id": "handle:unc-02-single-empty-high",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/uncategorized/unc-02-single-empty-high.pip.json",
+        "locator": "products[handle:unc-02-single-empty-high]"
+      },
+      "identity": {
+        "title": {
+          "value": "Marlow Band",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Marlow",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "unc-02-single-empty-high",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": null,
+          "src": null
+        },
+        "declared_category": {
+          "value": null,
+          "src": null
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": "Woven on a narrow band loom in three panels. The weave is a plain twill. Each piece is finished by hand and inspected before it leaves the workroom.",
+          "src": "narrative.description_text"
+        },
+        "description_html": {
+          "value": null,
+          "src": null
+        },
+        "structure": {
+          "has_lists": true,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 28
+        },
+        "seo_title": {
+          "value": "Marlow Band",
+          "src": "narrative.seo_title"
+        },
+        "seo_description": {
+          "value": "Woven in three panels.",
+          "src": "narrative.seo_description"
+        }
+      },
+      "attributes": [
+        {
+          "key": "warranty_or_guarantee",
+          "value_raw": "2 year warranty",
+          "origin": "merchant_structured",
+          "src": "attributes[warranty_or_guarantee].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [
+        {
+          "name": "Length",
+          "values": [
+            "Short"
+          ],
+          "src": "options[Length].name"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:U02-A",
+          "option_values": {
+            "Length": {
+              "value": "Short",
+              "src": "variants[sku:U02-A].option_values[Length]"
+            }
+          },
+          "sku": {
+            "value": "U02-A",
+            "src": "variants[sku:U02-A].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "24.00",
+            "currency": null,
+            "src": "variants[sku:U02-A].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [
+        {
+          "url": "https://example.invalid/media/u02.jpg",
+          "alt": {
+            "value": "A woven band on a plain ground",
+            "src": "media[0].alt"
+          },
+          "scope": "product",
+          "src": "media[0]"
+        }
+      ],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

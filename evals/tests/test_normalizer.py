@@ -64,6 +64,16 @@ def find_variant(npr, variant_id):
     raise AssertionError("no variant %r in %r" % (variant_id, npr["product_id"]))
 
 
+def option_values(npr, variant_id):
+    """``{name: value}`` from the ``{value, src}`` pairs D-033 introduced.
+
+    Assertions about *which value is on which variant* stay about that, and the
+    pair shape itself is asserted separately where it is the subject.
+    """
+    return dict((name, pair["value"])
+                for name, pair in find_variant(npr, variant_id)["option_values"].items())
+
+
 # ---------------------------------------------------------------------------
 # format detection
 # ---------------------------------------------------------------------------
@@ -363,8 +373,16 @@ class TestCsvVariants(unittest.TestCase):
                          {"value": None, "src": None})
 
     def test_option_values_are_per_variant(self):
-        self.assertEqual(find_variant(self.npr, "sku:HL-TEE-M-ECR")["option_values"],
+        self.assertEqual(option_values(self.npr, "sku:HL-TEE-M-ECR"),
                          {"Size": "M", "Color": "Ecru"})
+
+    def test_each_option_value_carries_its_own_locator(self):
+        """D-033: the pair, and the locator that makes it evidenceable."""
+        variant = find_variant(self.npr, "sku:HL-TEE-M-ECR")
+        for name, pair in variant["option_values"].items():
+            self.assertIn("value", pair, name)
+            self.assertIn("src", pair, name)
+            self.assertTrue(pair["src"].startswith("row"), pair["src"])
 
     def test_options_list_distinct_values_in_order_of_appearance(self):
         options = dict((o["name"], o["values"]) for o in self.npr["options"])
@@ -429,7 +447,7 @@ class TestCsvMultipleProducts(unittest.TestCase):
         npr = self.products["handle:oritatami-kasa"]
         self.assertEqual(npr["identity"]["title"]["value"], "折りたたみ傘")
         self.assertEqual(npr["identity"]["brand"]["value"], "雨具工房")
-        self.assertEqual(find_variant(npr, "sku:UMB-NAV")["option_values"], {"色": "紺"})
+        self.assertEqual(option_values(npr, "sku:UMB-NAV"), {"色": "紺"})
 
     def test_unicode_accents_are_not_folded(self):
         npr = self.products["handle:cafe-creme-lip-balm"]
@@ -538,15 +556,14 @@ class TestCsvNoInheritanceBetweenVariants(unittest.TestCase):
         self.npr = only(normalize_file(fixture("csv-inheritance-trap.csv")))
 
     def test_the_stated_colour_stays_on_its_own_variant(self):
-        self.assertEqual(find_variant(self.npr, "sku:SC-S")["option_values"],
+        self.assertEqual(option_values(self.npr, "sku:SC-S"),
                          {"Size": "Small", "Colour": "Walnut"})
 
     def test_the_other_variants_have_no_colour(self):
         for variant_id in ("sku:SC-M", "sku:SC-L"):
-            self.assertEqual(find_variant(self.npr, variant_id)["option_values"],
-                             {"Size": find_variant(self.npr, variant_id)
-                              ["option_values"]["Size"]})
-            self.assertNotIn("Colour", find_variant(self.npr, variant_id)["option_values"])
+            values = option_values(self.npr, variant_id)
+            self.assertEqual(values, {"Size": values["Size"]})
+            self.assertNotIn("Colour", values)
 
     def test_the_option_still_lists_only_the_value_that_was_stated(self):
         options = dict((o["name"], o["values"]) for o in self.npr["options"])
@@ -708,6 +725,186 @@ class TestProvenanceReproduction(unittest.TestCase):
             first = json.dumps(normalize_file(path).as_dict(), sort_keys=True)
             second = json.dumps(normalize_file(path).as_dict(), sort_keys=True)
             self.assertEqual(first, second, os.path.basename(path))
+
+
+class TestOptionProvenanceIsCheckedAgainstTheName(unittest.TestCase):
+    """D-032, at the validator layer -- the line that let the defect through.
+
+    `iter_locators` used to pass `None` as the expected value for an option,
+    which `validate_provenance` turns into a `node` view: the locator had only
+    to resolve to *something*, never to reproduce the option name. That is why
+    21 fixtures carried `options[Size]` -- an element with no text of its own --
+    and why `VARIANT.OPTION_NAMES_MEANINGFUL` could construct no evidence and
+    emitted nothing at all, in breach of PRD 8.3 rule 1.
+
+    These assertions are the guard, not the fix. The fix is in
+    `engine/validate.iter_locators`; if it is ever relaxed back, the two
+    regression cases below fail rather than the corpus quietly going silent.
+    """
+
+    def _record(self):
+        result = normalize_file(os.path.join(
+            REPO,
+            "evals/fixtures/recognition/rec-11-uncategorized-visual-option.pip.json"))
+        return result.products[0], result.source
+
+    def test_the_corpus_locator_is_accepted(self):
+        npr, source = self._record()
+        self.assertEqual(npr["options"][0]["src"], "options[Shade].name")
+        self.assertEqual(validate.validate_provenance(npr, source), [])
+
+    def test_an_element_locator_is_rejected(self):
+        """The exact defect this repair removed."""
+        npr, source = self._record()
+        npr["options"][0]["src"] = "options[Shade]"
+        errs = validate.validate_provenance(npr, source)
+        self.assertEqual(len(errs), 1, errs)
+        self.assertEqual(errs[0].code, errors.BROKEN_LOCATOR)
+        self.assertIn("does not address text content", errs[0].reason)
+
+    def test_a_locator_that_resolves_to_the_wrong_field_is_rejected(self):
+        """The near miss: `options[X].values` resolves, and is still not the name.
+
+        Requiring resolution alone would accept it; requiring reproduction of
+        the option name is what does not.
+        """
+        npr, source = self._record()
+        npr["options"][0]["src"] = "options[Shade].values"
+        errs = validate.validate_provenance(npr, source)
+        self.assertEqual(len(errs), 1, errs)
+        self.assertEqual(errs[0].code, errors.NON_REPRODUCIBLE_EXCERPT)
+
+    def test_the_csv_form_of_the_same_locator_is_accepted(self):
+        """PRD 6.1's example is a Format A locator, so both formats are held to it."""
+        result = normalize_file(os.path.join(REPO, "evals/fixtures/csv/csv-variants.csv"))
+        for npr in result.products:
+            for option in npr.get("options") or []:
+                self.assertTrue(option["src"].startswith("row"), option["src"])
+            self.assertEqual(validate.validate_provenance(npr, result.source), [])
+
+
+class TestOptionValuesCarryTheirOwnProvenance(unittest.TestCase):
+    """D-033, at the schema and validator layers, over **both** formats.
+
+    `option_values` was the one NPR member holding merchant values as bare
+    scalars, which is why it was the one member whose values could not be
+    evidenced: `VARIANT.DIFFERENTIATED` had to compose a locator, a composed
+    locator cannot be format-neutral, and the Format C form it produced does
+    not parse under Format A. PRD 6.2 rule 1 governs -- every value is a
+    `{value, src}` pair -- and these assertions hold the record to it.
+    """
+
+    CSV = "evals/fixtures/csv/csv-variants.csv"
+    PIP = "evals/fixtures/recognition/rec-09-variant-scope-fully-covered.pip.json"
+
+    def _both(self):
+        for path in (self.CSV, self.PIP):
+            result = normalize_file(os.path.join(REPO, path))
+            for npr in result.products:
+                yield os.path.basename(path), npr, result.source
+
+    def test_every_option_value_is_a_pair_in_both_formats(self):
+        seen = 0
+        for name, npr, _ in self._both():
+            for variant in npr["variants"]:
+                for option, pair in (variant.get("option_values") or {}).items():
+                    self.assertIsInstance(pair, dict, "%s/%s" % (name, option))
+                    self.assertIn("value", pair)
+                    self.assertIn("src", pair)
+                    self.assertIsInstance(pair["value"], str)
+                    seen += 1
+        self.assertGreater(seen, 0)
+
+    def test_each_locator_reproduces_its_own_value_in_both_formats(self):
+        """The property that makes the pair worth carrying (PRD 8.3 rule 4)."""
+        for name, npr, source in self._both():
+            for variant in npr["variants"]:
+                for option, pair in (variant.get("option_values") or {}).items():
+                    resolution = source.resolve(pair["src"], npr["product_id"])
+                    self.assertTrue(resolution.ok,
+                                    "%s: %r -> %s" % (name, pair["src"], resolution.error))
+                    self.assertEqual(resolution.text, pair["value"],
+                                     "%s: %r" % (name, pair["src"]))
+
+    def test_the_locator_is_in_each_formats_own_grammar(self):
+        """A single composed string could not have satisfied both."""
+        for name, npr, _ in self._both():
+            for variant in npr["variants"]:
+                for pair in (variant.get("option_values") or {}).values():
+                    if name.endswith(".csv"):
+                        self.assertTrue(pair["src"].startswith("row"), pair["src"])
+                    else:
+                        self.assertTrue(pair["src"].startswith("variants["), pair["src"])
+
+    def test_provenance_validation_covers_option_values(self):
+        for name, npr, source in self._both():
+            self.assertEqual(validate.validate_provenance(npr, source), [], name)
+
+    def test_a_bare_scalar_is_a_reported_contract_violation(self):
+        """D-033: reported, never absorbed.
+
+        The failure this replaces was silent in every layer at once -- no
+        finding, no deferral, no run error -- so the assertion is that the
+        violation is *visible*, not merely that it is refused.
+        """
+        import copy
+        for name, npr, _ in self._both():
+            npr = copy.deepcopy(npr)
+            variant = npr["variants"][0]
+            option = sorted(variant["option_values"])[0]
+            variant["option_values"][option] = "Small"      # the old shape
+            errs = validate.validate_npr(npr)
+            self.assertEqual(len(errs), 1, "%s: %r" % (name, errs))
+            self.assertEqual(errs[0].code, errors.INVALID_NPR)
+            self.assertIn("option_values[%s]" % option, errs[0].reason)
+            self.assertIn("{value, src} pair", errs[0].reason)
+
+    def test_a_pair_whose_locator_points_elsewhere_is_rejected(self):
+        """Carrying a locator is not enough; it must reproduce the value."""
+        import copy
+        for name, npr, source in self._both():
+            # Deep-copied because a Format C record shares its variant objects
+            # with the source document it came from, so mutating the NPR in
+            # place would move the source with it and prove nothing.
+            npr = copy.deepcopy(npr)
+            variant = npr["variants"][0]
+            option = sorted(variant["option_values"])[0]
+            variant["option_values"][option]["value"] = "NotWhatIsThere"
+            errs = validate.validate_provenance(npr, source)
+            self.assertEqual(len(errs), 1, "%s: %r" % (name, errs))
+            self.assertEqual(errs[0].code, errors.NON_REPRODUCIBLE_EXCERPT)
+
+    def test_normalization_never_derives_the_locator_for_format_c(self):
+        """PRD 5.3: Format C normalization is the identity function.
+
+        A record that omits the provenance must not have it filled in, because
+        that would assert a source the document did not state (D-033). What
+        happens instead is PRD 5.4's rule for a malformed record: the record is
+        skipped and the reason is reported. Both halves are asserted, because
+        the failure D-033 replaced was one where nothing was reported at all.
+        """
+        import copy
+        with open(os.path.join(REPO, self.PIP), encoding="utf-8") as handle:
+            document = json.load(handle)
+        stripped = copy.deepcopy(document)
+        for product in stripped["products"]:
+            for variant in product["variants"]:
+                variant["option_values"] = dict(
+                    (name, pair["value"])
+                    for name, pair in variant["option_values"].items())
+
+        result = normalize_document(stripped, format=model.FORMAT_PIP)
+
+        self.assertEqual(result.products, [],
+                         "a record with unprovenanced option values was accepted")
+        self.assertTrue(result.run_errors, "the record was dropped silently")
+        for error in result.run_errors:
+            self.assertEqual(error.code, errors.INVALID_NPR)
+            self.assertIn("option_values[", error.reason)
+        # and nothing was invented on the way past
+        self.assertNotIn(
+            "src",
+            json.dumps(stripped["products"][0]["variants"][0]["option_values"]))
 
 
 class TestLocatorValidation(unittest.TestCase):
