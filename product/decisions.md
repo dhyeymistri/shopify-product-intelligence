@@ -739,6 +739,46 @@ Each gains `PASS` at 5.00, adding 5.00 to both the numerator and the applicable 
 
 ---
 
+## D-034 — APPAREL.COLOR_FINISH: named_color_per_variant remains deferred; unnamed_color_group is distinct
+
+**Status:** Accepted. Governance-only step — no implementation.
+
+**Question:** [`taxonomy.md`](./taxonomy.md) §5.1 fixes APPAREL.COLOR_FINISH with `satisfies = named_color_per_variant` and `partial_if = unnamed_color_group`. The reconnaissance step evaluated whether to implement either path. Should the engine proceed to implement recognition for this attribute?
+
+**Decision: neither path is implemented in this step. The existing taxonomy contract is preserved exactly as-is.**
+
+1. **`named_color_per_variant` remains deferred under D-022.**
+   The governing rule is D-022: *"No lexicon entry may be a product value. Entries are the vocabulary of ambiguity, of units and of standards — never a fact about a product."* A positive named-color lexicon would necessarily consist of product-value vocabulary — the set of color names merchants actually state (e.g., "Heather Grey", "Navy", "Sage"). That is precisely what D-022 forbids. The engine cannot ship a lexicon that enumerates product facts without violating the core no-invention principle (AGENTS.md §2) and the lexicon governance that enforces it (D-022, D-023). This is the same structural block that applies to any attribute whose satisfaction requires recognizing a merchant-stated value drawn from an open product-value vocabulary.
+
+2. **Precedent: BEAUTY.COLOR_SHADE / `named_shade_per_variant`.**
+   The BEAUTY.COLOR_SHADE attribute (§5.1) uses the identical pattern — `satisfies = named_shade_per_variant` — and its positive lexicon path has been deferred for exactly this reason. The governance principle is consistent: a taxonomy row may declare a satisfaction condition that the current phase cannot honestly implement, and the tool emits no finding for that condition (D-019) rather than shipping a lexicon of product values. The deferral is not a gap in the specification; it is a specification of where the tool's honesty boundary lies.
+
+3. **`unnamed_color_group` is a separate path and remains unimplemented, but it is *not* blocked by D-022.**
+   `unnamed_color_group` recognizes ambiguity vocabulary — vague group terms such as "assorted colors", "multi-color", "various shades", "color pack" — not product facts. D-022 permits ambiguity vocabulary ("Entries are the vocabulary of ambiguity"). A future implementation of `unnamed_color_group` would therefore be a legitimate recognition predicate, subject to the normal D-022/D-023 governance: it would live in `engine/lexicon.py` under its owning `check_id`, bump `rubric_version` (D-023), update every affected expectation file in the same commit, and name the entries in the commit message. It would not require a new decision record unless it changes the *shape* of what the set recognizes.
+
+4. **This decision does not alter `taxonomy.md`.** The attribute's `satisfies` and `partial_if` cells are unchanged. The contract between taxonomy and rubric is preserved.
+
+5. **No code, lexicon, fixture, expectation, rubric version, or baseline is changed by this governance-only step.**
+   - `RUBRIC_VERSION` remains 0.6
+   - `LEXICON_VERSION` remains 0.6
+   - `REGISTRY_VERSION` remains 0.6
+   - `NPR_VERSION` remains 0.2
+   - No entry is added to `engine/lexicon.py`
+   - No check is registered in `engine/registry.py`
+   - No fixture or expectation file is modified
+   - `evals/monotonicity_baseline.json` is not changed
+   - Q-6a diagnostic remains byte-identical
+
+6. **Any eventual implementation of `unnamed_color_group` is a separate score-moving change governed by D-023** and must include the required `rubric_version` bump, expectation migration, and baseline update in one transaction. It is not authorized by this record; it is merely not blocked by D-022.
+
+7. **Q-19 is not resolved here.** It remains an open specification-consistency question recorded in `decisions.md` and is not a prerequisite for this governance disposition.
+
+**Rejected:** *Implement a minimal named-color lexicon anyway* — violates D-022's load-bearing prohibition on product-value vocabulary. *Amend taxonomy to remove `named_color_per_variant`* — would silently change the specification's honesty boundary rather than documenting it; the taxonomy states what satisfaction *is*, and deferral is the engine's honest response. *Treat `unnamed_color_group` as blocked by the same rule* — misreads D-022; ambiguity vocabulary is explicitly permitted.
+
+**Cost:** The attribute remains effectively unaudited for its positive condition. A merchant stating `"Color": "Navy"` on every variant earns nothing for it until a recognition path exists that does not enumerate product values. This is the permitted direction of failure — under-crediting honest data rather than inventing a vocabulary the tool cannot justify.
+
+---
+
 ## Open questions
 
 Deliberately unresolved. Each is recorded so V0 does not foreclose it, and none blocks V0. Q-18 was resolved by D-032 and is recorded there.
