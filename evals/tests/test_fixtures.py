@@ -35,7 +35,7 @@ CSV_FIXTURES = sorted(
 ALL_FIXTURES = sorted(PIP_FIXTURES + CSV_FIXTURES)
 EXPECTED = sorted(glob.glob(os.path.join(REPO, "evals/expected/*/*.expected.json")))
 
-REQUIRED_SETS = {"sparse": 10, "adversarial": 4, "checks": 8,
+REQUIRED_SETS = {"sparse": 10, "adversarial": 4, "checks": 9,
                  "recognition": 11, "uncategorized": 12}
 
 #: Expectation formats (PRD 12.2). An expectation that omits `format` addresses
