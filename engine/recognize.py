@@ -90,6 +90,15 @@ def _member_of(phrases):
     return predicate
 
 
+#: `taxonomy.md` 5.1 APPAREL.COLOR_FINISH partial_if = unnamed_color_group.
+#: Recognizes ambiguity vocabulary -- vague group terms only, never product-value
+#: color names. D-034: named_color_per_variant remains deferred because a
+#: positive lexicon would enumerate product facts (D-022).
+def unnamed_color_group(value):
+    # type: (str) -> bool
+    return X.normalize(value) in X.APPAREL_COLOR_FINISH_VAGUE
+
+
 # ---------------------------------------------------------------------------
 # Slice B -- numeric, unit and delimiter shape
 # ---------------------------------------------------------------------------
@@ -314,6 +323,7 @@ VALUE_PREDICATES = {
         _member_of(X.ELEC_COMPATIBILITY_VAGUE),
     "broad_family_only":
         _member_of(X.SPORTS_SPORT_OR_ACTIVITY_VAGUE),
+    "unnamed_color_group": unnamed_color_group,
     # Slice B
     "material_with_proportions": material_with_proportions,
     "material_without_proportions": material_without_proportions,

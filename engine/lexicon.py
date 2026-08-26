@@ -44,7 +44,7 @@ from . import taxonomy_keys
 #: rubric, which would make the assertion at the foot of this module vacuous.
 #: Stated as a literal, bumping `rubric_version` without reviewing this
 #: vocabulary is a load failure -- which is exactly what D-022 asks for.
-LEXICON_VERSION = "0.6"
+LEXICON_VERSION = "0.7"
 
 _WS_RE = re.compile(r"\s+")
 
@@ -98,6 +98,12 @@ ELEC_COMPATIBILITY_VAGUE = frozenset([
 APPAREL_SUSTAINABILITY_CREDENTIALS_VAGUE = frozenset([
     "eco-friendly", "eco friendly", "sustainable", "environmentally friendly",
     "green",
+])
+
+APPAREL_COLOR_FINISH_VAGUE = frozenset([
+    "assorted", "assorted colors", "assorted colours", "multi-color",
+    "multi-colour", "various", "various colors", "various colours",
+    "color pack", "colour pack", "mixed", "mixed colors", "mixed colours",
 ])
 
 SPORTS_SPORT_OR_ACTIVITY_VAGUE = frozenset([
@@ -260,6 +266,7 @@ VALUE_SHAPED = frozenset(
     | SPORTS_USE_ENVIRONMENT_VAGUE
     | ELEC_COMPATIBILITY_VAGUE
     | APPAREL_SUSTAINABILITY_CREDENTIALS_VAGUE
+    | APPAREL_COLOR_FINISH_VAGUE
     | SPORTS_SPORT_OR_ACTIVITY_VAGUE
     | APPAREL_SIZE_SYSTEM_BARE_LABELS
     | SPORTS_SKILL_OR_INTENSITY_LEVEL_TIERS

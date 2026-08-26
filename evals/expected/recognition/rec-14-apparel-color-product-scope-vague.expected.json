@@ -1,0 +1,40 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-14-apparel-color-product-scope-vague",
+  "set": "recognition",
+  "rubric_version": "0.7",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts D-018 behavior for APPAREL.COLOR_FINISH with a product-scope vague value. The product carries \"assorted\" at product scope; unnamed_color_group recognizes it as AMBIGUOUS, but color_finish is variant-scope and non-inheritable. The check emits PARTIAL at 0 earned, quotes the product-scope value, and names all three variants as uncovered.",
+  "notes": "color_finish is Tier B (1.65 max) for apparel, variant-scope, non-inheritable. D-018: product-scope value covers 0 variants. unnamed_color_group recognizes the vague term but scope mismatch prevents variant coverage.",
+  "products": [
+    {
+      "product_id": "handle:rec-14-apparel-color-product-scope-vague",
+      "must_not_fabricate": [
+        "navy",
+        "black",
+        "white"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "APPAREL.COLOR_FINISH",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "attributes[color_finish].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "PASS",
+          "evidence_locators": [
+            "options[Size].name"
+          ]
+        }
+      ],
+      "expected_deferred_checks": []
+    }
+  ]
+}

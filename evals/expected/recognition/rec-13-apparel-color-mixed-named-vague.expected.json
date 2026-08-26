@@ -1,0 +1,35 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-13-apparel-color-mixed-named-vague",
+  "set": "recognition",
+  "rubric_version": "0.7",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts mixed named + vague behavior for APPAREL.COLOR_FINISH. One variant has named color \"Navy\" (unrecognized, UNDECIDED), one has vague \"assorted\" (recognized AMBIGUOUS by unnamed_color_group). Since a variant's value is UNDECIDED, the whole check defers (D-019) and emits no finding.",
+  "notes": "color_finish is Tier B (1.65 max) for apparel. named_color_per_variant is deferred. unnamed_color_group recognizes only ambiguity vocabulary. Mixed verdicts across variants trigger full deferral.",
+  "products": [
+    {
+      "product_id": "handle:rec-13-apparel-color-mixed-named-vague",
+      "must_not_fabricate": [
+        "heather grey",
+        "sage"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "PASS",
+          "evidence_locators": [
+            "options[Color].name",
+            "options[Size].name"
+          ]
+        }
+      ],
+      "expected_deferred_checks": [
+        "APPAREL.COLOR_FINISH"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,205 @@
+{
+  "pip_version": "0.2",
+  "fixture": {
+    "id": "rec-15-apparel-color-named-deferred",
+    "set": "recognition",
+    "intent": "APPAREL.COLOR_FINISH: named colors on every variant (\"Navy\", \"Black\", \"White\"). named_color_per_variant remains UNIMPLEMENTED and deferred. unnamed_color_group does not recognize these as vague. The check must defer entirely (D-019) and emit no finding. named colors do not become PASS merely because they are not vague.",
+    "provenance": "Synthetic. Authored for this eval corpus to verify named colors remain deferred. Not derived from any real merchant's catalog or private data.",
+    "notes": "color_finish is Tier B (1.65 max) for apparel. All three variants carry named color values. No predicate recognizes named colors (named_color_per_variant is deferred). unnamed_color_group only recognizes ambiguity vocabulary. Since all values are UNDECIDED, the check defers and emits nothing."
+  },
+  "products": [
+    {
+      "npr_version": "0.2",
+      "product_id": "handle:rec-15-apparel-color-named-deferred",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-15-apparel-color-named-deferred.pip.json",
+        "locator": "products[handle:rec-15-apparel-color-named-deferred]"
+      },
+      "identity": {
+        "title": {
+          "value": "Harbourline Classic Tee Three Pack",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Harbourline",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "rec-15-apparel-color-named-deferred",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": null,
+          "src": null
+        },
+        "declared_category": {
+          "value": "Apparel & Accessories > Clothing > Shirts & Tops",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": null,
+          "src": null
+        },
+        "description_html": {
+          "value": null,
+          "src": null
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 0
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [],
+      "options": [
+        {
+          "name": "Color",
+          "values": [
+            "Navy",
+            "Black",
+            "White"
+          ],
+          "src": "options[Color].name"
+        },
+        {
+          "name": "Size",
+          "values": [
+            "M"
+          ],
+          "src": "options[Size].name"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:RC15-NAVY",
+          "option_values": {
+            "Color": {
+              "value": "Navy",
+              "src": "variants[sku:RC15-NAVY].option_values[Color]"
+            },
+            "Size": {
+              "value": "M",
+              "src": "variants[sku:RC15-NAVY].option_values[Size]"
+            }
+          },
+          "sku": {
+            "value": "RC15-NAVY",
+            "src": "variants[sku:RC15-NAVY].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "28.00",
+            "currency": null,
+            "src": "variants[sku:RC15-NAVY].price"
+          },
+          "media_refs": [],
+          "attributes": [
+            {
+              "key": "color_finish",
+              "value_raw": "Navy",
+              "origin": "merchant_structured",
+              "src": "variants[sku:RC15-NAVY].attributes[color_finish].value_raw",
+              "scope": "variant"
+            }
+          ]
+        },
+        {
+          "variant_id": "sku:RC15-BLACK",
+          "option_values": {
+            "Color": {
+              "value": "Black",
+              "src": "variants[sku:RC15-BLACK].option_values[Color]"
+            },
+            "Size": {
+              "value": "M",
+              "src": "variants[sku:RC15-BLACK].option_values[Size]"
+            }
+          },
+          "sku": {
+            "value": "RC15-BLACK",
+            "src": "variants[sku:RC15-BLACK].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "28.00",
+            "currency": null,
+            "src": "variants[sku:RC15-BLACK].price"
+          },
+          "media_refs": [],
+          "attributes": [
+            {
+              "key": "color_finish",
+              "value_raw": "Black",
+              "origin": "merchant_structured",
+              "src": "variants[sku:RC15-BLACK].attributes[color_finish].value_raw",
+              "scope": "variant"
+            }
+          ]
+        },
+        {
+          "variant_id": "sku:RC15-WHITE",
+          "option_values": {
+            "Color": {
+              "value": "White",
+              "src": "variants[sku:RC15-WHITE].option_values[Color]"
+            },
+            "Size": {
+              "value": "M",
+              "src": "variants[sku:RC15-WHITE].option_values[Size]"
+            }
+          },
+          "sku": {
+            "value": "RC15-WHITE",
+            "src": "variants[sku:RC15-WHITE].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "28.00",
+            "currency": null,
+            "src": "variants[sku:RC15-WHITE].price"
+          },
+          "media_refs": [],
+          "attributes": [
+            {
+              "key": "color_finish",
+              "value_raw": "White",
+              "origin": "merchant_structured",
+              "src": "variants[sku:RC15-WHITE].attributes[color_finish].value_raw",
+              "scope": "variant"
+            }
+          ]
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

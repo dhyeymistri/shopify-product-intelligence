@@ -1,0 +1,44 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-12-apparel-color-vague-all",
+  "set": "recognition",
+  "rubric_version": "0.7",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the unnamed_color_group predicate for APPAREL.COLOR_FINISH. All three variants carry \"assorted\" which is recognized as ambiguous; D-025 floor applies so the check earns max * partial_credit = 1.65 * 0.5 = 0.825.",
+  "notes": "color_finish is Tier B (1.65 max) for apparel. named_color_per_variant remains deferred. unnamed_color_group recognizes vague group terms only.",
+  "products": [
+    {
+      "product_id": "handle:rec-12-apparel-color-vague-all",
+      "must_not_fabricate": [
+        "navy",
+        "black",
+        "white",
+        "heather grey"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "APPAREL.COLOR_FINISH",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "variants[sku:RC12-S].attributes[color_finish].value_raw",
+            "variants[sku:RC12-M].attributes[color_finish].value_raw",
+            "variants[sku:RC12-L].attributes[color_finish].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "PASS",
+          "evidence_locators": [
+            "options[Color].name",
+            "options[Size].name"
+          ]
+        }
+      ],
+      "expected_deferred_checks": []
+    }
+  ]
+}

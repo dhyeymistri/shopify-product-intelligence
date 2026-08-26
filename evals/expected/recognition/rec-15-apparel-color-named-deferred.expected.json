@@ -1,0 +1,36 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-15-apparel-color-named-deferred",
+  "set": "recognition",
+  "rubric_version": "0.7",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts that named colors on every variant remain deferred for APPAREL.COLOR_FINISH. Three variants carry \"Navy\", \"Black\", \"White\" — named colors are not recognized by unnamed_color_group (which only covers ambiguity vocabulary), and named_color_per_variant is UNIMPLEMENTED. The check defers entirely and emits no finding. Named colors do not become PASS merely because they are not vague.",
+  "notes": "color_finish is Tier B (1.65 max) for apparel. named_color_per_variant remains deferred (D-034). unnamed_color_group recognizes only ambiguity vocabulary, not product-value color names. All three values are UNDECIDED, so the check defers.",
+  "products": [
+    {
+      "product_id": "handle:rec-15-apparel-color-named-deferred",
+      "must_not_fabricate": [
+        "assorted",
+        "multi-color",
+        "color pack"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "PASS",
+          "evidence_locators": [
+            "options[Color].name",
+            "options[Size].name"
+          ]
+        }
+      ],
+      "expected_deferred_checks": [
+        "APPAREL.COLOR_FINISH"
+      ]
+    }
+  ]
+}

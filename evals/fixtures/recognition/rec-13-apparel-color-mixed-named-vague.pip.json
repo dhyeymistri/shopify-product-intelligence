@@ -1,0 +1,169 @@
+{
+  "pip_version": "0.2",
+  "fixture": {
+    "id": "rec-13-apparel-color-mixed-named-vague",
+    "set": "recognition",
+    "intent": "APPAREL.COLOR_FINISH: mixed named and vague variants. Variant 1 has a named color (\"Navy\"), variant 2 has a vague term (\"assorted\"). named_color_per_variant remains deferred (unnamed_color_group does not recognize named colors). unnamed_color_group recognizes \"assorted\" on variant 2. Coverage follows D-021/D-025: 0 satisfied (named color is not recognized), 1 ambiguous (vague), 1 uncovered (if only 2 variants) or more. The check defers on the named variant because named_color_per_variant is UNIMPLEMENTED.",
+    "provenance": "Synthetic. Authored for this eval corpus to exercise the mixed coverage behavior. Not derived from any real merchant's catalog or private data.",
+    "notes": "color_finish is Tier B (1.65 max) for apparel. The named color \"Navy\" is not recognized by any predicate (named_color_per_variant is deferred). The vague term \"assorted\" is recognized by unnamed_color_group as AMBIGUOUS. Since one variant's value is UNDECIDED (named color), the whole check defers (D-019) and emits no finding for APPAREL.COLOR_FINISH."
+  },
+  "products": [
+    {
+      "npr_version": "0.2",
+      "product_id": "handle:rec-13-apparel-color-mixed-named-vague",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-13-apparel-color-mixed-named-vague.pip.json",
+        "locator": "products[handle:rec-13-apparel-color-mixed-named-vague]"
+      },
+      "identity": {
+        "title": {
+          "value": "Harbourline Mixed Color Tee",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Harbourline",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "rec-13-apparel-color-mixed-named-vague",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": null,
+          "src": null
+        },
+        "declared_category": {
+          "value": "Apparel & Accessories > Clothing > Shirts & Tops",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": null,
+          "src": null
+        },
+        "description_html": {
+          "value": null,
+          "src": null
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 0
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [],
+      "options": [
+        {
+          "name": "Color",
+          "values": [
+            "Navy",
+            "Assorted"
+          ],
+          "src": "options[Color].name"
+        },
+        {
+          "name": "Size",
+          "values": [
+            "M",
+            "L"
+          ],
+          "src": "options[Size].name"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:RC13-M",
+          "option_values": {
+            "Color": {
+              "value": "Navy",
+              "src": "variants[sku:RC13-M].option_values[Color]"
+            },
+            "Size": {
+              "value": "M",
+              "src": "variants[sku:RC13-M].option_values[Size]"
+            }
+          },
+          "sku": {
+            "value": "RC13-M",
+            "src": "variants[sku:RC13-M].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "28.00",
+            "currency": null,
+            "src": "variants[sku:RC13-M].price"
+          },
+          "media_refs": [],
+          "attributes": [
+            {
+              "key": "color_finish",
+              "value_raw": "Navy",
+              "origin": "merchant_structured",
+              "src": "variants[sku:RC13-M].attributes[color_finish].value_raw",
+              "scope": "variant"
+            }
+          ]
+        },
+        {
+          "variant_id": "sku:RC13-L",
+          "option_values": {
+            "Color": {
+              "value": "Assorted",
+              "src": "variants[sku:RC13-L].option_values[Color]"
+            },
+            "Size": {
+              "value": "L",
+              "src": "variants[sku:RC13-L].option_values[Size]"
+            }
+          },
+          "sku": {
+            "value": "RC13-L",
+            "src": "variants[sku:RC13-L].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "28.00",
+            "currency": null,
+            "src": "variants[sku:RC13-L].price"
+          },
+          "media_refs": [],
+          "attributes": [
+            {
+              "key": "color_finish",
+              "value_raw": "assorted",
+              "origin": "merchant_structured",
+              "src": "variants[sku:RC13-L].attributes[color_finish].value_raw",
+              "scope": "variant"
+            }
+          ]
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

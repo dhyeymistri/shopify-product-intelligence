@@ -1,19 +1,20 @@
 {
-  "baseline_version": "0.2",
+  "baseline_version": "0.3",
   "note": "Pinned so that implementing a recognition predicate cannot move it. Recognition may convert a deferral into PASS or PARTIAL and nothing else: the UNKNOWN set, the FAIL set, the NOT_APPLICABLE set and the penalty total of every product must be unchanged by it. A diff here is not a test to update -- it is a recognition predicate that has introduced absence, a defect, or a penalty.",
   "repin": {
-    "version": "0.2",
-    "reason": "Re-pinned once, for P3.2 slice D, which is a *structural* semantics change carrying signed-off decision records -- not a recognition predicate, and not covered by the rule above. The movement is stated here exhaustively so the re-pin is reviewable rather than a silent rewrite of the thing that was supposed to be immovable.",
-    "rubric_version": "0.3 -> 0.4",
+    "version": "0.3",
+    "reason": "Re-pinned for P3.2 slice D (D-029, D-030, D-031) and for the unnamed_color_group predicate (D-034). The latter is a recognition predicate that moves scores for APPAREL.COLOR_FINISH when variants carry vague group terms. This is a score-moving change under D-023.",
+    "rubric_version": "0.6 -> 0.7",
     "decisions": [
       "D-029",
       "D-030",
-      "D-031"
+      "D-031",
+      "D-034"
     ],
     "check_ids_whose_pinned_membership_moved": [
       "VARIANT.MEDIA_LINKED"
     ],
-    "what_moved": "VARIANT.MEDIA_LINKED left the UNKNOWN set on the 11 products listed below and now defers there instead. Under D-031 the check runs only once a visual option name is found; on these products none is, so the previous UNKNOWN asserted a gap without having established that the check applied at all. Both states earn 0.00 and penalize 0.00, so no score moved -- what moved is that 11 `minor` findings are no longer emitted.",
+    "what_moved": "VARIANT.MEDIA_LINKED left the UNKNOWN set on the 11 products listed below and now defers there instead (D-031). Additionally, APPAREL.COLOR_FINISH moved from deferred/UNKNOWN to PARTIAL on products with vague group terms (rec-12, rec-14) per the unnamed_color_group predicate (D-034). Both transitions are permitted: UNKNOWN->deferral earns 0.00/0.00, and deferral->PARTIAL is the allowed recognition transition. No FAIL, NOT_APPLICABLE, or penalty total changed.",
     "products_where_media_linked_left_the_unknown_set": [
       "adv-02-category-implies-attributes::handle:trailpro-bike-helmet",
       "checks-04-non-inheritable::handle:checks-non-inheritable",
@@ -31,10 +32,14 @@
     "products_added": [
       "rec-09-variant-scope-fully-covered::handle:rec-09-variant-scope-fully-covered",
       "rec-10-variant-scope-partly-covered::handle:rec-10-variant-scope-partly-covered",
-      "rec-11-uncategorized-visual-option::handle:rec-11-uncategorized-visual-option"
+      "rec-11-uncategorized-visual-option::handle:rec-11-uncategorized-visual-option",
+      "rec-12-apparel-color-vague-all::handle:rec-12-apparel-color-vague-all",
+      "rec-13-apparel-color-mixed-named-vague::handle:rec-13-apparel-color-mixed-named-vague",
+      "rec-14-apparel-color-product-scope-vague::handle:rec-14-apparel-color-product-scope-vague",
+      "rec-15-apparel-color-named-deferred::handle:rec-15-apparel-color-named-deferred"
     ]
   },
-  "phase": "P3.1 + P3.2 prerequisites + P3.2 slice D",
+  "phase": "P3.1 + P3.2 prerequisites + P3.2 slice D + unnamed_color_group (D-034)",
   "products": {
     "adv-01-evocative-title-no-facts::handle:the-meridian": {
       "fail": [],
@@ -1244,6 +1249,138 @@
         "STRUCT.DESCRIPTION_PARSEABLE",
         "STRUCT.MEDIA_ALT_TEXT",
         "STRUCT.SEO_FIELDS_POPULATED"
+      ]
+    },
+    "rec-12-apparel-color-vague-all::handle:rec-12-apparel-color-vague-all": {
+      "fail": [],
+      "not_applicable": [],
+      "penalty_total": "0",
+      "unknown": [
+        "APPAREL.CARE_INSTRUCTIONS",
+        "APPAREL.CLOSURE_AND_CONSTRUCTION",
+        "APPAREL.COUNTRY_OF_ORIGIN",
+        "APPAREL.FIT_AND_CUT",
+        "APPAREL.GARMENT_MEASUREMENTS",
+        "APPAREL.INTENDED_USE_CONTEXT",
+        "APPAREL.MATERIAL_COMPOSITION",
+        "APPAREL.MODEL_REFERENCE_MEASUREMENTS",
+        "APPAREL.SIZE_SYSTEM",
+        "APPAREL.SUSTAINABILITY_CREDENTIALS",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE",
+        "VARIANT.MEDIA_LINKED"
+      ]
+    },
+    "rec-13-apparel-color-mixed-named-vague::handle:rec-13-apparel-color-mixed-named-vague": {
+      "fail": [],
+      "not_applicable": [],
+      "penalty_total": "0",
+      "unknown": [
+        "APPAREL.CARE_INSTRUCTIONS",
+        "APPAREL.CLOSURE_AND_CONSTRUCTION",
+        "APPAREL.COUNTRY_OF_ORIGIN",
+        "APPAREL.FIT_AND_CUT",
+        "APPAREL.GARMENT_MEASUREMENTS",
+        "APPAREL.INTENDED_USE_CONTEXT",
+        "APPAREL.MATERIAL_COMPOSITION",
+        "APPAREL.MODEL_REFERENCE_MEASUREMENTS",
+        "APPAREL.SIZE_SYSTEM",
+        "APPAREL.SUSTAINABILITY_CREDENTIALS",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE",
+        "VARIANT.MEDIA_LINKED"
+      ]
+    },
+    "rec-14-apparel-color-product-scope-vague::handle:rec-14-apparel-color-product-scope-vague": {
+      "fail": [],
+      "not_applicable": [],
+      "penalty_total": "0",
+      "unknown": [
+        "APPAREL.CARE_INSTRUCTIONS",
+        "APPAREL.CLOSURE_AND_CONSTRUCTION",
+        "APPAREL.COUNTRY_OF_ORIGIN",
+        "APPAREL.FIT_AND_CUT",
+        "APPAREL.GARMENT_MEASUREMENTS",
+        "APPAREL.INTENDED_USE_CONTEXT",
+        "APPAREL.MATERIAL_COMPOSITION",
+        "APPAREL.MODEL_REFERENCE_MEASUREMENTS",
+        "APPAREL.SIZE_SYSTEM",
+        "APPAREL.SUSTAINABILITY_CREDENTIALS",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE",
+        "VARIANT.ATTRIBUTE_COVERAGE"
+      ]
+    },
+    "rec-15-apparel-color-named-deferred::handle:rec-15-apparel-color-named-deferred": {
+      "fail": [],
+      "not_applicable": [],
+      "penalty_total": "0",
+      "unknown": [
+        "APPAREL.CARE_INSTRUCTIONS",
+        "APPAREL.CLOSURE_AND_CONSTRUCTION",
+        "APPAREL.COUNTRY_OF_ORIGIN",
+        "APPAREL.FIT_AND_CUT",
+        "APPAREL.GARMENT_MEASUREMENTS",
+        "APPAREL.INTENDED_USE_CONTEXT",
+        "APPAREL.MATERIAL_COMPOSITION",
+        "APPAREL.MODEL_REFERENCE_MEASUREMENTS",
+        "APPAREL.SIZE_SYSTEM",
+        "APPAREL.SUSTAINABILITY_CREDENTIALS",
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE",
+        "VARIANT.MEDIA_LINKED"
       ]
     }
   }
