@@ -36,7 +36,7 @@ from . import recognize as _recognize
 from . import rubric_data as R
 from . import taxonomy_data as T
 
-REGISTRY_VERSION = "0.8"
+REGISTRY_VERSION = "0.9"
 
 #: Families a check_id may use (rubric.md 3).
 FAMILIES = frozenset([

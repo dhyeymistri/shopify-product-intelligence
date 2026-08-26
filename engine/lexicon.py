@@ -44,7 +44,7 @@ from . import taxonomy_keys
 #: rubric, which would make the assertion at the foot of this module vacuous.
 #: Stated as a literal, bumping `rubric_version` without reviewing this
 #: vocabulary is a load failure -- which is exactly what D-022 asks for.
-LEXICON_VERSION = "0.8"
+LEXICON_VERSION = "0.9"
 
 _WS_RE = re.compile(r"\s+")
 
@@ -76,6 +76,34 @@ APPAREL_INTENDED_USE_CONTEXT_VAGUE = frozenset([
 
 APPAREL_CARE_INSTRUCTIONS_VAGUE = frozenset([
     "easy care", "easy to care for", "low maintenance",
+])
+
+# ---------------------------------------------------------------------------
+# Composite structural phrases for positive arms (D-036).
+# Whole-value membership against a closed vocabulary. These represent care-method
+# combinations and use-context composites -- structural vocabulary describing
+# *types of care routines* and *types of use contexts* -- not facts about a
+# specific product. They contain no digits, no measurements, no brand terms.
+# ---------------------------------------------------------------------------
+APPAREL_CARE_METHODS = frozenset([
+    "machine wash cold, tumble dry low",
+    "machine wash cold, line dry",
+    "hand wash, line dry, iron low",
+    "dry clean only",
+    "machine wash warm, tumble dry low",
+    "machine wash cold, do not tumble dry",
+    "hand wash only, lay flat to dry",
+])
+
+APPAREL_USE_CONTEXTS = frozenset([
+    "spring hiking",
+    "formal office wear",
+    "summer beach wear",
+    "winter outdoor activity",
+    "fall layering",
+    "gym training",
+    "yoga studio",
+    "casual everyday wear",
 ])
 
 HOME_CARE_AND_CLEANING_VAGUE = frozenset([
@@ -270,6 +298,8 @@ VALUE_SHAPED = frozenset(
     | SPORTS_SPORT_OR_ACTIVITY_VAGUE
     | APPAREL_SIZE_SYSTEM_BARE_LABELS
     | SPORTS_SKILL_OR_INTENSITY_LEVEL_TIERS
+    | APPAREL_CARE_METHODS
+    | APPAREL_USE_CONTEXTS
 )  # type: FrozenSet[str]
 
 ALL_ENTRIES = (VALUE_SHAPED | UNIT_TOKENS | APPAREL_SIZE_SYSTEM_STANDARDS

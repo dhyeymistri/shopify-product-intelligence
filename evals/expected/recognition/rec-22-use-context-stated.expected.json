@@ -1,0 +1,40 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-22-use-context-stated",
+  "set": "recognition",
+  "rubric_version": "0.9",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the use_context_stated recognition predicate for APPAREL.INTENDED_USE_CONTEXT. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "Uses 'spring hiking' from APPAREL_USE_CONTEXTS. The partial_if arm generic_everyday_only must NOT fire on this value (whole-value membership, no substring match). APPAREL.CARE_INSTRUCTIONS has no value and will be UNKNOWN.",
+  "products": [
+    {
+      "product_id": "handle:rec-22-use-context-stated",
+      "must_not_fabricate": [
+        "everyday",
+        "machine wash cold",
+        "60% cotton"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "APPAREL.INTENDED_USE_CONTEXT",
+          "status": "PASS",
+          "evidence_locators": [
+            "attributes[intended_use_context].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "PASS",
+          "evidence_locators": [
+            "options[Size].name"
+          ]
+        }
+      ],
+      "expected_deferred_checks": []
+    }
+  ]
+}

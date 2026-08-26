@@ -93,10 +93,12 @@ D2 = "D2_category_attributes"
 #: against another, and the difference is invisible in the numbers. The expected
 #: set is pinned here with the rubric version it was pinned at; a mismatch is
 #: reported, never absorbed.
-PINNED_RUBRIC_VERSION = "0.8"
+PINNED_RUBRIC_VERSION = "0.9"
 PINNED_DECIDABLE_D2 = (
+    "APPAREL.CARE_INSTRUCTIONS",
     "APPAREL.CLOSURE_AND_CONSTRUCTION",
     "APPAREL.COUNTRY_OF_ORIGIN",
+    "APPAREL.INTENDED_USE_CONTEXT",
     "APPAREL.MATERIAL_COMPOSITION",
     "APPAREL.SIZE_SYSTEM",
 )

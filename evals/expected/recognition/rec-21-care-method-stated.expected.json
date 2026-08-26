@@ -1,0 +1,40 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-21-care-method-stated",
+  "set": "recognition",
+  "rubric_version": "0.9",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the care_method_stated recognition predicate for APPAREL.CARE_INSTRUCTIONS. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "Uses 'Machine wash cold, tumble dry low' from APPAREL_CARE_METHODS. The partial_if arm care_without_method must NOT fire on this value (whole-value membership, no substring match). APPAREL.INTENDED_USE_CONTEXT has no value and will be UNKNOWN.",
+  "products": [
+    {
+      "product_id": "handle:rec-21-care-method-stated",
+      "must_not_fabricate": [
+        "easy care",
+        "60% cotton",
+        "office wear"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "APPAREL.CARE_INSTRUCTIONS",
+          "status": "PASS",
+          "evidence_locators": [
+            "attributes[care_instructions].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "PASS",
+          "evidence_locators": [
+            "options[Size].name"
+          ]
+        }
+      ],
+      "expected_deferred_checks": []
+    }
+  ]
+}

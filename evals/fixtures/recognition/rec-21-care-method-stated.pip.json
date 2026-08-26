@@ -1,0 +1,145 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "rec-21-care-method-stated",
+    "set": "recognition",
+    "intent": "APPAREL.CARE_INSTRUCTIONS stated with a composite care-method phrase from the lexicon. The satisfies predicate care_method_stated must fire and the check must reach PASS at 1.65 with the supplied value quoted.",
+    "provenance": "Synthetic. Authored for this eval corpus to exercise the deterministic recognition predicates. Not derived from any real merchant's catalog or private data.",
+    "notes": "Uses 'machine wash cold, tumble dry low' from APPAREL_CARE_METHODS. The partial_if arm care_without_method must NOT fire on this value (whole-value membership, no substring match)."
+  },
+  "products": [
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:rec-21-care-method-stated",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-21-care-method-stated.pip.json",
+        "locator": "products[handle:rec-21-care-method-stated]"
+      },
+      "identity": {
+        "title": {
+          "value": "Harbourline Performance Tee",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Harbourline",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "rec-21-care-method-stated",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": null,
+          "src": null
+        },
+        "declared_category": {
+          "value": "Apparel & Accessories > Clothing > Shirts & Tops",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": null,
+          "src": null
+        },
+        "description_html": {
+          "value": null,
+          "src": null
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 0
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [
+        {
+          "key": "care_instructions",
+          "value_raw": "Machine wash cold, tumble dry low",
+          "origin": "merchant_structured",
+          "src": "attributes[care_instructions].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [
+        {
+          "name": "Size",
+          "values": [
+            "Small",
+            "Large"
+          ],
+          "src": "options[Size].name"
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": "sku:RC21-S",
+          "option_values": {
+            "Size": {
+              "value": "Small",
+              "src": "variants[sku:RC21-S].option_values[Size]"
+            }
+          },
+          "sku": {
+            "value": "RC21-S",
+            "src": "variants[sku:RC21-S].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "38.00",
+            "currency": null,
+            "src": "variants[sku:RC21-S].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        },
+        {
+          "variant_id": "sku:RC21-L",
+          "option_values": {
+            "Size": {
+              "value": "Large",
+              "src": "variants[sku:RC21-L].option_values[Size]"
+            }
+          },
+          "sku": {
+            "value": "RC21-L",
+            "src": "variants[sku:RC21-L].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "38.00",
+            "currency": null,
+            "src": "variants[sku:RC21-L].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

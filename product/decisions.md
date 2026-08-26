@@ -847,6 +847,117 @@ Deliberately unresolved. Each is recorded so V0 does not foreclose it, and none 
 **Cost:** The predicate's coverage is narrower than the taxonomy wording. A merchant stating `"300 lbs"` (unit recognized) but no basis earns nothing for the ambiguity arm until a language-recognition path exists. This is the permitted direction of failure — under-detecting ambiguity rather than over-detecting it or inventing basis vocabulary.
 
 ---
+## D-036 — Tier-B "guidance" attributes use whole-value recognition; composite structural phrases authorized for two predicates
+
+**Status:** Accepted
+
+**Question:** `taxonomy.md` §5.1 declares two Tier-B Apparel attributes whose `satisfies` predicates are unimplemented:
+
+- `care_instructions`: Satisfied by *"Washing/drying/ironing guidance or a care symbol reference"*
+- `intended_use_context`: Satisfied by *"Season, activity, or occasion the garment is made for"*
+
+Their `partial_if` arms are already implemented as whole-value membership against closed vague-phrase sets (`APPARAL_CARE_INSTRUCTIONS_VAGUE`, `APPARAL_INTENDED_USE_CONTEXT_VAGUE`). The reconnaissance step identified that merchant data may state multiple care methods or use contexts in a single value (e.g., `"Machine wash cold, tumble dry low"` or `"spring, hiking"`). Should the `satisfies` predicates use whole-value membership (matching the `partial_if` arms), delimiter-split structural recognition (like `enumerated_contents`), or a hybrid?
+
+**Decision: Whole-value membership for both predicates. Composite structural phrases are authorized as closed vocabulary for these two predicates only. No delimiter splitting, no hybrid recognition, no prose recognition, no partial matching.**
+
+### Governance Decision
+
+#### 1. Taxonomy wording governs the value shape
+
+`care_instructions` uses "guidance" (singular mass noun). `intended_use_context` uses "season, activity, or occasion" — a disjunctive list of alternatives, not a conjunctive list of combinable values. Neither says "enumerated" (contrast `in_the_box`: "enumerated contents" `taxonomy.md:151`) nor implies dimension-like syntax (contrast `physical_dimensions_weight`: "dimensions with units" `taxonomy.md:147`). The grammar of the taxonomy cells is the contract; we do not infer multi-value structure where the taxonomy does not state it.
+
+#### 2. Consistency with `partial_if` arms is required
+
+`care_without_method` and `generic_everyday_only` are implemented as whole-value `_member_of` predicates against closed vague-phrase frozensets. The `satisfies` and `partial_if` arms of a single check evaluate the SAME supplied value. They must share a structural model of what that value is. A value cannot be both a single whole (for ambiguity) and a splittable list (for satisfaction). The whole-value model is the established one for these checks.
+
+#### 3. D-019 deferral principle forbids silent splitting of prose
+
+`rec-03-vague-in-a-sentence` demonstrates that `"Easy care fabric that holds its shape"` and `"Cut for everyday wear and for layering"` must defer, not match. Whole-value membership achieves this: the full string is not in the lexicon. Delimiter-split on comma would incorrectly match `"Easy care"` inside the prose. D-019 requires "a value is supplied and the recognition predicate ran and could not decide it" → deferral. A split predicate cannot reliably distinguish enumeration from prose without language recognition, which D-019 reserves for the check phase over quoted spans, not the predicate phase.
+
+#### 4. D-022 establishes the lexicon boundary; this decision authorizes composite structural phrases within it
+
+D-022 (`product/decisions.md:421`) states: "Entries are the vocabulary of ambiguity, of units and of standards — never a fact about a product." This decision establishes that, **for `care_method_stated` and `use_context_stated` only**, whole-value composite structural phrases may be used as closed vocabulary where they represent care-method/use-context *structure* rather than product facts.
+
+Examples of the newly authorized closed structural vocabulary (not pre-existing D-022 vocabulary):
+- `care_method_stated`: `"machine wash cold, tumble dry low"`, `"hand wash, line dry, iron low"`
+- `use_context_stated`: `"spring hiking"`, `"formal office wear"`
+
+These are care-method combinations and use-context composites — structural vocabulary describing *types of care routines* and *types of use contexts* — not facts about a specific product. They contain no digits, no measurements, no brand terms. `APPARAL_SIZE_SYSTEM_STANDARDS` already contains composites like `"us 10"` (standard + value). The same structural principle applies: a named care routine or use context is a standard, not a product value.
+
+#### 5. D-024 closed-list precedent applies
+
+D-024 (`product/decisions.md:455`) held that "the parenthesis is a closed list, not an illustration" for `IDENT.TITLE_DISTINGUISHING`. Whole-value membership against a frozenset enforces closed-list semantics. Delimiter-split would effectively open the list: any combination of atomic terms would match, including combinations never reviewed. This decision authorizes the lexicon frozensets to contain composite entries, maintaining closed-list control.
+
+#### 6. D-035 structural boundary precedent applies
+
+D-035 (`product/decisions.md:820`) drew the predicate boundary at "magnitude parsed, unit token absent or unrecognized" — a purely structural test. It explicitly rejected "keyword matching for 'basis' terms" and "lexicon of capacity types" as language recognition. Comma-splitting requires judging whether a comma in merchant data is structural enumeration or prose punctuation — a language judgment, not a structural one. This decision stays on the structural side: whole-value exact match against a closed set.
+
+#### 7. Explicit scope: these two predicates only
+
+This decision applies ONLY to:
+- `APPAREL.CARE_INSTRUCTIONS` → `care_method_stated`
+- `APPAREL.INTENDED_USE_CONTEXT` → `use_context_stated`
+
+It does NOT establish a general rule for all Tier-B attributes. `electronics.in_the_box` ("enumerated contents") and `electronics.physical_dimensions_weight` (dimension syntax) retain their delimiter-split semantics because their taxonomy wording explicitly describes enumeration and dimension structure. Future Tier-B attributes with "enumerated" or dimension-like wording would follow those precedents. Future "guidance" attributes would need their own decision record.
+
+### Explicit Rejections
+
+**Rejected: Delimiter splitting (Option B).** No taxonomy basis for "enumerated" or dimension syntax. Inconsistent with implemented `partial_if` arms. Violates D-019 prose safety. Invents delimiter grammar not in taxonomy. D-028's "enumeration is a structural property" reasoning applies only where taxonomy says "enumerated" (`product/decisions.md:544`).
+
+**Rejected: Hybrid recognition (Option C).** No taxonomy basis for "when to split". D-035 rejects hybrid boundaries requiring judgment (`product/decisions.md:820`). Creates third predicate shape with no precedent. Inconsistent with `partial_if` arms. D-024 rejects expanding beyond explicit taxonomy wording.
+
+**Rejected: Prose recognition / substring matching.** D-019 forbids language recognition in the predicate phase. `rec-03-vague-in-a-sentence` fixture intent: "Whole-value membership is the rule... A substring match here would be the predicate reading language."
+
+**Rejected: Mixed recognized/unrecognized partial matching.** No predicate in the codebase partially matches a value and awards credit for the recognized portion. A value either satisfies, is ambiguous, or is undecided. Partial matching would introduce a new scoring semantics not present in `rubric.md`.
+
+### Implementation Consequences (Not Part of the Decision)
+
+The following are implementation consequences of the governance decision above. They are recorded here for traceability but are not the decision itself.
+
+1. **Lexicon additions in `engine/lexicon.py`**:
+   - `APPARAL_CARE_METHODS`: frozenset of composite care-routine phrases
+   - `APPARAL_USE_CONTEXTS`: frozenset of composite use-context phrases
+   - Both added to `VALUE_SHAPED` for corpus leak scanning
+   - `LEXICON_VERSION` == `RUBRIC_VERSION` at import (D-022)
+
+2. **Predicate implementations in `engine/recognize.py`**:
+   - `care_method_stated(value)`: `X.normalize(value) in APPARAL_CARE_METHODS`
+   - `use_context_stated(value)`: `X.normalize(value) in APPARAL_USE_CONTEXTS`
+   - Registered in `VALUE_PREDICATES`
+
+3. **Fixtures required** (minimum):
+   - PASS: `care_instructions: "Machine wash cold, tumble dry low"` → expects `PASS` at 1.65
+   - PASS: `intended_use_context: "spring hiking"` → expects `PASS` at 1.65
+   - DEFERRED: `care_instructions: "Gentle cycle"` (not in lexicon) → expects deferral
+
+4. **Version bumps** (same commit, D-023):
+   - `RUBRIC_VERSION` 0.8 → 0.9
+   - `LEXICON_VERSION` 0.8 → 0.9
+   - `REGISTRY_VERSION` 0.8 → 0.9
+   - Affected expectation files updated
+   - `evals/monotonicity_baseline.json` updated
+
+5. **Score movement**:
+   - Products with exact lexicon phrases currently `UNKNOWN` (0/1.65) → `PASS` (1.65/1.65) → **+1.65 pts**
+   - Products with multi-term values not in lexicon → `UNDECIDED` → deferred → no finding
+   - Products with vague phrases → `PARTIAL` (unchanged, 0.825/1.65)
+   - No products lose points
+
+---
+
+**Sources:**
+- `product/taxonomy.md:120,123` (care_instructions, intended_use_context contracts)
+- `product/decisions.md:536-548` (D-028: enumerated_contents scope)
+- `product/decisions.md:449-475` (D-024: closed-list precedent)
+- `product/decisions.md:795-844` (D-035: structural boundary)
+- `product/decisions.md:409-427` (D-022: lexicon boundary)
+- `engine/recognize.py:85-90` (_member_of whole-value implementation)
+- `engine/recognize.py:173-187` (enumerated_contents delimiter-split implementation)
+- `evals/fixtures/recognition/rec-02-vague-phrases.pip.json` (PARTIAL fixtures)
+- `evals/fixtures/recognition/rec-03-vague-in-a-sentence.pip.json` (deferral fixture)
+- `evals/expected/recognition/rec-02-vague-phrases.expected.json` (expectations)
+
+---
 ## Open questions
 | Q-6a | **Diagnostic, no policy content.** Under the *existing* scoring function, are `uncategorized` products deflated or flattered in aggregate once D2's 22 points (`taxonomy.md` §2 rule 3) and `VARIANT.ATTRIBUTE_COVERAGE`'s 3.0 (D-029) are both removed and the total is renormalized by `rubric.md` §6.3? Direction is deliberately left open in the question: the removals are favourable exactly when the product's would-be earn-rate on the removed points is *below* its earn-rate on the rest, so the sign is product-dependent and neither direction may be presupposed. The norm it is measured against is `taxonomy.md` §6's closing line, *"Cross-category score comparison is valid at the score level (all are out of 100)"*, and `uncategorized` is a row in that table. | **Not a decision, and not blocked on one.** It is arithmetic over a scoring function that is already fully specified (`rubric.md` §1.2, §6.1), and it is unanswerable today only because no score exists to measure: `engine/runner.py` computes no total by design, and `evals/audits/arithmetic_audit.py` verifies a reported score that nothing yet produces. | P4 landing an actual aggregate score (`max_applicable`, renormalization factor, normalized total), **plus** an `uncategorized` fixture set adequate to measure over. `PRD.md` §12.1's corpus plan defines no such set, and the corpus currently holds two `uncategorized` fixtures — `checks-07` (single-variant, where `NA_SINGLE_VARIANT` fires regardless) and `rec-11` (the only multi-variant one). It must span the spread the mechanism predicts: well-attributed-but-uncategorized at one end, attribute-empty at the other. **No merchant data is required to answer this.** |
 | Q-6b | **Remedy, and a real policy choice.** Should `uncategorized` products get an expanded Common Core, changing what is scored rather than measuring what is? Depends on Q-6a's answer and does not presuppose it. | Risks encouraging bad category hygiene, which is itself a real finding. It is also a scoring change, not an editorial one: `taxonomy.md` §3 puts the Common Core in D1/D5/D8 and *never* in D2, and §2 rule 3 with `rubric.md` §4/D2 remove D2 in full — so adopting it needs a taxonomy version bump (`taxonomy.md` §7), a `rubric_version` bump (D-023), and an expectation migration. Note the coupling to D-029: `taxonomy_data.variant_scope_keys` excludes the Common Core deliberately (its two non-inheritable variant-scope rows are already scored per variant, D-030). An expanded core that added a *new* non-inheritable variant-scope key routed into `uncategorized` would make `K` non-empty and stop D-029 case 2 firing. | Eval data on how often `uncategorized` occurs in real exports, and Q-6a answered first. |

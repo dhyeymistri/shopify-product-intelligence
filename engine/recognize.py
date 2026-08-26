@@ -99,6 +99,22 @@ def unnamed_color_group(value):
     return X.normalize(value) in X.APPAREL_COLOR_FINISH_VAGUE
 
 
+#: `taxonomy.md` 5.1 APPAREL.CARE_INSTRUCTIONS satisfies = care_method_stated.
+#: D-036: whole-value membership against a closed vocabulary of composite
+#: structural phrases. No delimiter splitting, no prose recognition.
+def care_method_stated(value):
+    # type: (str) -> bool
+    return X.normalize(value) in X.APPAREL_CARE_METHODS
+
+
+#: `taxonomy.md` 5.1 APPAREL.INTENDED_USE_CONTEXT satisfies = use_context_stated.
+#: D-036: whole-value membership against a closed vocabulary of composite
+#: structural phrases. No delimiter splitting, no prose recognition.
+def use_context_stated(value):
+    # type: (str) -> bool
+    return X.normalize(value) in X.APPAREL_USE_CONTEXTS
+
+
 # ---------------------------------------------------------------------------
 # Slice B -- numeric, unit and delimiter shape
 # ---------------------------------------------------------------------------
@@ -344,6 +360,8 @@ VALUE_PREDICATES = {
     "broad_family_only":
         _member_of(X.SPORTS_SPORT_OR_ACTIVITY_VAGUE),
     "unnamed_color_group": unnamed_color_group,
+    "care_method_stated": care_method_stated,
+    "use_context_stated": use_context_stated,
     # Slice B
     "material_with_proportions": material_with_proportions,
     "material_without_proportions": material_without_proportions,

@@ -1,0 +1,38 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-23-care-use-undecided",
+  "set": "recognition",
+  "rubric_version": "0.9",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts deferral behavior for both APPAREL.CARE_INSTRUCTIONS and APPAREL.INTENDED_USE_CONTEXT when values are not in the lexicon. Neither satisfies predicate fires, neither partial_if arm fires, both checks must defer and emit no finding.",
+  "notes": "Values 'gentle cycle' and 'outdoor recreation' are not in APPAREL_CARE_METHODS, APPAREL_USE_CONTEXTS, APPAREL_CARE_INSTRUCTIONS_VAGUE, or APPAREL_INTENDED_USE_CONTEXT_VAGUE. Both checks must defer (no finding emitted).",
+  "products": [
+    {
+      "product_id": "handle:rec-23-care-use-undecided",
+      "must_not_fabricate": [
+        "machine wash cold",
+        "spring hiking",
+        "everyday",
+        "easy care",
+        "60% cotton"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "PASS",
+          "evidence_locators": [
+            "options[Size].name"
+          ]
+        }
+      ],
+      "expected_deferred_checks": [
+        "APPAREL.CARE_INSTRUCTIONS",
+        "APPAREL.INTENDED_USE_CONTEXT"
+      ]
+    }
+  ]
+}
