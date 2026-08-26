@@ -1,0 +1,33 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-18-sports-load-unitless",
+  "set": "recognition",
+  "rubric_version": "0.8",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the number_without_unit_or_basis predicate for SPORTS.load_or_capacity_rating with a unitless value. No trigger for Sports. The value '150' parses as magnitude with empty unit, so the predicate fires AMBIGUOUS → PARTIAL at half credit (1.65 of 3.3).",
+  "notes": "SPORTS.LOAD_OR_CAPACITY_RATING reaches PARTIAL via number_without_unit_or_basis. The 'no basis' portion is NOT implemented (D-035).",
+  "products": [
+    {
+      "product_id": "handle:rec-18-sports-load-unitless",
+      "expected_category": "sports",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "150 kg",
+        "150 lbs",
+        "150 lb",
+        "max user weight"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "SPORTS.LOAD_OR_CAPACITY_RATING",
+          "status": "PARTIAL",
+          "evidence_locators": [
+            "attributes[load_or_capacity_rating].value_raw"
+          ],
+          "reason": "Value '150' is a numeric magnitude with no recognized unit token."
+        }
+      ]
+    }
+  ]
+}

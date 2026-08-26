@@ -202,6 +202,26 @@ def shade_code_without_name(value):
         and bool(_DIGIT_RE.search(text))
 
 
+def number_without_unit_or_basis(value):
+    # type: (str) -> bool
+    """`taxonomy.md` 5.4 and 5.5 PARTIAL condition for capacity_or_load and
+    load_or_capacity_rating: a number with no recognized unit token.
+
+    D-035: only the structurally decidable "no unit" sub-case is recognized.
+    The "no basis" portion (determining what the number represents) is NOT
+    implemented -- values with a recognized unit remain UNDECIDED.
+
+    A value is AMBIGUOUS iff it parses as a magnitude (via lexicon.magnitude)
+    and the extracted unit spelling is empty or not a member of the recognized
+    unit sets (LENGTH_UNITS | MASS_UNITS | VOLUME_UNITS | TIME_UNITS).
+    """
+    parsed = X.magnitude(value)
+    if parsed is None:
+        return False
+    _, unit = parsed
+    return not unit or unit not in X.UNIT_TOKENS
+
+
 # ---------------------------------------------------------------------------
 # Slice E -- controlled vocabulary, positive arm
 # ---------------------------------------------------------------------------
@@ -338,6 +358,7 @@ VALUE_PREDICATES = {
     "enumerated_contents": enumerated_contents,
     "contents_unenumerated": contents_unenumerated,
     "shade_code_without_name": shade_code_without_name,
+    "number_without_unit_or_basis": number_without_unit_or_basis,
     # Slice E
     "named_size_standard_with_value": named_size_standard_with_value,
     "bare_size_label": bare_size_label,

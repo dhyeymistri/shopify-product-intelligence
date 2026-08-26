@@ -1,0 +1,30 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-19-sports-load-with-unit",
+  "set": "recognition",
+  "rubric_version": "0.8",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the number_without_unit_or_basis predicate boundary for SPORTS.load_or_capacity_rating. The value '150 kg' has a recognized unit (kg in MASS_UNITS), so the predicate correctly returns False. The satisfying arm (rated_load_with_units) is UNIMPLEMENTED, so the check defers per D-019.",
+  "notes": "SPORTS.LOAD_OR_CAPACITY_RATING defers because rated_load_with_units is UNIMPLEMENTED. The value '150 kg' is NOT ambiguous from this predicate (unit recognized).",
+  "products": [
+    {
+      "product_id": "handle:rec-19-sports-load-with-unit",
+      "expected_category": "sports",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "150 lb",
+        "150 lbs",
+        "max user weight 150 lb",
+        "rated load 150 lb"
+      ],
+      "expected_findings_include": [],
+      "expected_deferred_checks": [
+        {
+          "check_id": "SPORTS.LOAD_OR_CAPACITY_RATING",
+          "reason": "A value is supplied and the recognition predicate (rated_load_with_units) ran and could not decide it."
+        }
+      ]
+    }
+  ]
+}

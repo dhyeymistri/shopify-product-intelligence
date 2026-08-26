@@ -790,6 +790,64 @@ Deliberately unresolved. Each is recorded so V0 does not foreclose it, and none 
 | Q-3 | Bundles, kits, and Shopify combined listings — one record or several? | Structurally distinct; would need its own attribute logic. | Primary Shopify documentation review + real bundle fixtures. |
 | Q-4 | Should the merchant see a raw score or a banded grade only? Does a number invite gaming? | Needs real merchant reaction. | User testing on V0 reports. |
 | Q-5 | Is 200 the right batch ceiling, and how should catalog-level systemic reporting work at 3,000 SKUs? | Depends on whether merchants act per-product or per-pattern. | Observation of V0 usage. |
+
+---
+## D-035 — `number_without_unit_or_basis` recognized only for the structurally decidable "no unit" sub-case
+
+**Status:** Accepted. Governance-only step — no implementation.
+
+**Question:** The reconnaissance step evaluated the shared predicate `number_without_unit_or_basis`, declared as `partial_if` for both `HOME.capacity_or_load` and `SPORTS.load_or_capacity_rating` (`taxonomy.md` §5.4 and §5.5). Each taxonomy row states its PARTIAL condition as *"A number with no unit or basis"* (Home) and *"A number with no unit or no basis"* (Sports). Should the engine proceed to implement recognition for this predicate, and if so, what is its boundary?
+
+**Decision: the predicate is initially recognized ONLY for the structurally decidable sub-case — a numeric/magnitude value with no recognized unit token. The "no basis" portion is NOT implemented in this slice.**
+
+1. **Shared predicate — one implementation for both declarations.**
+   The predicate ID `number_without_unit_or_basis` is a single entry in `taxonomy_data.RECOGNITION_PREDICATES` (frozenset deduplicates) and will be a single evaluator in `registry.IMPLEMENTED_PREDICATES`. It applies to:
+   - `HOME.capacity_or_load` (Tier A, product scope, inheritable, conditional on `load_bearing_element_indicated`)
+   - `SPORTS.load_or_capacity_rating` (Tier A, product scope, inheritable, no trigger)
+   One evaluator, one boundary, both categories. No Sports-only or Home-only variant.
+
+2. **Structurally decidable scope: "no recognized unit token."**
+   The ambiguity arm fires when a supplied value parses as a magnitude (via `lexicon.magnitude`) and the extracted unit spelling is **empty** or **not a member of the recognized unit sets** (`LENGTH_UNITS | MASS_UNITS | VOLUME_UNITS | TIME_UNITS`, extended per this decision to include `VOLTAGE_UNITS` for electronics predicates).
+   - Examples that become `AMBIGUOUS`: `"50"`, `"300"`, `"2.5"`, `"100 lbs"` (if "lbs" not in `MASS_UNITS`), `"150 kg"` (if "kg" not in `MASS_UNITS`).
+   - Examples that do NOT become `AMBIGUOUS` (remain `UNDECIDED`): `"50 kg weight capacity"`, `"300 L volume"`, `"seats 4"`, `"150 kg max user weight"`, `"10-50 kg resistance range"` — these have a unit token; whether they also state a "basis" is a language question.
+
+3. **"No basis" is explicitly excluded from this slice.**
+   Determining whether a number *represents* a weight capacity, volume, seating count, user weight, resistance range, or rated load requires reading the surrounding text for basis-indicating terms. That is language recognition, not structural shape detection. Values whose ambiguity depends on missing basis remain `UNDECIDED` → the check defers (D-019) and emits no finding. This is the permitted direction of failure (under-detection).
+
+4. **No product-value vocabulary, no heuristic language recognition.**
+   - No lexicon of capacity types ("weight capacity", "volume", "seating", "user weight", "resistance", "rated load") is added. Such a lexicon would be product-adjacent and risks D-022 violation.
+   - No NLP, stemming, or keyword matching for "basis" terms is implemented.
+   - The predicate boundary is exactly: *magnitude parsed, unit token absent or unrecognized*.
+
+5. **This decision does NOT authorize implementation of any of the following:**
+   - `HOME.load_bearing_element_indicated` (trigger predicate — remains UNIMPLEMENTED; Home check defers on trigger detection per D-019)
+   - `capacity_with_unit_and_basis` (satisfies predicate for Home — remains UNIMPLEMENTED)
+   - `rated_load_with_units` (satisfies predicate for Sports — remains UNIMPLEMENTED)
+   - `specs_without_units` / `specs_with_units` (Electronics core_specifications)
+   - `voltage_without_plug_type` / `voltage_with_plug_type` (Electronics power_requirements)
+   - Any taxonomy change (the `partial_if` cells remain exactly as written)
+   - Any prose recognition (D-019 deferral on unread prose stands)
+
+6. **No code, lexicon, fixture, expectation, rubric version, or baseline is changed by this governance-only step.**
+   - `RUBRIC_VERSION` remains 0.7
+   - `LEXICON_VERSION` remains 0.7
+   - `REGISTRY_VERSION` remains 0.7
+   - `NPR_VERSION` remains 0.2
+   - No entry is added to `engine/lexicon.py` (not even `VOLTAGE_UNITS` — that is deferred to the implementation step)
+   - No evaluator is added to `engine/recognize.py`
+   - No check is registered in `engine/registry.py`
+   - No fixture or expectation file is modified
+   - `evals/monotonicity_baseline.json` is not changed
+   - Q-6a diagnostic remains byte-identical
+
+7. **Any eventual implementation of this predicate is a separate score-moving change governed by D-023** and must include the required `rubric_version` bump, expectation migration, and baseline update in one transaction. It is not authorized by this record; it is merely governance-cleared for the boundary defined here.
+
+**Rejected:** *Implement "no basis" detection via keyword matching* — violates D-022 (product-adjacent vocabulary) and D-019 (language recognition over prose requires a predicate, not a heuristic). *Implement Sports-only to avoid Home's trigger* — violates the shared predicate ID contract; one registry entry, one evaluator. *Amend taxonomy to split the predicate* — would silently change the specification rather than documenting the implementation boundary.
+
+**Cost:** The predicate's coverage is narrower than the taxonomy wording. A merchant stating `"300 lbs"` (unit recognized) but no basis earns nothing for the ambiguity arm until a language-recognition path exists. This is the permitted direction of failure — under-detecting ambiguity rather than over-detecting it or inventing basis vocabulary.
+
+---
+## Open questions
 | Q-6a | **Diagnostic, no policy content.** Under the *existing* scoring function, are `uncategorized` products deflated or flattered in aggregate once D2's 22 points (`taxonomy.md` §2 rule 3) and `VARIANT.ATTRIBUTE_COVERAGE`'s 3.0 (D-029) are both removed and the total is renormalized by `rubric.md` §6.3? Direction is deliberately left open in the question: the removals are favourable exactly when the product's would-be earn-rate on the removed points is *below* its earn-rate on the rest, so the sign is product-dependent and neither direction may be presupposed. The norm it is measured against is `taxonomy.md` §6's closing line, *"Cross-category score comparison is valid at the score level (all are out of 100)"*, and `uncategorized` is a row in that table. | **Not a decision, and not blocked on one.** It is arithmetic over a scoring function that is already fully specified (`rubric.md` §1.2, §6.1), and it is unanswerable today only because no score exists to measure: `engine/runner.py` computes no total by design, and `evals/audits/arithmetic_audit.py` verifies a reported score that nothing yet produces. | P4 landing an actual aggregate score (`max_applicable`, renormalization factor, normalized total), **plus** an `uncategorized` fixture set adequate to measure over. `PRD.md` §12.1's corpus plan defines no such set, and the corpus currently holds two `uncategorized` fixtures — `checks-07` (single-variant, where `NA_SINGLE_VARIANT` fires regardless) and `rec-11` (the only multi-variant one). It must span the spread the mechanism predicts: well-attributed-but-uncategorized at one end, attribute-empty at the other. **No merchant data is required to answer this.** |
 | Q-6b | **Remedy, and a real policy choice.** Should `uncategorized` products get an expanded Common Core, changing what is scored rather than measuring what is? Depends on Q-6a's answer and does not presuppose it. | Risks encouraging bad category hygiene, which is itself a real finding. It is also a scoring change, not an editorial one: `taxonomy.md` §3 puts the Common Core in D1/D5/D8 and *never* in D2, and §2 rule 3 with `rubric.md` §4/D2 remove D2 in full — so adopting it needs a taxonomy version bump (`taxonomy.md` §7), a `rubric_version` bump (D-023), and an expectation migration. Note the coupling to D-029: `taxonomy_data.variant_scope_keys` excludes the Common Core deliberately (its two non-inheritable variant-scope rows are already scored per variant, D-030). An expanded core that added a *new* non-inheritable variant-scope key routed into `uncategorized` would make `K` non-empty and stop D-029 case 2 firing. | Eval data on how often `uncategorized` occurs in real exports, and Q-6a answered first. |
 | Q-7 | How should the tool treat merchant data that is stale rather than absent (a spec that no longer matches the shipped product)? | Undetectable without external state; possibly permanently out of scope. | Whether merchants report this as a felt problem. |

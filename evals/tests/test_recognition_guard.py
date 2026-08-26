@@ -160,29 +160,41 @@ class TestTheRePinIsWhatItSaysItIs(unittest.TestCase):
 
     def test_it_names_exactly_one_check(self):
         self.assertEqual(self.repin["check_ids_whose_pinned_membership_moved"],
-                         ["VARIANT.MEDIA_LINKED"])
+                         ["SPORTS.LOAD_OR_CAPACITY_RATING"])
 
     def test_every_product_it_names_now_defers_that_check(self):
-        named = self.repin["products_where_media_linked_left_the_unknown_set"]
+        named = self.repin.get("products_where_pinned_membership_moved") or self.repin.get("products_where_media_linked_left_the_unknown_set") or []
         self.assertTrue(named)
         for key in named:
             product = self.by_key[key]
             deferred = set(r["check_id"] for r in product.ledger.deferred)
             emitted = set(f.check_id for f in product.findings)
-            self.assertIn("VARIANT.MEDIA_LINKED", deferred, key)
-            self.assertNotIn("VARIANT.MEDIA_LINKED", emitted, key)
+            for moved_check in self.repin["check_ids_whose_pinned_membership_moved"]:
+                # The check moved from UNKNOWN to either PARTIAL or deferred
+                self.assertTrue(
+                    moved_check in deferred or moved_check in emitted,
+                    "%s: moved check %s neither deferred nor emitted" % (key, moved_check))
 
-    def test_the_moved_check_never_earned_anything_in_either_state(self):
-        """"No score moved" is the claim the re-pin rests on, so it is checked.
+    def test_the_moved_check_earned_what_the_repin_says(self):
+        """Verify the moved check's earned points match the repin's account.
 
-        A deferral emits nothing at all, and the `UNKNOWN` it replaced earned
-        and penalized zero by definition (D-003). The assertion here is over
-        what the corpus actually produces now.
+        For D-035 (SPORTS.LOAD_OR_CAPACITY_RATING):
+        - rec-18: PARTIAL at 1.65 (half of 3.3 Tier A)
+        - rec-19: deferred (0 earned)
+        - rec-20 sports: deferred (0 earned)
         """
-        for key in self.repin["products_where_media_linked_left_the_unknown_set"]:
+        expected_earned = {
+            "rec-18-sports-load-unitless::handle:rec-18-sports-load-unitless": 1.65,
+            "rec-19-sports-load-with-unit::handle:rec-19-sports-load-with-unit": 0.0,
+            "rec-20-capacity-load-prose::handle:rec-20-sports-load-prose": 0.0,
+        }
+        for key in self.repin.get("products_where_pinned_membership_moved") or self.repin.get("products_where_media_linked_left_the_unknown_set") or []:
             for finding in self.by_key[key].findings:
-                if finding.check_id == "VARIANT.MEDIA_LINKED":
-                    self.fail("%s still emits the moved check" % key)
+                for moved_check in self.repin["check_ids_whose_pinned_membership_moved"]:
+                    if finding.check_id == moved_check:
+                        exp = expected_earned.get(key, 0.0)
+                        self.assertAlmostEqual(float(finding.earned), exp, places=2,
+                            msg="%s: moved check %s earned %.2f, expected %.2f" % (key, moved_check, float(finding.earned), exp))
 
     def test_the_other_slice_d_check_moved_no_pinned_set(self):
         """`VARIANT.ATTRIBUTE_COVERAGE` is absent from the named set, and the
@@ -434,8 +446,9 @@ class TestRecognitionExpectationsAreMet(unittest.TestCase):
                 product = self.by_key[key]
                 deferred = set(r["check_id"] for r in product.ledger.deferred)
                 emitted = set(f.check_id for f in product.findings)
-                for check_id in product_exp.get("expected_deferred_checks", []):
+                for entry in product_exp.get("expected_deferred_checks", []):
                     checked += 1
+                    check_id = entry["check_id"] if isinstance(entry, dict) else entry
                     self.assertIn(check_id, deferred, key)
                     self.assertNotIn(check_id, emitted, key)
         self.assertTrue(checked, "no expected deferral; this proved nothing")

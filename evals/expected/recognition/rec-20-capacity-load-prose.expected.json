@@ -1,0 +1,48 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-20-capacity-load-prose",
+  "set": "recognition",
+  "rubric_version": "0.8",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the number_without_unit_or_basis predicate boundary with prose values. The values 'holds plenty' and 'supports heavy users' do not parse as magnitudes (lexicon.magnitude returns None), so the predicate returns False. Home defers on trigger; Sports defers on satisfying arm.",
+  "notes": "HOME.CAPACITY_OR_LOAD defers because load_bearing_element_indicated is UNIMPLEMENTED. SPORTS.LOAD_OR_CAPACITY_RATING defers because rated_load_with_units is UNIMPLEMENTED. Neither value is ambiguous from this predicate (not numeric magnitudes).",
+  "products": [
+    {
+      "product_id": "handle:rec-20-home-capacity-prose",
+      "expected_category": "home",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "50 kg",
+        "100 kg",
+        "weight capacity 50",
+        "holds 50 kg"
+      ],
+      "expected_findings_include": [],
+      "expected_deferred_checks": [
+        {
+          "check_id": "HOME.CAPACITY_OR_LOAD",
+          "reason": "Applicability depends on a structural trigger that needs recognition (load_bearing_element_indicated)."
+        }
+      ]
+    },
+    {
+      "product_id": "handle:rec-20-sports-load-prose",
+      "expected_category": "sports",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "150",
+        "150 kg",
+        "max user weight",
+        "supports 150"
+      ],
+      "expected_findings_include": [],
+      "expected_deferred_checks": [
+        {
+          "check_id": "SPORTS.LOAD_OR_CAPACITY_RATING",
+          "reason": "A value is supplied and the recognition predicate (rated_load_with_units) ran and could not decide it."
+        }
+      ]
+    }
+  ]
+}

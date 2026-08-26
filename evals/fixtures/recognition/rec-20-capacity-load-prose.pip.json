@@ -1,0 +1,202 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "rec-20-capacity-load-prose",
+    "set": "recognition",
+    "intent": "Both HOME.capacity_or_load and SPORTS.load_or_capacity_rating with prose values that cannot be parsed as magnitudes. The values 'holds plenty' and 'supports heavy users' are not numeric magnitudes, so number_without_unit_or_basis returns False. The check defers (UNDECIDED) per D-019 and emits no finding.",
+    "provenance": "Synthetic. Authored for this eval corpus to exercise the number_without_unit_or_basis predicate boundary with prose. Not derived from any real merchant's catalog or private data.",
+    "notes": "The prose values do not parse as magnitudes (lexicon.magnitude returns None), so the predicate returns False. The check defers because the value is present but unreadable — this is the D-019 deferral path, not an absence."
+  },
+  "products": [
+    {
+      "npr_version": "0.2",
+      "product_id": "handle:rec-20-home-capacity-prose",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-20-capacity-load-prose.pip.json",
+        "locator": "products[handle:rec-20-home-capacity-prose]"
+      },
+      "identity": {
+        "title": {
+          "value": "Brackenwood Large Shelf",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Brackenwood",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "rec-20-home-capacity-prose",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": "Shelving",
+          "src": "identity.product_type"
+        },
+        "declared_category": {
+          "value": "Home & Garden > Decor > Shelving",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": "This shelf holds plenty of books and decor.",
+          "src": "narrative.description_text"
+        },
+        "description_html": {
+          "value": "<p>This shelf holds plenty of books and decor.</p>",
+          "src": "narrative.description_html"
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 8
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [
+        {
+          "key": "capacity_or_load",
+          "value_raw": "holds plenty",
+          "origin": "merchant_prose",
+          "src": "narrative.description_text[11:23]",
+          "scope": "product"
+        }
+      ],
+      "options": [],
+      "variants": [
+        {
+          "variant_id": "sku:BW-SHELF-LG",
+          "option_values": {},
+          "sku": {
+            "value": "BW-SHELF-LG",
+            "src": "variants[sku:BW-SHELF-LG].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "95.00",
+            "currency": null,
+            "src": "variants[sku:BW-SHELF-LG].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    },
+    {
+      "npr_version": "0.2",
+      "product_id": "handle:rec-20-sports-load-prose",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-20-capacity-load-prose.pip.json",
+        "locator": "products[handle:rec-20-sports-load-prose]"
+      },
+      "identity": {
+        "title": {
+          "value": "Summit Training Harness",
+          "src": "identity.title"
+        },
+        "brand": {
+          "value": "Summit",
+          "src": "identity.brand"
+        },
+        "model_or_mpn": {
+          "value": null,
+          "src": null
+        },
+        "handle": {
+          "value": "rec-20-sports-load-prose",
+          "src": "identity.handle"
+        },
+        "product_type": {
+          "value": "Climbing Harnesses",
+          "src": "identity.product_type"
+        },
+        "declared_category": {
+          "value": "Sporting Goods > Outdoor Recreation > Climbing",
+          "src": "identity.declared_category"
+        }
+      },
+      "narrative": {
+        "description_text": {
+          "value": "This harness supports heavy users with confidence.",
+          "src": "narrative.description_text"
+        },
+        "description_html": {
+          "value": "<p>This harness supports heavy users with confidence.</p>",
+          "src": "narrative.description_html"
+        },
+        "structure": {
+          "has_lists": false,
+          "has_tables": false,
+          "has_headings": false,
+          "word_count": 8
+        },
+        "seo_title": {
+          "value": null,
+          "src": null
+        },
+        "seo_description": {
+          "value": null,
+          "src": null
+        }
+      },
+      "attributes": [
+        {
+          "key": "load_or_capacity_rating",
+          "value_raw": "supports heavy users",
+          "origin": "merchant_prose",
+          "src": "narrative.description_text[13:33]",
+          "scope": "product"
+        }
+      ],
+      "options": [],
+      "variants": [
+        {
+          "variant_id": "sku:SM-HAR-TR",
+          "option_values": {},
+          "sku": {
+            "value": "SM-HAR-TR",
+            "src": "variants[sku:SM-HAR-TR].sku"
+          },
+          "barcode": {
+            "value": null,
+            "src": null
+          },
+          "price": {
+            "value": "119.00",
+            "currency": null,
+            "src": "variants[sku:SM-HAR-TR].price"
+          },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

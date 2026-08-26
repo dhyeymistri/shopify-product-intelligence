@@ -1,0 +1,30 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-17-home-capacity-with-unit",
+  "set": "recognition",
+  "rubric_version": "0.8",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the number_without_unit_or_basis predicate boundary for HOME.capacity_or_load. The trigger load_bearing_element_indicated is not implemented, so the check defers on trigger detection per D-019. The value '50 kg' has a recognized unit (kg in MASS_UNITS), so the predicate correctly returns False.",
+  "notes": "HOME.CAPACITY_OR_LOAD defers because load_bearing_element_indicated is UNIMPLEMENTED. The value '50 kg' is NOT ambiguous from this predicate (unit recognized).",
+  "products": [
+    {
+      "product_id": "handle:rec-17-home-capacity-with-unit",
+      "expected_category": "home",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "50 lb",
+        "50 lbs",
+        "weight capacity 50 lb",
+        "load capacity 50 lb"
+      ],
+      "expected_findings_include": [],
+      "expected_deferred_checks": [
+        {
+          "check_id": "HOME.CAPACITY_OR_LOAD",
+          "reason": "Applicability depends on a structural trigger that needs recognition (load_bearing_element_indicated)."
+        }
+      ]
+    }
+  ]
+}
