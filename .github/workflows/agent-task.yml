@@ -1,0 +1,168 @@
+# Automation runner for one human-authorized task (.agent/QUEUE.md, T-010).
+#
+# Shape of the loop this establishes (.agent/ROADMAP.md §3):
+#   GitHub Actions -> OpenCode -> a model -> verification -> human review.
+#
+# What this workflow is, and is not:
+#   * It establishes the runner environment and invokes the existing
+#     control path. It does not restate policy that already lives in
+#     `opencode.json` (permissions), `.opencode/agent/task-executor.md`
+#     (the executor's operating contract) or `.github/agent/git-shim/git`
+#     (runner-level git mutation defense).
+#   * It is not an authorization mechanism. `.agent/QUEUE.md` is the only
+#     source of an agent's authority; the executor reads it itself. This
+#     workflow neither reads, writes, nor interprets the queue.
+#   * It ends where every task ends (.agent/RULES.md §4, §14): the change
+#     sits in the working tree, uncommitted, for the human to review and
+#     commit personally. Nothing here commits, amends, pushes, merges or
+#     rebases, and the run is dispatched by a human, never on a repository
+#     event.
+
+name: agent-task
+
+on:
+  # Manual dispatch only. No push/pull_request/schedule trigger: a run is
+  # started by the human who authorized the queue entry, and by nobody else.
+  workflow_dispatch:
+    inputs:
+      model:
+        description: >-
+          Model for OpenCode to use, as provider/model (see .agent/ROADMAP.md
+          §3: a free or low-cost model). Required — the repository records no
+          default and this workflow does not invent one.
+        required: true
+        type: string
+      opencode_version:
+        description: npm version spec for the OpenCode CLI.
+        required: false
+        type: string
+        default: latest
+
+# Read-only. The runner is never given write access to repository contents;
+# the human performs every commit.
+permissions:
+  contents: read
+
+concurrency:
+  # One authorized task at a time. Never cancel a run in flight — a half-run
+  # executor would leave an unexplained working tree.
+  group: agent-task
+  cancel-in-progress: false
+
+jobs:
+  run-authorized-task:
+    name: Run the authorized queue task
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      # OpenCode is configured by the repository's own `opencode.json`; the
+      # only thing the runner supplies is a provider credential. Whichever of
+      # these matches the dispatched `model` is the one that must be set as a
+      # repository secret; the rest resolve to the empty string and are
+      # ignored. No credential is required by, or available to, any other step.
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          # Do not leave a pushable credential in .git/config. Combined with
+          # the read-only `permissions` above and the git shim below, the
+          # runner has no route to write to the remote.
+          persist-credentials: false
+
+      # actions/checkout needs the real git, so the shim goes on PATH only
+      # after the checkout has completed. GITHUB_PATH takes effect in the
+      # *following* steps, which is exactly the boundary wanted here.
+      - name: Put the git shim at the front of PATH
+        run: |
+          set -euo pipefail
+          shim_dir="$GITHUB_WORKSPACE/.github/agent/git-shim"
+          test -f "$shim_dir/git" || {
+            echo "::error::git shim missing at $shim_dir/git"
+            exit 1
+          }
+          test -x "$shim_dir/git" || {
+            echo "::error::git shim at $shim_dir/git is not executable"
+            exit 1
+          }
+          echo "$shim_dir" >> "$GITHUB_PATH"
+
+      - name: Confirm the git shim intercepts git
+        run: |
+          set -euo pipefail
+          resolved="$(command -v git)"
+          expected="$GITHUB_WORKSPACE/.github/agent/git-shim/git"
+          echo "git resolves to: $resolved"
+          if [ "$resolved" != "$expected" ]; then
+            echo "::error::git does not resolve to the shim; refusing to run"
+            exit 1
+          fi
+          # Read-only inspection must still work.
+          git rev-parse HEAD > /dev/null
+          # A mutating subcommand must be refused by the shim (exit 97)
+          # rather than reaching the real git. The probe is deliberately one
+          # that writes nothing even if it were somehow to reach the real
+          # git: `git worktree` with no subcommand only prints usage. This
+          # workflow therefore contains no command that could create,
+          # rewrite, or publish a commit under any circumstances.
+          set +e
+          git worktree >/dev/null 2>&1
+          rc=$?
+          set -e
+          if [ "$rc" -ne 97 ]; then
+            echo "::error::git shim did not refuse a mutating subcommand (exit $rc, expected 97)"
+            exit 1
+          fi
+          echo "git shim refuses mutations as expected (exit 97)."
+
+      - name: Record the pre-run repository state
+        run: |
+          set -euo pipefail
+          head="$(git rev-parse HEAD)"
+          echo "HEAD_BEFORE=$head" >> "$GITHUB_ENV"
+          echo "HEAD before run: $head"
+          echo "Working tree before run:"
+          git status --short
+          python3 --version
+          node --version
+
+      - name: Install the OpenCode CLI
+        env:
+          # Dispatch inputs reach the shell through the environment, never
+          # through ${{ }} interpolation into the script body.
+          OPENCODE_VERSION: ${{ inputs.opencode_version }}
+        run: |
+          set -euo pipefail
+          npm install -g "opencode-ai@${OPENCODE_VERSION}"
+          opencode --version
+
+      - name: Execute the authorized queue task
+        env:
+          AGENT_MODEL: ${{ inputs.model }}
+        run: |
+          set -euo pipefail
+          opencode run \
+            --agent task-executor \
+            --model "${AGENT_MODEL}" \
+            "Follow your operating contract in .opencode/agent/task-executor.md. Read .agent/QUEUE.md, execute only the task that a human has placed there in the authorized state, and stop at ready_for_review with the change uncommitted. If no task is in the authorized state, report that and stop without changing any file."
+
+      - name: Report the working tree left for human review
+        if: always()
+        run: |
+          set -euo pipefail
+          echo "## Working tree left for review"
+          git status --short
+          git diff
+          git diff --check
+          head_after="$(git rev-parse HEAD)"
+          echo "HEAD after run: $head_after"
+          if [ "$head_after" != "${HEAD_BEFORE:-$head_after}" ]; then
+            echo "::error::HEAD moved during the run; a commit was created, which is prohibited"
+            exit 1
+          fi
+          echo "HEAD unchanged. The change, if any, is uncommitted and awaits human review."
