@@ -44,7 +44,7 @@ from . import taxonomy_keys
 #: rubric, which would make the assertion at the foot of this module vacuous.
 #: Stated as a literal, bumping `rubric_version` without reviewing this
 #: vocabulary is a load failure -- which is exactly what D-022 asks for.
-LEXICON_VERSION = "0.11"
+LEXICON_VERSION = "0.12"
 
 _WS_RE = re.compile(r"\s+")
 

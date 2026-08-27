@@ -1,0 +1,84 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-26-beauty-actives-concentration",
+  "set": "recognition",
+  "rubric_version": "0.12",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the actives_with_concentration and actives_without_concentration recognition predicates for BEAUTY.KEY_ACTIVES_AND_CONCENTRATION across all three arms of the D-038 boundary. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "PASS at 1.32 where a proportion token is present; PARTIAL at 0.66 where the value carries no '%' and no digit; deferral where a digit appears that is not a proportion. Neither arm asserts that an active was named (D-038 item 4). Other BEAUTY attributes have no values and are UNKNOWN.",
+  "products": [
+    {
+      "product_id": "handle:rec-26-actives-with-concentration",
+      "expected_category": "beauty",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "10% niacinamide",
+        "retinol",
+        "0.3%",
+        "salicylic acid",
+        "50 ml"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "BEAUTY.KEY_ACTIVES_AND_CONCENTRATION",
+          "status": "PASS",
+          "reason": "A proportion token is stated in the supplied value.",
+          "evidence_locators": [
+            "attributes[key_actives_and_concentration].value_raw"
+          ]
+        }
+      ],
+      "expected_deferred_checks": []
+    },
+    {
+      "product_id": "handle:rec-26-actives-without-concentration",
+      "expected_category": "beauty",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "5% niacinamide",
+        "2% hyaluronic acid",
+        "10% niacinamide",
+        "retinol"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "BEAUTY.KEY_ACTIVES_AND_CONCENTRATION",
+          "status": "PARTIAL",
+          "reason": "Actives named without concentration.",
+          "evidence_locators": [
+            "attributes[key_actives_and_concentration].value_raw"
+          ]
+        }
+      ],
+      "expected_deferred_checks": []
+    },
+    {
+      "product_id": "handle:rec-26-actives-undecided",
+      "expected_category": "beauty",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "10%",
+        "0.3%",
+        "retinol",
+        "salicylic acid"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [],
+      "expected_deferred_checks": [
+        {
+          "check_id": "BEAUTY.KEY_ACTIVES_AND_CONCENTRATION",
+          "reason": "A value is supplied and the recognition predicate (actives_with_concentration) ran and could not decide it."
+        }
+      ]
+    }
+  ]
+}

@@ -259,6 +259,33 @@ def rated_load_with_units(value):
     return parsed is not None and parsed[1] in X.MASS_UNITS
 
 
+def actives_with_concentration(value):
+    # type: (str) -> bool
+    """`taxonomy.md` 5.2 BEAUTY.key_actives_and_concentration satisfies
+    predicate: a proportion is stated somewhere in the value.
+
+    D-038: an unanchored search over the supplied value -- not whole-value
+    membership, and not delimiter splitting. The *named actives* half of the
+    cell is not verified and needs no verification here: a value at this key
+    is the merchant's assertion about actives, which is this module's own
+    load-bearing assumption, stated above. No vocabulary is added.
+    """
+    return _PROPORTION_RE.search(value) is not None
+
+
+def actives_without_concentration(value):
+    # type: (str) -> bool
+    """`taxonomy.md` 5.2's PARTIAL cell: actives named without concentration.
+
+    D-038: no `%`, and no digit that could be a concentration stated in some
+    other notation. The digit condition is what makes this arm *provable*
+    rather than merely unmatched -- a value carrying a digit that is not a
+    proportion may be stating a concentration this phase cannot read, so it
+    stays UNDECIDED and the check defers (D-019).
+    """
+    return ("%" not in value) and not _DIGIT_RE.search(value)
+
+
 # ---------------------------------------------------------------------------
 # Slice E -- controlled vocabulary, positive arm
 # ---------------------------------------------------------------------------
@@ -400,6 +427,8 @@ VALUE_PREDICATES = {
     "shade_code_without_name": shade_code_without_name,
     "number_without_unit_or_basis": number_without_unit_or_basis,
     "rated_load_with_units": rated_load_with_units,
+    "actives_with_concentration": actives_with_concentration,
+    "actives_without_concentration": actives_without_concentration,
     # Slice E
     "named_size_standard_with_value": named_size_standard_with_value,
     "bare_size_label": bare_size_label,
