@@ -1029,6 +1029,97 @@ The following are implementation consequences of the governance decision above. 
 - `evals/expected/recognition/rec-02-vague-phrases.expected.json` (expectations)
 
 ---
+## D-038 — `BEAUTY.key_actives_and_concentration`: the concentration is recognized structurally; the named active stays unverified
+
+**Status:** Accepted. Governance-only step — no implementation.
+
+**Question:** [`taxonomy.md`](./taxonomy.md) §5.2 fixes `key_actives_and_concentration` with `satisfies = actives_with_concentration` and `partial_if = actives_without_concentration`. Both ids are declared in `engine/taxonomy_data.py` and neither has an evaluator, so wherever a value is stated and no conflict is routed, `BEAUTY.KEY_ACTIVES_AND_CONCENTRATION` defers rather than deciding satisfaction. Should the engine implement them, what is the boundary, and does Q-13 govern — given that a satisfying arm would decide only one of the two components the taxonomy cell names?
+
+**Decision: both arms are authorized as structural shape recognition over the supplied value, matched by unanchored search rather than whole-value membership — a stated proportion decides satisfaction, and the provable absence of any digit decides ambiguity. No vocabulary of any kind is added. The "named actives" component is not verified, and this record states why it does not need to be.**
+
+1. **Exact scope — one check, two predicates, nothing else.**
+   - Check: `BEAUTY.KEY_ACTIVES_AND_CONCENTRATION` (D2, Tier B, product scope, inheritable, `max_points` 1.32, `partial_credit` 0.5, so `PARTIAL` earns 0.66; `conflict_severity` `blocker`).
+   - `actives_with_concentration` — the `satisfies` arm.
+   - `actives_without_concentration` — the `partial_if` arm.
+
+   This record reaches no other check, no other category, and no other predicate id.
+
+2. **The structural boundary, stated exactly.**
+   - `actives_with_concentration` fires when a proportion token — a number followed by `%` — occurs **anywhere in the supplied value**. This is an unanchored search over the value, not whole-value membership and not delimiter splitting.
+   - `actives_without_concentration` fires when the value contains **no `%` and no digit at all**. The digit condition is what makes the arm provable rather than merely unmatched: a value with no digit cannot be carrying a concentration stated in some other notation.
+   - A value that satisfies neither — one carrying a digit that is not a percentage — is `UNDECIDED`, and the check defers and emits nothing (D-019).
+
+   The shape is the one `engine/recognize.py` already implements for `APPAREL.material_composition` (`_PROPORTION_RE`, `_DIGIT_RE`). Reusing it is the intended implementation form; introducing a different matching family for these two arms is not authorized here.
+
+3. **What is deliberately NOT recognized.**
+   - **That an active was named.** See 4.
+   - **Concentrations stated outside percent notation** — `"10 mg/ml niacinamide"`, `"1000 ppm"` — remain `UNDECIDED`. Reaching them needs a unit vocabulary that this record does not add and does not authorize.
+   - **Enumeration of several actives.** The value is read as a whole. No delimiter splitting, on the reasoning D-036 §6 gives for rejecting it: judging whether a comma is enumeration or prose punctuation is a language judgment, not a structural one.
+   - **Prose.** The predicates are wired to `facts.Gathered.stated`, which `facts.gather` separates from `PROSE_PATHS` by path pattern. A value found only at `narrative.description_text` is never passed to either arm; the check defers (D-019). See 7 for the qualification this carries.
+
+4. **Why the keyed-attribute assumption is sufficient for the "named active" component.**
+   `engine/recognize.py` already states the assumption, and states that recognition inherits rather than introduces it: "A value found at an exactly-keyed attribute path is the merchant's assertion *about that attribute*. `material_with_proportions` does not verify that a fibre was named; it verifies that a proportion was stated at a field the merchant keyed as material composition. P3.1 already relies on this for every `VALUE_PRESENT` check -- recognition does not introduce the assumption, it inherits it."
+
+   The same sentence holds here with `active` for `fibre`. A value at `attributes[key_actives_and_concentration]` is the merchant's assertion about actives; the predicate decides only whether a concentration accompanies it. **Nothing in either arm asserts what the active is**, and no finding either arm produces may say so — the finding quotes the merchant's own value at its own locator and interprets nothing (`engine/checks.ambiguous`, `engine/checks.present`).
+
+   The alternative — verifying that an active was named — would require a lexicon of active-ingredient names. That is product-value vocabulary, forbidden by D-022 and refused for the same reason by D-034. It is not proposed and not authorized.
+
+5. **`material_with_proportions` is the precedent, and it is an architectural one rather than a governance one.**
+   `taxonomy.md` §5.1's `material_composition` cell — *"Fiber content with percentages"* / *"Material named without proportions"* — has the same two-conjunct shape as §5.2's `key_actives_and_concentration` cell: a named thing plus a measurable qualifier, where the qualifier is structurally decidable and the named thing is not. Its predicates have been in the engine since `engine/recognize.py` was created in `726f8e1`.
+
+   **They carry no predicate-specific decision record.** That absence is stated here because it is the reason this record exists: the shape is established in the codebase but was never written down, and relying on an unwritten precedent is what AGENTS.md §7 asks us not to do. **This record governs the two Beauty predicates only. It does not retroactively govern `material_with_proportions`, does not ratify it, and makes no claim about whether it should have shipped without a record.**
+
+6. **D-036 does not govern this change, and its scope limit is not engaged.**
+   D-036 §7 confines itself to `APPAREL.CARE_INSTRUCTIONS → care_method_stated` and `APPAREL.INTENDED_USE_CONTEXT → use_context_stated`, and what it authorizes is *composite structural phrases as closed lexicon vocabulary*. **This record adds no lexicon entry, no lexicon set, and no vocabulary of any kind**, so there is nothing here for D-036's authorization or its scope limit to reach. No entry joins `VALUE_SHAPED`, so the corpus leak-scan surface does not grow. The only change to `engine/lexicon.py` the eventual implementation contemplates is the version literal moving with the rubric bump (item 12): the file is edited, but no vocabulary in it is.
+
+   D-036 §2's requirement is met on its own terms: the `satisfies` and `partial_if` arms of one check must share a structural model of what the value is. Both arms here read the same whole value for the same property, from opposite sides.
+
+7. **Q-13 does not apply by its own wording, and this record does not answer it.**
+   Q-13 asks about *"a predicate **named as a disjunction**"*. It names `warranty_with_duration_or_scope` by id, and identifies the other predicate not by id but by its defining phrase — the ambiguity arm *"no unit **or** no basis"*, which is `number_without_unit_or_basis`. Neither Beauty predicate id contains a disjunction, and neither cell of the `key_actives_and_concentration` row is disjunctive — `"Named actives **with** concentration"` and `"Actives named without concentration"` are a conjunction and a single condition.
+
+   **Q-13 remains open and is unchanged by this record.** Its resolution column asks for *"an explicit statement, **per predicate and per arm**, that a decidable half may decide alone"*; this record makes such a statement for these two arms and for nothing else. It does not generalize, it does not settle Q-13 for the predicates Q-13 names, and it is not authority for any other partially decidable predicate.
+
+8. **The prose-origin dependency, named and left open.**
+   The one corpus product these predicates would move — `sparse-beauty-02` / `handle:verda-barrier-cream` — carries its value at `attributes[key_actives_and_concentration]` with `origin: merchant_prose` and `src: narrative.description_text[16:47]`, extracted upstream by the fixture's producer. The engine's prose boundary is applied by **path pattern** (`facts.gather`), so that value is in `stated` and would reach the predicate, and the finding's evidence locator would be the description span the value came from.
+
+   **This record does not decide whether that is right.** The question — *may a recognition predicate receive a `merchant_prose`-origin candidate, or is the prose boundary an origin boundary as well as a path boundary?* — is unresolved, is not specific to these predicates, and is not resolved here. It is named so the dependency is visible rather than silent: if that question is ever answered the other way, the finding on this fixture is one of several that would have to be revisited.
+
+9. **Deferral is the permitted direction, and no arm asserts absence.**
+   Neither arm can produce `UNKNOWN`, `FAIL` or a penalty. Absence and conflict are decided structurally before recognition runs, and `conflict_routing` on this check — which carries `blocker` conflict severity — is unchanged and continues to precede any predicate. No predicate here is owned by a penalty check, which `engine/registry._invariants` refuses to load.
+
+10. **This record does NOT authorize:**
+    - any lexicon of actives, ingredients, or concentrations;
+    - any unit vocabulary for non-percent concentration notation;
+    - delimiter splitting, substring matching against a vocabulary, or prose recognition;
+    - `complete_ingredient_list` / `key_ingredients_only` (`BEAUTY.ingredients_full`), whose satisfying arm requires judging completeness;
+    - any other `taxonomy.md` §5.2 predicate;
+    - `materials_with_component_mapping` / `material_without_component_mapping`, or any other conjunctive cell in another category;
+    - any change to `taxonomy.md` — both cells stand exactly as written;
+    - any answer to Q-13, and any disposition of `rated_load_with_units`, which is a separate matter with its own history and is untouched here.
+
+11. **No code, lexicon, fixture, expectation, version or baseline is changed by this governance-only step.**
+    - `RUBRIC_VERSION` remains 0.11
+    - `LEXICON_VERSION` remains 0.11
+    - `REGISTRY_VERSION` remains 0.11
+    - `NPR_VERSION` remains 0.2
+    - No entry is added to `engine/lexicon.py`
+    - No evaluator is added to `engine/recognize.py`
+    - No predicate is registered in `engine/registry.py`
+    - No fixture or expectation file is modified
+    - `evals/expected/monotonicity_baseline.json` is not changed
+
+12. **Expected governance consequence when implementation follows.** It is a separate score-moving change governed by D-023 and must carry, in one commit: `RUBRIC_VERSION`, `LEXICON_VERSION` and `REGISTRY_VERSION` moved together with `evals/measure/q6a.PINNED_RUBRIC_VERSION`; a migration of every affected expectation file; a fixture set exercising the satisfying arm, the ambiguity arm and — since the residue is real — the `UNDECIDED` case, on the practice every recognition slice has followed (`rec-16`–`rec-20`, `rec-21`–`rec-23`, `rec-25`); and the moved fixtures named in the commit message.
+
+    Two facts about the corpus, measured against the engine while writing this record and to be re-verified by the implementing commit rather than taken from here: `evals/expected/sparse/sparse-beauty-02.expected.json` **already declares** `BEAUTY.KEY_ACTIVES_AND_CONCENTRATION` as `PARTIAL` with the reason *"Actives named without concentration."* at `narrative.description_text[16:47]` — an expectation written in P1 that the engine has never met; and the pinned sets of `monotonicity_baseline.json` do not move, because the only transition is a deferral becoming `PARTIAL`, which the recognition contract already permits.
+
+**Rejected:** *Implement a lexicon of named actives so the satisfying arm can verify both components* — product-value vocabulary, forbidden by D-022 and refused on the same ground by D-034. *Implement the ambiguity arm alone* — a value stating a concentration would then earn nothing while a value stating none earned 0.66. **This record refuses that inversion for these two arms on its own reasoning, and not by appeal to a general rule.** D-021 and D-025 are the nearest analogous reasoning the repository holds, but both state their property about *variant coverage* — *"less information may never earn more than more complete variant coverage"* — and this check is product-scope and inheritable, so neither reaches this case as authority. Nothing here establishes a monotonicity rule about richer single values; item 7's limit applies to this paragraph too. What decides it is the contrast with D-034, which accepted a one-armed implementation for `APPAREL.COLOR_FINISH` **because** its satisfying arm is permanently blocked by D-022. That condition is what makes the asymmetry unavoidable there, and it does not hold here: the satisfying arm is implementable with the same shape as the ambiguity arm, so there is no reason to create the asymmetry. *Reach the value by delimiter splitting so each active is judged separately* — rejected on D-036 §6's reasoning. *Extend the boundary to non-percent concentration notation* — needs a unit vocabulary decided on its own merits. *Rely on `material_with_proportions` as precedent without a record* — the precedent is architectural and undocumented, which is what this record is for.
+
+**Cost.** Three costs, each a case where honest data earns less than it might.
+
+A merchant stating a concentration in any notation other than a percentage — `"10 mg/ml niacinamide"` — earns nothing for it; the check defers. A merchant naming actives with no concentration earns 0.66 of 1.32, which is the taxonomy's own `PARTIAL` and is correct rather than a cost. And a merchant whose active's *name* contains a digit — `"Vitamin B3"`, with no concentration stated — falls outside both arms and earns **nothing**, where the same statement of a digit-free name would have earned 0.66. That last case is the sharpest edge of the digit condition in 2, and it is recorded rather than smoothed over: the condition is what makes the ambiguity arm provable, and the price of provability is that it abstains where a digit appears for an unrelated reason. All three are D-019's permitted direction of failure — under-crediting supplied data rather than reading a value the tool cannot honestly read.
+
+---
+
 ## Open questions
 | Q-6a | **Diagnostic, no policy content.** Under the *existing* scoring function, are `uncategorized` products deflated or flattered in aggregate once D2's 22 points (`taxonomy.md` §2 rule 3) and `VARIANT.ATTRIBUTE_COVERAGE`'s 3.0 (D-029) are both removed and the total is renormalized by `rubric.md` §6.3? Direction is deliberately left open in the question: the removals are favourable exactly when the product's would-be earn-rate on the removed points is *below* its earn-rate on the rest, so the sign is product-dependent and neither direction may be presupposed. The norm it is measured against is `taxonomy.md` §6's closing line, *"Cross-category score comparison is valid at the score level (all are out of 100)"*, and `uncategorized` is a row in that table. | **Not a decision, and not blocked on one.** It is arithmetic over a scoring function that is already fully specified (`rubric.md` §1.2, §6.1), and it is unanswerable today only because no score exists to measure: `engine/runner.py` computes no total by design, and `evals/audits/arithmetic_audit.py` verifies a reported score that nothing yet produces. | P4 landing an actual aggregate score (`max_applicable`, renormalization factor, normalized total), **plus** an `uncategorized` fixture set adequate to measure over. `PRD.md` §12.1's corpus plan defines no such set, and the corpus currently holds two `uncategorized` fixtures — `checks-07` (single-variant, where `NA_SINGLE_VARIANT` fires regardless) and `rec-11` (the only multi-variant one). It must span the spread the mechanism predicts: well-attributed-but-uncategorized at one end, attribute-empty at the other. **No merchant data is required to answer this.** |
 | Q-6b | **Remedy, and a real policy choice.** Should `uncategorized` products get an expanded Common Core, changing what is scored rather than measuring what is? Depends on Q-6a's answer and does not presuppose it. | Risks encouraging bad category hygiene, which is itself a real finding. It is also a scoring change, not an editorial one: `taxonomy.md` §3 puts the Common Core in D1/D5/D8 and *never* in D2, and §2 rule 3 with `rubric.md` §4/D2 remove D2 in full — so adopting it needs a taxonomy version bump (`taxonomy.md` §7), a `rubric_version` bump (D-023), and an expectation migration. Note the coupling to D-029: `taxonomy_data.variant_scope_keys` excludes the Common Core deliberately (its two non-inheritable variant-scope rows are already scored per variant, D-030). An expanded core that added a *new* non-inheritable variant-scope key routed into `uncategorized` would make `K` non-empty and stop D-029 case 2 firing. | Eval data on how often `uncategorized` occurs in real exports, and Q-6a answered first. |
