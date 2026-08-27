@@ -1,0 +1,344 @@
+#!/bin/sh
+#
+# git-shim — runner-level PATH interception that refuses git mutations.
+#
+# Purpose (defense in depth, see .agent/RULES.md §1):
+#   An automation runner puts this file's directory at the front of PATH. Any
+#   process that then invokes `git` reaches this script instead of the real
+#   git. Read-only inspection is forwarded to the real git; anything that
+#   could write objects, refs, config, the index, the working tree or a
+#   remote is refused.
+#
+# Policy model: DEFAULT DENY.
+#   A subcommand runs only if it is on the read-only allowlist below. Anything
+#   unrecognised — a new git subcommand, a typo, an alias — is refused rather
+#   than passed through. Some allowlisted subcommands have both read-only and
+#   mutating forms (branch, tag, remote, config, worktree, submodule, stash,
+#   notes, reflog, symbolic-ref); those are parsed and only their read-only
+#   forms are permitted.
+#
+# What this does NOT claim:
+#   It is PATH interception, not OS-level enforcement. A process that invokes
+#   an absolute path to another git binary, calls libgit2, or writes .git
+#   files directly is not constrained by this script. Those are handled by the
+#   surrounding automation architecture, not here.
+#
+# Exit code 97 marks a refusal by this shim (distinct from real git's codes).
+
+set -u
+
+SHIM_EXIT_BLOCKED=97
+SHIM_EXIT_INTERNAL=98
+
+deny() {
+	printf '%s\n' "git-shim: BLOCKED — git mutation is prohibited in this environment." >&2
+	printf '%s\n' "git-shim: reason: $1" >&2
+	printf '%s\n' "git-shim: refused command: git $SHIM_ORIG" >&2
+	printf '%s\n' "git-shim: the human owner performs every commit; see .agent/RULES.md §1." >&2
+	exit "$SHIM_EXIT_BLOCKED"
+}
+
+fail_closed() {
+	printf '%s\n' "git-shim: BLOCKED — cannot determine that this invocation is safe." >&2
+	printf '%s\n' "git-shim: reason: $1" >&2
+	exit "$SHIM_EXIT_INTERNAL"
+}
+
+# Rendering of the original command line, for error messages only.
+SHIM_ORIG=$*
+
+# --- locate the real git ------------------------------------------------
+# Resolve this script's own directory physically, then walk PATH and take the
+# first `git` that lives somewhere else. Never hardcode /usr/bin/git: the real
+# git is /usr/bin/git on a GitHub-hosted Linux runner but commonly
+# /opt/homebrew/bin/git or an Xcode shim on macOS.
+
+shim_self=$0
+case $shim_self in
+*/*) shim_self_dir=${shim_self%/*} ;;
+*) shim_self_dir=. ;;
+esac
+SHIM_DIR=$(cd "$shim_self_dir" 2>/dev/null && pwd -P) || SHIM_DIR=
+[ -n "$SHIM_DIR" ] || fail_closed "cannot resolve the shim's own directory"
+
+find_real_git() {
+	# Runs in a command substitution, so IFS is scoped to this subshell.
+	IFS=:
+	for dir in $PATH; do
+		[ -n "$dir" ] || dir=.
+		phys=$(cd "$dir" 2>/dev/null && pwd -P) || continue
+		[ "$phys" = "$SHIM_DIR" ] && continue
+		if [ -f "$phys/git" ] && [ -x "$phys/git" ]; then
+			printf '%s\n' "$phys/git"
+			return 0
+		fi
+	done
+	return 1
+}
+
+REAL_GIT=$(find_real_git) || REAL_GIT=
+[ -n "$REAL_GIT" ] || fail_closed "no real git executable found on PATH outside the shim directory"
+
+# --- policy -------------------------------------------------------------
+# policy_check shifts its own copy of the positional parameters; the caller
+# still holds the originals for exec. deny()/fail_closed() exit the process.
+
+need_value() {
+	# $1 = remaining count, $2 = option name
+	[ "$1" -gt 0 ] || deny "option '$2' is missing its value; refusing an ambiguous command line"
+}
+
+policy_check() {
+	# ---- phase 1: options that precede the subcommand ----
+	while [ $# -gt 0 ]; do
+		case $1 in
+		-C)
+			shift
+			need_value $# "-C"
+			shift
+			;;
+		-c | --config-env)
+			deny "'$1' injects configuration (aliases, core.hooksPath, credential helpers) and can turn a read-looking command into a mutation" ;;
+		--config-env=*)
+			deny "'--config-env' injects configuration and is refused" ;;
+		--exec-path | --exec-path=*)
+			deny "'--exec-path' redirects where git finds its subcommands and is refused" ;;
+		--git-dir | --work-tree | --namespace | --super-prefix)
+			opt=$1
+			shift
+			need_value $# "$opt"
+			shift
+			;;
+		--git-dir=* | --work-tree=* | --namespace=* | --super-prefix=*)
+			# Repointing git elsewhere is allowed: the same policy applies to
+			# whatever repository the command ends up addressing.
+			shift
+			;;
+		-p | --paginate | -P | --no-pager | --no-replace-objects | --bare | \
+			--literal-pathspecs | --glob-pathspecs | --noglob-pathspecs | \
+			--icase-pathspecs | --no-optional-locks | --no-lazy-fetch | --no-advice)
+			shift
+			;;
+		--version | --help | -h | --html-path | --man-path | --info-path)
+			return 0 ;; # purely informational
+		--)
+			shift ;;
+		-*)
+			deny "unrecognised option '$1' before the subcommand; refusing rather than guessing" ;;
+		*)
+			break ;;
+		esac
+	done
+
+	# No subcommand at all: git prints usage.
+	[ $# -gt 0 ] || return 0
+
+	cmd=$1
+	shift
+
+	case $cmd in
+	# ---- unconditionally read-only ----
+	status | log | show | diff | diff-tree | diff-files | diff-index | \
+		rev-parse | rev-list | ls-files | ls-tree | ls-remote | cat-file | \
+		describe | blame | annotate | shortlog | show-ref | show-branch | \
+		for-each-ref | for-each-repo | name-rev | merge-base | count-objects | \
+		verify-commit | verify-tag | check-ignore | check-attr | check-ref-format | \
+		check-mailmap | grep | whatchanged | cherry | range-diff | patch-id | \
+		get-tar-commit-id | var | help | version | stripspace | column)
+		return 0
+		;;
+
+	# ---- read-only only in specific forms ----
+	branch)
+		while [ $# -gt 0 ]; do
+			case $1 in
+			-a | --all | -r | --remotes | -v | -vv | --verbose | -q | --quiet | \
+				-i | --ignore-case | --list | -l | --show-current | --omit-empty | \
+				--color | --no-color | --column | --no-column | --abbrev | --no-abbrev)
+				shift
+				;;
+			--contains=* | --no-contains=* | --merged=* | --no-merged=* | \
+				--points-at=* | --sort=* | --format=* | --color=* | --column=* | --abbrev=*)
+				shift
+				;;
+			--contains | --no-contains | --merged | --no-merged | --points-at | --sort | --format)
+				opt=$1
+				shift
+				need_value $# "$opt"
+				shift
+				;;
+			*)
+				deny "'git branch' is permitted only as a read-only listing; '$1' can create, rename, delete or re-point a branch" ;;
+			esac
+		done
+		return 0
+		;;
+
+	tag)
+		tag_listing=0
+		tag_positional=0
+		while [ $# -gt 0 ]; do
+			case $1 in
+			-l | --list | -v | --verify)
+				tag_listing=1
+				shift
+				;;
+			-i | --ignore-case | --column | --no-column | --omit-empty | --color | --no-color | -n | -n[0-9]*)
+				shift
+				;;
+			--contains=* | --no-contains=* | --merged=* | --no-merged=* | \
+				--points-at=* | --sort=* | --format=*)
+				shift
+				;;
+			--contains | --no-contains | --merged | --no-merged | --points-at | --sort | --format)
+				opt=$1
+				shift
+				need_value $# "$opt"
+				shift
+				;;
+			--)
+				shift ;;
+			-*)
+				deny "'git tag' option '$1' can create, sign or delete a tag" ;;
+			*)
+				tag_positional=1
+				shift
+				;;
+			esac
+		done
+		if [ "$tag_positional" -eq 1 ] && [ "$tag_listing" -eq 0 ]; then
+			deny "'git tag <name>' creates a tag; only listing and verification are permitted"
+		fi
+		return 0
+		;;
+
+	remote)
+		remote_sub=
+		while [ $# -gt 0 ]; do
+			case $1 in
+			-v | --verbose) shift ;;
+			--) shift ;;
+			-*) deny "'git remote' option '$1' is not a recognised read-only form" ;;
+			*)
+				remote_sub=$1
+				break
+				;;
+			esac
+		done
+		case $remote_sub in
+		"" | show | get-url) return 0 ;;
+		*) deny "'git remote $remote_sub' modifies remote configuration" ;;
+		esac
+		;;
+
+	config)
+		cfg_read=0
+		cfg_positional=0
+		while [ $# -gt 0 ]; do
+			case $1 in
+			--get | --get-all | --get-regexp | --get-urlmatch | --get-color | \
+				--get-colorbool | -l | --list)
+				cfg_read=1
+				shift
+				;;
+			--global | --local | --system | --worktree | --includes | --no-includes | \
+				-z | --null | --name-only | --show-origin | --show-scope | --show-names | --no-name)
+				shift
+				;;
+			--type=* | --default=* | --file=* | --blob=*)
+				shift
+				;;
+			--type | --default | -f | --file | --blob)
+				opt=$1
+				shift
+				need_value $# "$opt"
+				shift
+				;;
+			get | list)
+				# git >= 2.46 subcommand form
+				cfg_read=1
+				shift
+				;;
+			set | unset | edit | rename-section | remove-section)
+				deny "'git config $1' writes configuration" ;;
+			--)
+				shift ;;
+			-*)
+				deny "'git config' option '$1' is not a recognised read-only form" ;;
+			*)
+				cfg_positional=1
+				shift
+				;;
+			esac
+		done
+		if [ "$cfg_read" -eq 0 ]; then
+			deny "'git config' is permitted only in an explicit read form (--get/--get-all/--get-regexp/--list, or the 'get'/'list' subcommand); a bare name/value pair writes configuration"
+		fi
+		[ "$cfg_positional" -eq 0 ] || :
+		return 0
+		;;
+
+	worktree)
+		case ${1-} in
+		list) return 0 ;;
+		"") deny "'git worktree' without a subcommand is refused" ;;
+		*) deny "'git worktree $1' mutates worktree state" ;;
+		esac
+		;;
+
+	submodule)
+		case ${1-} in
+		status | summary) return 0 ;;
+		"") deny "'git submodule' without a subcommand may update submodules" ;;
+		*) deny "'git submodule $1' mutates submodule or working-tree state" ;;
+		esac
+		;;
+
+	stash)
+		case ${1-} in
+		list | show) return 0 ;;
+		*) deny "'git stash ${1-(push)}' modifies the working tree and refs" ;;
+		esac
+		;;
+
+	notes)
+		case ${1-} in
+		list | show) return 0 ;;
+		*) deny "'git notes ${1-}' can write notes refs" ;;
+		esac
+		;;
+
+	reflog)
+		case ${1-} in
+		"" | show) return 0 ;;
+		*) deny "'git reflog ${1-}' rewrites or deletes reflog entries" ;;
+		esac
+		;;
+
+	symbolic-ref)
+		sref_positional=0
+		while [ $# -gt 0 ]; do
+			case $1 in
+			-q | --quiet | --short) shift ;;
+			-d | --delete) deny "'git symbolic-ref --delete' deletes a ref" ;;
+			-m) deny "'git symbolic-ref -m' writes a reflog entry" ;;
+			--) shift ;;
+			-*) deny "'git symbolic-ref' option '$1' is not a recognised read-only form" ;;
+			*)
+				sref_positional=$((sref_positional + 1))
+				shift
+				;;
+			esac
+		done
+		[ "$sref_positional" -le 1 ] || deny "'git symbolic-ref <name> <ref>' writes a ref"
+		return 0
+		;;
+
+	*)
+		deny "'git $cmd' is not on the read-only allowlist (default deny)" ;;
+	esac
+}
+
+policy_check "$@"
+
+exec "$REAL_GIT" "$@"
