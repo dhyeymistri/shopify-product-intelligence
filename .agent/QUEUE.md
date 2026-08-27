@@ -59,7 +59,7 @@ proposed --(human)--> authorized --(agent)--> running --(agent)--> ready_for_rev
 
 ### T-010 — Establish the GitHub Actions automation runner
 
-- **State:** authorized
+- **State:** completed
 - **Authorized by:** human owner
 - **Scope:** Create the GitHub Actions workflow responsible for invoking the repository's automation/control-plane entrypoint. The workflow may create or modify only `.github/workflows/agent-task.yml`. It may reference the existing `.github/agent/git-shim/git`, `opencode.json`, `.opencode/agent/task-executor.md`, and `.agent/*` records as inputs/context, but must not modify those files.
 - **Out of scope:** Do not modify `AGENTS.md`, `product/**`, `.agent/**`, `opencode.json`, `.opencode/agent/task-executor.md`, `.github/agent/git-shim/git`, or recognition implementation files. Do not create `.github/agent/verify_scope.sh` or `.opencode/plugin/deny-git-write.ts`. Do not implement changed-file/scope verification, notification/reporting automation, P4 reporting, P5 skill packaging, or anything under `app/future-shopify-app/`. Do not commit, amend, push, merge, or rebase.
@@ -69,13 +69,13 @@ proposed --(human)--> authorized --(agent)--> running --(agent)--> ready_for_rev
 
 ### T-011 — Reconcile OpenCode permissions with the task-executor contract
 
-- **State:** authorized
+- **State:** completed
 - **Authorized by:** human owner
 - **Scope:** Inspect the existing OpenCode permission configuration and the existing `.opencode/agent/task-executor.md` contract, then make the minimum necessary changes to `opencode.json` so that the task-executor can actually perform its authorized operating contract. The configuration must permit the executor to read the repository governance/context records that its contract explicitly requires it to read, including `.agent/QUEUE.md`, `.agent/RULES.md`, `.agent/ROADMAP.md`, `.agent/CURRENT_STATE.md`, and `AGENTS.md`, while preserving the existing protection of secrets and preserving governance-file write protection. The configuration must also permit the executor to write only the repository files that an authorized task is permitted to modify, while continuing to deny writes to governance records and other protected paths. Preserve the existing default-deny security posture wherever possible. Do not weaken secret protection. Do not introduce network, subagent, task, or other capabilities not required by the existing task-executor contract. Do not redesign the OpenCode configuration.
 - **Out of scope:** Modify only `opencode.json`. Do not modify `.opencode/agent/task-executor.md`, `.agent/**`, `AGENTS.md`, `product/**`, `.github/**`, recognition implementation files, or any other repository file. Do not modify `.agent/QUEUE.md`. Do not implement T-010 or any GitHub Actions changes. Do not create new plugins, scripts, workflows, or verification infrastructure. Do not commit, amend, push, merge, or rebase. Do not silently broaden permissions beyond what is required to reconcile the existing task-executor contract.
 - **Governing records:** `.agent/RULES.md` §3–§4; `.agent/QUEUE.md` §1–§4; `.opencode/agent/task-executor.md`; existing `opencode.json`; `.agent/ROADMAP.md` §3.
 - **Verification required:** Record the baseline with `git status --short`, `git rev-parse HEAD`, and `git diff --check`. Validate `opencode.json` with `opencode debug config`. Validate `opencode debug agent task-executor`. Confirm that governance files remain unreadable for writes, secret files remain protected, `web`, `task`, and `subagent` remain denied, and git-write protections remain intact. Confirm the resolved permissions now allow the task executor to read the governance/context files explicitly required by its contract and to write ordinary authorized task files while denying writes to `.agent/**`, `AGENTS.md`, and `product/**`. Run the relevant existing configuration/safety checks from the prior control-plane setup. Confirm only `opencode.json` changed and `git diff --check` is clean.
-- **Ends at:** ready_for_review, uncommitted, with a report
+- **Ends at:** completed — human reviewed and committed
 
 ## 4. Entry format
 
