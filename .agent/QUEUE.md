@@ -45,8 +45,9 @@ entry.
 
 Permitted transitions:
 
-```
+```text
 proposed --(human)--> authorized --(agent)--> running --(agent)--> ready_for_review --(human)--> completed
+
                                        |                  |
                                        +--(agent)---------+--> blocked --(human)--> authorized | proposed
 ```
@@ -56,37 +57,25 @@ proposed --(human)--> authorized --(agent)--> running --(agent)--> ready_for_rev
 
 ## 3. Current queue
 
-**No recognition slice is authorized by this file.**
+### T-010 — Establish the GitHub Actions automation runner
 
-At this checkpoint the next work is establishing the automation /
-control-plane layer described in `.agent/ROADMAP.md` §3, of which this
-directory is the first step. That establishment work is not itself an open
-authorization: each piece needs its own `authorized` entry placed by a human.
-
-| # | Task | State | Notes |
-| --- | --- | --- | --- |
-| — | *(none)* | — | No task is authorized at this checkpoint. |
-
-**Explicitly not authorized right now**, listed because their absence is
-deliberate rather than an oversight:
-
-- Any new recognition predicate or recognition slice. The pattern is described
-  in `.agent/ROADMAP.md` §1; description is not authorization.
-- Any change to `AGENTS.md` or `product/*`, including repairing the stale
-  version figures recorded in `.agent/CURRENT_STATE.md` §6.
-- Any change to `evals/expected/monotonicity_baseline.json`, including its
-  `baseline_version` field.
-- Any P4 reporting work, any P5 skill packaging work, and anything under
-  `app/future-shopify-app/`.
+- **State:** authorized
+- **Authorized by:** human owner
+- **Scope:** Create the GitHub Actions workflow responsible for invoking the repository's automation/control-plane entrypoint. The workflow may create or modify only `.github/workflows/agent-task.yml`. It may reference the existing `.github/agent/git-shim/git`, `opencode.json`, `.opencode/agent/task-executor.md`, and `.agent/*` records as inputs/context, but must not modify those files. The workflow must establish the runner-level environment needed to invoke the task executor while preserving the human-review boundary. It must not perform git commits, amend, push, merge, or rebase operations. It must not autonomously authorize work. It must respect the authorized-task model in `.agent/QUEUE.md`.
+- **Out of scope:** Do not modify `AGENTS.md`, `product/**`, `.agent/**`, `opencode.json`, `.opencode/agent/task-executor.md`, `.github/agent/git-shim/git`, or any recognition implementation. Do not create `.github/agent/verify_scope.sh`. Do not create `.opencode/plugin/deny-git-write.ts`. Do not implement changed-file/scope verification, notification/reporting automation, P4 reporting, P5 skill packaging, or anything under `app/future-shopify-app/`. Do not commit, amend, push, merge, or rebase. Do not alter the queue or grant additional authorization.
+- **Governing records:** `.agent/RULES.md` §3–§4; `.agent/ROADMAP.md` §3; existing `opencode.json`; existing `.opencode/agent/task-executor.md`; existing `.github/agent/git-shim/git`; the human-control/ready-for-review model established by `.agent/QUEUE.md` §1–§4.
+- **Verification required:** `git status --short`; `git diff --check`; workflow YAML syntax/parse validation using an appropriate local validator available in the repository; inspection of the resulting workflow to confirm that it invokes the intended OpenCode/task-executor path, does not contain git commit/push/amend/merge/rebase operations, does not authorize tasks, and does not modify files outside the authorized scope. Verify that `.github/agent/git-shim/git` is available to the workflow as the existing runner-level git control. Report any GitHub Actions limitations that cannot be verified locally rather than claiming they were tested.
+- **Ends at:** `ready_for_review`, uncommitted, with a report
 
 ## 4. Entry format
 
 A human authorizing a task should write an entry carrying at least:
 
-```
+```text
 ### T-<n> — <one-line title>
+
 - **State:** authorized
-- **Authorized by:** <human>
+- **Authorized by:** Dhyey
 - **Scope:** exactly which files and behaviors may change
 - **Out of scope:** what the agent must not touch, stated where it is not obvious
 - **Governing records:** the decision records / spec sections that fix the boundary
