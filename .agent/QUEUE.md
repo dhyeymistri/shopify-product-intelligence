@@ -59,7 +59,7 @@ proposed --(human)--> authorized --(agent)--> running --(agent)--> ready_for_rev
 
 ### T-010 — Establish the GitHub Actions automation runner
 
-- **State:** blocked
+- **State:** authorized
 - **Authorized by:** human owner
 - **Scope:** Create the GitHub Actions workflow responsible for invoking the repository's automation/control-plane entrypoint. The workflow may create or modify only `.github/workflows/agent-task.yml`. It may reference the existing `.github/agent/git-shim/git`, `opencode.json`, `.opencode/agent/task-executor.md`, and `.agent/*` records as inputs/context, but must not modify those files.
 - **Out of scope:** Do not modify `AGENTS.md`, `product/**`, `.agent/**`, `opencode.json`, `.opencode/agent/task-executor.md`, `.github/agent/git-shim/git`, or recognition implementation files. Do not create `.github/agent/verify_scope.sh` or `.opencode/plugin/deny-git-write.ts`. Do not implement changed-file/scope verification, notification/reporting automation, P4 reporting, P5 skill packaging, or anything under `app/future-shopify-app/`. Do not commit, amend, push, merge, or rebase.
