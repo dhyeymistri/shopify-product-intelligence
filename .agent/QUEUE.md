@@ -65,9 +65,7 @@ proposed --(human)--> authorized --(agent)--> running --(agent)--> ready_for_rev
 - **Out of scope:** Do not modify `AGENTS.md`, `product/**`, `.agent/**`, `opencode.json`, `.opencode/agent/task-executor.md`, `.github/agent/git-shim/git`, or recognition implementation files. Do not create `.github/agent/verify_scope.sh` or `.opencode/plugin/deny-git-write.ts`. Do not implement changed-file/scope verification, notification/reporting automation, P4 reporting, P5 skill packaging, or anything under `app/future-shopify-app/`. Do not commit, amend, push, merge, or rebase.
 - **Governing records:** `.agent/RULES.md` §3–§4; `.agent/ROADMAP.md` §3; `.agent/QUEUE.md` §1–§4; `opencode.json`; `.opencode/agent/task-executor.md`; `.github/agent/git-shim/git`.
 - **Verification required:** T-010 cannot be considered complete until the OpenCode permission contradiction identified during implementation has been resolved and the workflow has been re-verified against the resulting configuration.
-- **Ends at:** blocked pending human resolution of the OpenCode permission/configuration contradiction.
-
-**Block reason:** T-010 discovered that the current `opencode.json` denies the task executor read access to governance/context files that its own contract requires it to read, while also denying the write capability required for the executor's `ready_for_review` working-tree end state. Resolving that contradiction is outside T-010's authorized scope and requires a separate human-authorized task.
+- **Ends at:** completed — human reviewed and committed
 
 ### T-011 — Reconcile OpenCode permissions with the task-executor contract
 
