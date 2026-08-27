@@ -115,6 +115,15 @@ def use_context_stated(value):
     return X.normalize(value) in X.APPAREL_USE_CONTEXTS
 
 
+#: `taxonomy.md` 5.5 SPORTS.use_environment satisfies = environment_stated.
+#: D-037: whole-value membership against SPORTS_ENVIRONMENTS (ISO ICS 97.220
+#: environment classes). No delimiter splitting, no prose recognition, no
+#: substring matching. Exact normalized membership only.
+def environment_stated(value):
+    # type: (str) -> bool
+    return X.normalize(value) in X.SPORTS_ENVIRONMENTS
+
+
 # ---------------------------------------------------------------------------
 # Slice B -- numeric, unit and delimiter shape
 # ---------------------------------------------------------------------------
@@ -374,6 +383,7 @@ VALUE_PREDICATES = {
     "unnamed_color_group": unnamed_color_group,
     "care_method_stated": care_method_stated,
     "use_context_stated": use_context_stated,
+    "environment_stated": environment_stated,
     # Slice B
     "material_with_proportions": material_with_proportions,
     "material_without_proportions": material_without_proportions,

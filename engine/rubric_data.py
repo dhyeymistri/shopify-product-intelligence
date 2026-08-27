@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from .taxonomy_data import VALUE_PRESENT
 
-RUBRIC_VERSION = "0.10"
+RUBRIC_VERSION = "0.11"
 
 # -- rubric.md 2 -------------------------------------------------------------
 D1, D2 = "D1_identity", "D2_category_attributes"

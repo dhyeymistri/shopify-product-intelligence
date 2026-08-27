@@ -1,0 +1,186 @@
+{
+  "expected_version": "0.1",
+  "fixture_id": "rec-25-sports-environment-stated",
+  "set": "recognition",
+  "rubric_version": "0.11",
+  "taxonomy_version": "0.1",
+  "status_coverage": "partial",
+  "coverage_note": "Asserts the environment_stated recognition predicate for SPORTS.USE_ENVIRONMENT with all six admitted SPORTS_ENVIRONMENTS values. Checks whose predicates remain unimplemented are deliberately not asserted here.",
+  "notes": "Six products, each with one admitted vocabulary value. The partial_if arm all_conditions_only must NOT fire on these values (whole-value membership, no substring match). Other SPORTS attributes have no values and will be UNKNOWN.",
+  "products": [
+    {
+      "product_id": "handle:rec-25-sports-indoor",
+      "expected_category": "sports",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "all conditions",
+        "all weather",
+        "any conditions",
+        "all terrain"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "SPORTS.USE_ENVIRONMENT",
+          "status": "PASS",
+          "evidence_locators": [
+            "attributes[use_environment].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "UNKNOWN",
+          "evidence_locators": []
+        }
+      ],
+      "expected_deferred_checks": []
+    },
+    {
+      "product_id": "handle:rec-25-sports-outdoor",
+      "expected_category": "sports",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "all conditions",
+        "all weather",
+        "any conditions",
+        "all terrain"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "SPORTS.USE_ENVIRONMENT",
+          "status": "PASS",
+          "evidence_locators": [
+            "attributes[use_environment].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "UNKNOWN",
+          "evidence_locators": []
+        }
+      ],
+      "expected_deferred_checks": []
+    },
+    {
+      "product_id": "handle:rec-25-sports-indoor-outdoor",
+      "expected_category": "sports",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "all conditions",
+        "all weather",
+        "any conditions",
+        "all terrain"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "SPORTS.USE_ENVIRONMENT",
+          "status": "PASS",
+          "evidence_locators": [
+            "attributes[use_environment].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "UNKNOWN",
+          "evidence_locators": []
+        }
+      ],
+      "expected_deferred_checks": []
+    },
+    {
+      "product_id": "handle:rec-25-sports-water",
+      "expected_category": "sports",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "all conditions",
+        "all weather",
+        "any conditions",
+        "all terrain"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "SPORTS.USE_ENVIRONMENT",
+          "status": "PASS",
+          "evidence_locators": [
+            "attributes[use_environment].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "UNKNOWN",
+          "evidence_locators": []
+        }
+      ],
+      "expected_deferred_checks": []
+    },
+    {
+      "product_id": "handle:rec-25-sports-snow",
+      "expected_category": "sports",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "all conditions",
+        "all weather",
+        "any conditions",
+        "all terrain"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "SPORTS.USE_ENVIRONMENT",
+          "status": "PASS",
+          "evidence_locators": [
+            "attributes[use_environment].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "UNKNOWN",
+          "evidence_locators": []
+        }
+      ],
+      "expected_deferred_checks": []
+    },
+    {
+      "product_id": "handle:rec-25-sports-ice",
+      "expected_category": "sports",
+      "expected_classification_method": "declared_category_map",
+      "must_not_fabricate": [
+        "all conditions",
+        "all weather",
+        "any conditions",
+        "all terrain"
+      ],
+      "forbidden_statuses": [
+        "FAIL"
+      ],
+      "expected_findings_include": [
+        {
+          "check_id": "SPORTS.USE_ENVIRONMENT",
+          "status": "PASS",
+          "evidence_locators": [
+            "attributes[use_environment].value_raw"
+          ]
+        },
+        {
+          "check_id": "VARIANT.OPTION_NAMES_MEANINGFUL",
+          "status": "UNKNOWN",
+          "evidence_locators": []
+        }
+      ],
+      "expected_deferred_checks": []
+    }
+  ]
+}

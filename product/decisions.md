@@ -779,6 +779,77 @@ Each gains `PASS` at 5.00, adding 5.00 to both the numerator and the applicable 
 
 ---
 
+## D-037 — SPORTS.use_environment → environment_stated: whole-value membership against a closed SPORTS_ENVIRONMENTS vocabulary
+
+**Status:** Accepted — governance only; no implementation in this record.
+
+**Question:** `taxonomy.md` §5.5 and `taxonomy_data.py` line 201 declare the satisfying predicate for SPORTS.use_environment as `environment_stated`. The ambiguity predicate `all_conditions_only` is already implemented (D-031 vocabulary, `recognize.py` slice A). Should `environment_stated` be implemented, and if so, what is its recognition boundary?
+
+**Decision: authorize `environment_stated` as a whole-value membership check against a closed vocabulary named `SPORTS_ENVIRONMENTS`, with the following governing rules.**
+
+### 1. Whole-value membership against a closed vocabulary
+The predicate returns `true` iff `lexicon.normalize(value)` is an exact member of `SPORTS_ENVIRONMENTS`. No substring matching, no delimiter splitting, no automatic decomposition of composite phrases, no hybrid recognition (structured + prose), and no partial matching. A value such as "indoor and outdoor use" matches only if that exact normalized string is in the vocabulary.
+
+### 2. Vocabulary entries are environment classification standards, not product facts (D-022)
+`SPORTS_ENVIRONMENTS` contains terms that name *types of use environments* drawn from recognized classification systems (sport governing bodies, retail taxonomies, safety standards). No entry is a fact about a specific product. The same D-022 invariants apply: `assert_no_product_values()` at import, corpus leak scan over `VALUE_SHAPED`, and the no-digit assertion.
+
+### 3. Explicit composite phrases are permitted as individual lexicon entries
+Phrases such as "indoor and outdoor", "gym and field", "road and trail" may be admitted as single entries when they represent a recognized combined-environment class. Each composite is an atomic vocabulary term; it is not decomposed at recognition time. The vocabulary is the authority on what constitutes a distinct environment class.
+
+### 4. Prose boundary preserved (D-019)
+The predicate is wired to `facts.Gathered.stated`, which excludes `PROSE_PATHS` by construction. A value found only in description prose is never passed to this predicate. The check defers and emits no finding — it does not report `UNKNOWN`, it does not penalize, and it does not infer the fact.
+
+### 5. Scope strictly limited to SPORTS.use_environment → environment_stated
+This decision does not extend to any other attribute, category, or predicate. In particular:
+
+- **HOME.indoor_outdoor_use → use_with_durability_basis is explicitly NOT bundled.** That attribute (§5.4) has different predicate semantics: its `PARTIAL` condition is *"Can be used outdoors with no durability basis"*, requiring recognition of a *durability basis* — a language judgment about whether the claim is supported — not a closed environment-class vocabulary. Bundling would conflate two distinct recognition shapes and would require a separate governance decision if ever proposed.
+
+- No other category's environment/conditions attribute (e.g., ELECTRONICS `operating_conditions`, APPAREL `intended_use_context`) is affected.
+
+### 6. Interaction with `all_conditions_only` (the existing ambiguity predicate)
+- `all_conditions_only` remains the `partial_if` predicate for this attribute. It fires on vague totalizing phrases: "all conditions", "all weather", "any conditions", "all terrain" (the current `SPORTS_USE_ENVIRONMENT_VAGUE` set).
+- `environment_stated` is the `satisfies` predicate. It fires on specific, classifiable environment statements.
+- The two predicates are **disjoint in intent**: one recognizes *ambiguity* (vague totalizing claims), the other recognizes *specific environment classes*.
+- A value that matches `all_conditions_only` is `AMBIGUOUS` → `PARTIAL` at `max × partial_credit`. A value that matches `environment_stated` is `SATISFIED` → `PASS` at full points. A value that matches neither is `UNDECIDED` → the check defers (D-019).
+- **Evaluation order is fixed by the check handler.** `engine/checks.py:489-510` (`_best_verdict`) evaluates the `satisfies` predicate first; if it returns `SATISFIED`, that verdict is returned immediately. Only if no value satisfies does it consider `AMBIGUOUS` from the `partial_if` predicate. Thus `SATISFIED` outranks `AMBIGUOUS` by construction.
+
+### 7. Overlap rule: a term may exist in both vocabularies
+If a term is independently established as a recognized environment classification standard **and** also functions as a vague totalizing phrase in merchant data, it may appear in both `SPORTS_ENVIRONMENTS` and `SPORTS_USE_ENVIRONMENT_VAGUE`. When this occurs, the evaluation order above gives `SATISFIED` precedence — the value earns `PASS`. This is not a conflict; it is a deliberate overlap resolved by the fixed evaluation order. **This record does not authorize any specific term for either vocabulary**, including "all terrain". Whether "all terrain" (or any other phrase) meets the classification-standard threshold is decided in the separate implementation decision that admits it.
+
+### 8. Vocabulary contents not decided here
+The exact final membership of `SPORTS_ENVIRONMENTS` is **not fixed by this record**. The existing repository evidence establishes only:
+- The attribute's `taxonomy.md` description: "Indoor/outdoor, terrain, surface, water/temperature conditions"
+- The ambiguity vocabulary already in `lexicon.py`: "all conditions", "all weather", "any conditions", "all terrain"
+
+Candidate vocabulary **categories** suggested by the taxonomy wording include: indoor/outdoor classifications, terrain types (trail, road, track, field, court), surface types, water environments, snow environments. **These are categories of candidate entries, not authorized entries.** Each individual term requires a separate implementation decision that:
+- Enumerates candidate entries with their classification-standard sources
+- Verifies each candidate against D-022 (no product values, no digits, no unit mappings)
+- Bumps `rubric_version` (D-023) and migrates all affected expectation files in the same commit
+- Names the admitted entries in the commit message
+
+Until that implementation decision lands, `environment_stated` remains **UNIMPLEMENTED** in `engine/recognize.py` and the check defers on all structured values (D-019).
+
+### 9. No implementation files changed by this governance record
+- `RUBRIC_VERSION` remains **0.10**
+- `LEXICON_VERSION` remains **0.10**
+- `REGISTRY_VERSION` remains **0.10**
+- `NPR_VERSION` remains **0.2**
+- No entry added to `engine/lexicon.py`
+- No predicate registered in `engine/registry.py`
+- No fixture or expectation file modified
+- `evals/monotonicity_baseline.json` unchanged
+
+**Rejected:**
+- *Implement `environment_stated` as a prose recognizer over description* — violates D-019; prose is deferred, never recognized in this phase.
+- *Allow delimiter splitting ("indoor, outdoor" → matches "indoor" and "outdoor")* — violates whole-value membership; a composite is either an admitted vocabulary term or it is not recognized.
+- *Allow substring matching ("outdoor use" matches "outdoor")* — same violation; the vocabulary is the authority on what constitutes a class.
+- *Bundle with HOME.indoor_outdoor_use* — different predicate semantics (durability basis vs. environment class); separate governance required.
+- *Treat vocabulary overlap as a conflict* — it is not; fixed evaluation order (SATISFIED before AMBIGUOUS) gives a deterministic, documented outcome.
+
+**Cost:** The satisfying arm remains deferred until `SPORTS_ENVIRONMENTS` is concretely decided and implemented. A merchant stating `"use_environment": "trail"` earns nothing for it until the vocabulary admits "trail". This is the permitted direction of failure (D-003, D-019) — under-crediting honest data rather than inventing a vocabulary the tool cannot justify.
+
+---
+
 ## Open questions
 
 Deliberately unresolved. Each is recorded so V0 does not foreclose it, and none blocks V0. Q-18 was resolved by D-032 and is recorded there.

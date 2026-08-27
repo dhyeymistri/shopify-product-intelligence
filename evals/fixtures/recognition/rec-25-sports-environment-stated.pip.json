@@ -1,0 +1,312 @@
+{
+  "pip_version": "0.1",
+  "fixture": {
+    "id": "rec-25-sports-environment-stated",
+    "set": "recognition",
+    "intent": "SPORTS.USE_ENVIRONMENT with each of the six admitted SPORTS_ENVIRONMENTS values. The satisfies predicate environment_stated must fire and the check must reach PASS at 1.65 with the supplied value quoted. The partial_if arm all_conditions_only must NOT fire on these values (whole-value membership, no substring match).",
+    "provenance": "Synthetic. Authored for this eval corpus to exercise the deterministic recognition predicates. Not derived from any real merchant's catalog or private data.",
+    "notes": "Six products, one per admitted vocabulary entry: indoor, outdoor, indoor outdoor, water, snow, ice. All are SPORTS category products with the use_environment attribute set to the exact vocabulary term."
+  },
+  "products": [
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:rec-25-sports-indoor",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-25-sports-environment-stated.pip.json",
+        "locator": "products[handle:rec-25-sports-indoor]"
+      },
+      "identity": {
+        "title": { "value": "Indoor Training Mat", "src": "identity.title" },
+        "brand": { "value": "GymPro", "src": "identity.brand" },
+        "model_or_mpn": { "value": null, "src": null },
+        "handle": { "value": "rec-25-sports-indoor", "src": "identity.handle" },
+        "product_type": { "value": "Exercise Mats", "src": "identity.product_type" },
+        "declared_category": { "value": "Sporting Goods > Exercise & Fitness", "src": "identity.declared_category" }
+      },
+      "narrative": {
+        "description_text": { "value": null, "src": null },
+        "description_html": { "value": null, "src": null },
+        "structure": { "has_lists": false, "has_tables": false, "has_headings": false, "word_count": 0 },
+        "seo_title": { "value": null, "src": null },
+        "seo_description": { "value": null, "src": null }
+      },
+      "attributes": [
+        {
+          "key": "use_environment",
+          "value_raw": "indoor",
+          "origin": "merchant_structured",
+          "src": "attributes[use_environment].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [],
+      "variants": [
+        {
+          "variant_id": "sku:GP-MAT-01",
+          "option_values": {},
+          "sku": { "value": "GP-MAT-01", "src": "variants[sku:GP-MAT-01].sku" },
+          "barcode": { "value": null, "src": null },
+          "price": { "value": "45.00", "currency": null, "src": "variants[sku:GP-MAT-01].price" },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    },
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:rec-25-sports-outdoor",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-25-sports-environment-stated.pip.json",
+        "locator": "products[handle:rec-25-sports-outdoor]"
+      },
+      "identity": {
+        "title": { "value": "Outdoor Trail Pack", "src": "identity.title" },
+        "brand": { "value": "TrailBlaze", "src": "identity.brand" },
+        "model_or_mpn": { "value": null, "src": null },
+        "handle": { "value": "rec-25-sports-outdoor", "src": "identity.handle" },
+        "product_type": { "value": "Backpacks", "src": "identity.product_type" },
+        "declared_category": { "value": "Sporting Goods > Outdoor Recreation > Hiking", "src": "identity.declared_category" }
+      },
+      "narrative": {
+        "description_text": { "value": null, "src": null },
+        "description_html": { "value": null, "src": null },
+        "structure": { "has_lists": false, "has_tables": false, "has_headings": false, "word_count": 0 },
+        "seo_title": { "value": null, "src": null },
+        "seo_description": { "value": null, "src": null }
+      },
+      "attributes": [
+        {
+          "key": "use_environment",
+          "value_raw": "outdoor",
+          "origin": "merchant_structured",
+          "src": "attributes[use_environment].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [],
+      "variants": [
+        {
+          "variant_id": "sku:TB-PACK-01",
+          "option_values": {},
+          "sku": { "value": "TB-PACK-01", "src": "variants[sku:TB-PACK-01].sku" },
+          "barcode": { "value": null, "src": null },
+          "price": { "value": "120.00", "currency": null, "src": "variants[sku:TB-PACK-01].price" },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    },
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:rec-25-sports-indoor-outdoor",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-25-sports-environment-stated.pip.json",
+        "locator": "products[handle:rec-25-sports-indoor-outdoor]"
+      },
+      "identity": {
+        "title": { "value": "Versatile Court Shoe", "src": "identity.title" },
+        "brand": { "value": "CourtMaster", "src": "identity.brand" },
+        "model_or_mpn": { "value": null, "src": null },
+        "handle": { "value": "rec-25-sports-indoor-outdoor", "src": "identity.handle" },
+        "product_type": { "value": "Athletic Footwear", "src": "identity.product_type" },
+        "declared_category": { "value": "Sporting Goods > Team Sports > Basketball", "src": "identity.declared_category" }
+      },
+      "narrative": {
+        "description_text": { "value": null, "src": null },
+        "description_html": { "value": null, "src": null },
+        "structure": { "has_lists": false, "has_tables": false, "has_headings": false, "word_count": 0 },
+        "seo_title": { "value": null, "src": null },
+        "seo_description": { "value": null, "src": null }
+      },
+      "attributes": [
+        {
+          "key": "use_environment",
+          "value_raw": "indoor outdoor",
+          "origin": "merchant_structured",
+          "src": "attributes[use_environment].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [],
+      "variants": [
+        {
+          "variant_id": "sku:CM-SHOE-01",
+          "option_values": {},
+          "sku": { "value": "CM-SHOE-01", "src": "variants[sku:CM-SHOE-01].sku" },
+          "barcode": { "value": null, "src": null },
+          "price": { "value": "85.00", "currency": null, "src": "variants[sku:CM-SHOE-01].price" },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    },
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:rec-25-sports-water",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-25-sports-environment-stated.pip.json",
+        "locator": "products[handle:rec-25-sports-water]"
+      },
+      "identity": {
+        "title": { "value": "Competition Swim Goggles", "src": "identity.title" },
+        "brand": { "value": "AquaStream", "src": "identity.brand" },
+        "model_or_mpn": { "value": null, "src": null },
+        "handle": { "value": "rec-25-sports-water", "src": "identity.handle" },
+        "product_type": { "value": "Swim Gear", "src": "identity.product_type" },
+        "declared_category": { "value": "Sporting Goods > Water Sports > Swimming", "src": "identity.declared_category" }
+      },
+      "narrative": {
+        "description_text": { "value": null, "src": null },
+        "description_html": { "value": null, "src": null },
+        "structure": { "has_lists": false, "has_tables": false, "has_headings": false, "word_count": 0 },
+        "seo_title": { "value": null, "src": null },
+        "seo_description": { "value": null, "src": null }
+      },
+      "attributes": [
+        {
+          "key": "use_environment",
+          "value_raw": "water",
+          "origin": "merchant_structured",
+          "src": "attributes[use_environment].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [],
+      "variants": [
+        {
+          "variant_id": "sku:AS-GOG-01",
+          "option_values": {},
+          "sku": { "value": "AS-GOG-01", "src": "variants[sku:AS-GOG-01].sku" },
+          "barcode": { "value": null, "src": null },
+          "price": { "value": "35.00", "currency": null, "src": "variants[sku:AS-GOG-01].price" },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    },
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:rec-25-sports-snow",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-25-sports-environment-stated.pip.json",
+        "locator": "products[handle:rec-25-sports-snow]"
+      },
+      "identity": {
+        "title": { "value": "Backcountry Ski Poles", "src": "identity.title" },
+        "brand": { "value": "SummitGear", "src": "identity.brand" },
+        "model_or_mpn": { "value": null, "src": null },
+        "handle": { "value": "rec-25-sports-snow", "src": "identity.handle" },
+        "product_type": { "value": "Ski Poles", "src": "identity.product_type" },
+        "declared_category": { "value": "Sporting Goods > Winter Sports > Skiing", "src": "identity.declared_category" }
+      },
+      "narrative": {
+        "description_text": { "value": null, "src": null },
+        "description_html": { "value": null, "src": null },
+        "structure": { "has_lists": false, "has_tables": false, "has_headings": false, "word_count": 0 },
+        "seo_title": { "value": null, "src": null },
+        "seo_description": { "value": null, "src": null }
+      },
+      "attributes": [
+        {
+          "key": "use_environment",
+          "value_raw": "snow",
+          "origin": "merchant_structured",
+          "src": "attributes[use_environment].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [],
+      "variants": [
+        {
+          "variant_id": "sku:SG-POLE-01",
+          "option_values": {},
+          "sku": { "value": "SG-POLE-01", "src": "variants[sku:SG-POLE-01].sku" },
+          "barcode": { "value": null, "src": null },
+          "price": { "value": "65.00", "currency": null, "src": "variants[sku:SG-POLE-01].price" },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    },
+    {
+      "npr_version": "0.1",
+      "product_id": "handle:rec-25-sports-ice",
+      "source": {
+        "format": "pip_json",
+        "file": "evals/fixtures/recognition/rec-25-sports-environment-stated.pip.json",
+        "locator": "products[handle:rec-25-sports-ice]"
+      },
+      "identity": {
+        "title": { "value": "Hockey Helmet", "src": "identity.title" },
+        "brand": { "value": "IceGuard", "src": "identity.brand" },
+        "model_or_mpn": { "value": null, "src": null },
+        "handle": { "value": "rec-25-sports-ice", "src": "identity.handle" },
+        "product_type": { "value": "Protective Gear", "src": "identity.product_type" },
+        "declared_category": { "value": "Sporting Goods > Winter Sports > Ice Hockey", "src": "identity.declared_category" }
+      },
+      "narrative": {
+        "description_text": { "value": null, "src": null },
+        "description_html": { "value": null, "src": null },
+        "structure": { "has_lists": false, "has_tables": false, "has_headings": false, "word_count": 0 },
+        "seo_title": { "value": null, "src": null },
+        "seo_description": { "value": null, "src": null }
+      },
+      "attributes": [
+        {
+          "key": "use_environment",
+          "value_raw": "ice",
+          "origin": "merchant_structured",
+          "src": "attributes[use_environment].value_raw",
+          "scope": "product"
+        }
+      ],
+      "options": [],
+      "variants": [
+        {
+          "variant_id": "sku:IG-HELM-01",
+          "option_values": {},
+          "sku": { "value": "IG-HELM-01", "src": "variants[sku:IG-HELM-01].sku" },
+          "barcode": { "value": null, "src": null },
+          "price": { "value": "140.00", "currency": null, "src": "variants[sku:IG-HELM-01].price" },
+          "media_refs": [],
+          "attributes": []
+        }
+      ],
+      "media": [],
+      "metafields": [],
+      "tags": [],
+      "claims": [],
+      "raw_extras": {}
+    }
+  ]
+}

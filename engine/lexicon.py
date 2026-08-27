@@ -44,7 +44,7 @@ from . import taxonomy_keys
 #: rubric, which would make the assertion at the foot of this module vacuous.
 #: Stated as a literal, bumping `rubric_version` without reviewing this
 #: vocabulary is a load failure -- which is exactly what D-022 asks for.
-LEXICON_VERSION = "0.10"
+LEXICON_VERSION = "0.11"
 
 _WS_RE = re.compile(r"\s+")
 
@@ -157,6 +157,20 @@ APPAREL_SIZE_SYSTEM_BARE_LABELS = frozenset([
 SPORTS_SKILL_OR_INTENSITY_LEVEL_TIERS = frozenset([
     "beginner", "intermediate", "advanced", "expert", "entry level",
     "entry-level", "professional", "recreational", "competition",
+])
+
+#: `taxonomy.md` 5.5 SPORTS.use_environment satisfies = environment_stated.
+#: D-037: whole-value membership against a closed vocabulary of environment
+#: classification standards (ISO ICS 97.220). No delimiter splitting, no prose
+#: recognition, no substring matching. These are environment *classes* from
+#: recognized standards, not product facts.
+SPORTS_ENVIRONMENTS = frozenset([
+    "indoor",
+    "outdoor",
+    "indoor outdoor",
+    "water",
+    "snow",
+    "ice",
 ])
 
 # ---------------------------------------------------------------------------
@@ -300,6 +314,7 @@ VALUE_SHAPED = frozenset(
     | SPORTS_SKILL_OR_INTENSITY_LEVEL_TIERS
     | APPAREL_CARE_METHODS
     | APPAREL_USE_CONTEXTS
+    | SPORTS_ENVIRONMENTS
 )  # type: FrozenSet[str]
 
 ALL_ENTRIES = (VALUE_SHAPED | UNIT_TOKENS | APPAREL_SIZE_SYSTEM_STANDARDS
