@@ -1,0 +1,28 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "read": {
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "AGENTS.md": "deny",
+      "product/**": "deny",
+      ".agent/**": "deny"
+    },
+    "write": {
+      "*": "deny"
+    },
+    "bash": {
+      "git commit*": "deny",
+      "git push*": "deny",
+      "git merge*": "deny",
+      "git rebase*": "deny",
+      "git amend*": "deny",
+      "*": "allow"
+    },
+    "web": "deny",
+    "task": "deny",
+    "subagent": "deny"
+  },
+  "share": "disabled",
+  "autoupdate": false
+}
