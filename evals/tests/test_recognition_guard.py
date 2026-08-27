@@ -179,14 +179,16 @@ class TestTheRePinIsWhatItSaysItIs(unittest.TestCase):
         """Verify the moved check's earned points match the repin's account.
 
         For D-035 (SPORTS.LOAD_OR_CAPACITY_RATING):
-        - rec-18: PARTIAL at 1.65 (half of 3.3 Tier A)
-        - rec-19: deferred (0 earned)
+        - rec-18: PARTIAL at 1.65 (half of 3.3 Tier A) via number_without_unit_or_basis
+        - rec-19: PASS at 3.30 via rated_load_with_units (150 kg)
         - rec-20 sports: deferred (0 earned)
+        - rec-24: PASS at 3.30 via rated_load_with_units (330 lbs)
         """
         expected_earned = {
             "rec-18-sports-load-unitless::handle:rec-18-sports-load-unitless": 1.65,
-            "rec-19-sports-load-with-unit::handle:rec-19-sports-load-with-unit": 0.0,
+            "rec-19-sports-load-with-unit::handle:rec-19-sports-load-with-unit": 3.30,
             "rec-20-capacity-load-prose::handle:rec-20-sports-load-prose": 0.0,
+            "rec-24-sports-load-pass-lbs::handle:rec-24-sports-load-pass-lbs": 3.30,
         }
         for key in self.repin.get("products_where_pinned_membership_moved") or self.repin.get("products_where_media_linked_left_the_unknown_set") or []:
             for finding in self.by_key[key].findings:

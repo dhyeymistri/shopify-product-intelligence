@@ -1,22 +1,22 @@
 {
   "expected_version": "0.1",
-  "fixture_id": "rec-19-sports-load-with-unit",
+  "fixture_id": "rec-24-sports-load-pass-lbs",
   "set": "recognition",
   "rubric_version": "0.10",
   "taxonomy_version": "0.1",
   "status_coverage": "partial",
-  "coverage_note": "Asserts the rated_load_with_units predicate for SPORTS.load_or_capacity_rating. The value '150 kg' has a recognized mass unit (kg in MASS_UNITS), so the predicate fires SATISFIED -> PASS at full credit (3.30 of 3.3).",
+  "coverage_note": "Asserts the rated_load_with_units predicate for SPORTS.load_or_capacity_rating with alternate mass unit 'lbs'. The value '330 lbs' has a recognized mass unit (lbs in MASS_UNITS), so the predicate fires SATISFIED -> PASS at full credit (3.30 of 3.3).",
   "notes": "SPORTS.LOAD_OR_CAPACITY_RATING reaches PASS via rated_load_with_units. The ambiguity arm (number_without_unit_or_basis) correctly returns False because the unit is recognized.",
   "products": [
     {
-      "product_id": "handle:rec-19-sports-load-with-unit",
+      "product_id": "handle:rec-24-sports-load-pass-lbs",
       "expected_category": "sports",
       "expected_classification_method": "declared_category_map",
       "must_not_fabricate": [
-        "150 lb",
-        "150 lbs",
-        "max user weight 150 lb",
-        "rated load 150 lb"
+        "330 kg",
+        "330 g",
+        "max user weight 330 kg",
+        "rated load 330 kg"
       ],
       "expected_findings_include": [
         {
@@ -25,7 +25,7 @@
           "evidence_locators": [
             "attributes[load_or_capacity_rating].value_raw"
           ],
-          "reason": "Value '150 kg' is a numeric magnitude with a recognized mass unit."
+          "reason": "Value '330 lbs' is a numeric magnitude with a recognized mass unit."
         }
       ]
     }

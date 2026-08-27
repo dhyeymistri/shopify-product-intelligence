@@ -1,7 +1,7 @@
 {
-  "baseline_version": "0.4",
+  "baseline_version": "0.5",
   "note": "Pinned so that implementing a recognition predicate cannot move it. Recognition may convert a deferral into PASS or PARTIAL and nothing else: the UNKNOWN set, the FAIL set, the NOT_APPLICABLE set and the penalty total of every product must be unchanged by it. A diff here is not a test to update -- it is a recognition predicate that has introduced absence, a defect, or a penalty.",
-  "phase": "P3.1 + P3.2 prerequisites + P3.2 slice D + unnamed_color_group (D-034) + number_without_unit_or_basis (D-035)",
+  "phase": "P3.1 + P3.2 prerequisites + P3.2 slice D + unnamed_color_group (D-034) + number_without_unit_or_basis (D-035) + rated_load_with_units (D-035)",
   "products": {
     "adv-01-evocative-title-no-facts::handle:the-meridian": {
       "fail": [],
@@ -1622,6 +1622,43 @@
         "STRUCT.MEDIA_ALT_TEXT",
         "STRUCT.SEO_FIELDS_POPULATED"
       ]
+    },
+    "rec-24-sports-load-pass-lbs::handle:rec-24-sports-load-pass-lbs": {
+      "fail": [],
+      "not_applicable": [
+        "VARIANT.ATTRIBUTE_COVERAGE",
+        "VARIANT.DIFFERENTIATED",
+        "VARIANT.MEDIA_LINKED",
+        "VARIANT.OPTION_VALUES_CONSISTENT"
+      ],
+      "penalty_total": "0",
+      "unknown": [
+        "IDENT.DESCRIPTION_SUBSTANCE",
+        "SPORTS.AGE_OR_USER_SUITABILITY",
+        "SPORTS.DIMENSIONS_AND_WEIGHT",
+        "SPORTS.INCLUDED_ACCESSORIES",
+        "SPORTS.MAINTENANCE_REQUIREMENTS",
+        "SPORTS.MATERIALS_AND_CONSTRUCTION",
+        "SPORTS.SKILL_OR_INTENSITY_LEVEL",
+        "SPORTS.SPORT_OR_ACTIVITY",
+        "SPORTS.USER_FIT_SPECIFICATION",
+        "SPORTS.USE_ENVIRONMENT",
+        "STRUCT.DESCRIPTION_PARSEABLE",
+        "STRUCT.MEDIA_ALT_TEXT",
+        "STRUCT.SEO_FIELDS_POPULATED",
+        "TRUST.CERTIFICATION_REFERENCED",
+        "TRUST.PROVENANCE",
+        "TRUST.RETURNS_REFERENCE",
+        "TRUST.SHIPPING_OR_LEADTIME",
+        "TRUST.SUPPORT_OR_CONTACT",
+        "TRUST.WARRANTY_OR_GUARANTEE",
+        "USECASE.COMPLEMENTARY_CONTEXT",
+        "USECASE.DIFFERENTIATION",
+        "USECASE.INTENDED_USER",
+        "USECASE.NOT_FOR",
+        "USECASE.PRIMARY_USE",
+        "VARIANT.OPTION_NAMES_MEANINGFUL"
+      ]
     }
   },
   "repin": {
@@ -1641,7 +1678,8 @@
       "rec-18-sports-load-unitless::handle:rec-18-sports-load-unitless",
       "rec-19-sports-load-with-unit::handle:rec-19-sports-load-with-unit",
       "rec-20-capacity-load-prose::handle:rec-20-home-capacity-prose",
-      "rec-20-capacity-load-prose::handle:rec-20-sports-load-prose"
+      "rec-20-capacity-load-prose::handle:rec-20-sports-load-prose",
+      "rec-24-sports-load-pass-lbs::handle:rec-24-sports-load-pass-lbs"
     ],
     "products_where_media_linked_left_the_unknown_set": [
       "adv-02-category-implies-attributes::handle:trailpro-bike-helmet",
@@ -1661,10 +1699,10 @@
       "rec-19-sports-load-with-unit::handle:rec-19-sports-load-with-unit",
       "rec-20-capacity-load-prose::handle:rec-20-sports-load-prose"
     ],
-    "reason": "Re-pinned for P3.2 slice implementing number_without_unit_or_basis predicate (D-035). This recognition predicate moves scores for HOME.capacity_or_load and SPORTS.load_or_capacity_rating when products carry unitless numeric values. The predicate recognizes only the structurally decidable 'no unit' sub-case (D-035). Home checks defer on trigger (load_bearing_element_indicated UNIMPLEMENTED); Sports check reaches PARTIAL on unitless values. This is a score-moving change under D-023.",
-    "rubric_version": "0.7 -> 0.8",
-    "version": "0.4",
+    "reason": "Re-pinned for P3.2 slice implementing rated_load_with_units predicate (D-035). This recognition predicate moves SPORTS.LOAD_OR_CAPACITY_RATING from deferred to PASS on products carrying a recognized mass unit (kg, lbs). The predicate recognizes the structurally decidable 'magnitude + recognized mass unit' case. rec-19 (150 kg) and rec-24 (330 lbs) move from deferred (0 earned) to PASS (3.30 earned). No FAIL, NOT_APPLICABLE, or penalty total changed anywhere in the corpus.",
+    "rubric_version": "0.9 -> 0.10",
+    "version": "0.5",
     "what_did_not_move": "VARIANT.ATTRIBUTE_COVERAGE moved no pinned set on any existing product. Where it changed at all it went from a deferral to PARTIAL, which is the one transition the rule above already permits. No FAIL, no NOT_APPLICABLE and no penalty total changed anywhere in the corpus, and no other check_id moved in any set.",
-    "what_moved": "SPORTS.LOAD_OR_CAPACITY_RATING moved from UNKNOWN to PARTIAL on rec-18-sports-load-unitless (unitless value '150') per number_without_unit_or_basis predicate (D-035). Home checks for capacity_or_load defer on trigger detection (load_bearing_element_indicated UNIMPLEMENTED). No FAIL, NOT_APPLICABLE, or penalty total changed anywhere in the corpus."
+    "what_moved": "SPORTS.LOAD_OR_CAPACITY_RATING moved from deferred to PASS on rec-19-sports-load-with-unit (150 kg) and rec-24-sports-load-pass-lbs (330 lbs) per rated_load_with_units predicate (D-035). Each gains +3.30 earned points. The ambiguity arm (number_without_unit_or_basis) is unaffected and still produces PARTIAL on unitless values. No FAIL, NOT_APPLICABLE, or penalty total changed anywhere in the corpus."
   }
 }

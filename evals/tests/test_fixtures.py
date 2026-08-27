@@ -36,7 +36,7 @@ ALL_FIXTURES = sorted(PIP_FIXTURES + CSV_FIXTURES)
 EXPECTED = sorted(glob.glob(os.path.join(REPO, "evals/expected/*/*.expected.json")))
 
 REQUIRED_SETS = {"sparse": 10, "adversarial": 4, "checks": 9,
-                 "recognition": 23, "uncategorized": 12}
+                 "recognition": 24, "uncategorized": 12}
 
 #: Expectation formats (PRD 12.2). An expectation that omits `format` addresses
 #: a Format C fixture, which is why the 33 that predate this are unchanged.

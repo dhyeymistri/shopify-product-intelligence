@@ -238,6 +238,18 @@ def number_without_unit_or_basis(value):
     return not unit or unit not in X.UNIT_TOKENS
 
 
+def rated_load_with_units(value):
+    # type: (str) -> bool
+    """`taxonomy.md` 5.5 SPORTS.load_or_capacity_rating satisfies predicate:
+    a magnitude with a recognized mass unit.
+
+    D-035: structural boundary -- magnitude parsed, unit token recognized.
+    Uses existing MASS_UNITS vocabulary; no product-value vocabulary.
+    """
+    parsed = X.magnitude(value)
+    return parsed is not None and parsed[1] in X.MASS_UNITS
+
+
 # ---------------------------------------------------------------------------
 # Slice E -- controlled vocabulary, positive arm
 # ---------------------------------------------------------------------------
@@ -377,6 +389,7 @@ VALUE_PREDICATES = {
     "contents_unenumerated": contents_unenumerated,
     "shade_code_without_name": shade_code_without_name,
     "number_without_unit_or_basis": number_without_unit_or_basis,
+    "rated_load_with_units": rated_load_with_units,
     # Slice E
     "named_size_standard_with_value": named_size_standard_with_value,
     "bare_size_label": bare_size_label,
