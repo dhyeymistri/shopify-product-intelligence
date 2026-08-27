@@ -3,13 +3,13 @@
   "permission": {
     "read": {
       "*.env": "deny",
-      "*.env.*": "deny",
-      "AGENTS.md": "deny",
-      "product/**": "deny",
-      ".agent/**": "deny"
+      "*.env.*": "deny"
     },
     "write": {
-      "*": "deny"
+      "AGENTS.md": "deny",
+      "product/**": "deny",
+      ".agent/**": "deny",
+      "*": "allow"
     },
     "bash": {
       "git commit*": "deny",
